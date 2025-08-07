@@ -28,7 +28,8 @@
 
     .enterprise-card {
         width: 100%;
-        min-height: 168rpx;
+        // min-height: 168rpx;
+
         background: #FFFFFF;
         border-radius: 20rpx;
         padding: 24rpx;
@@ -48,6 +49,21 @@
                 font-weight: 500;
                 font-size: 32rpx;
                 color: #333333;
+            }
+
+            .avatar {
+                width: 64rpx;
+                height: 64rpx;
+                background: #D9E2FF;
+                border-radius: 10rpx;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: PingFang SC, PingFang SC;
+                font-weight: 500;
+                font-size: 32rpx;
+                color: #426EFF;
+                margin-right: 28rpx;
             }
 
             .info {

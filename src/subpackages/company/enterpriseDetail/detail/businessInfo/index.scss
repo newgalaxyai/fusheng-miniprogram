@@ -51,6 +51,35 @@
                 font-weight: 500;
                 font-size: 26rpx;
                 color: #333333;
+
+                .expand-container {
+                    width: 100%;
+                    display: flex;
+                    flex-direction: row;
+                    align-items: normal;
+                    justify-content: space-between;
+
+                    .expanded_left {
+                        width: 90%;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                        transition: all 0.2s;
+
+                        &.expanded {
+                            white-space: normal;
+                            word-break: break-all;
+                            overflow: visible;
+                            text-overflow: initial;
+                        }
+                    }
+
+                    .expanded_right {
+                        width: 10%;
+                        font-weight: 400;
+                        color: #3E8DF6;
+                    }
+                }
             }
         }
 

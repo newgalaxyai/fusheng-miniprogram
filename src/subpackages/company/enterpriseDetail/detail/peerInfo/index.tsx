@@ -204,7 +204,7 @@ function Index() {
                         <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise3.png" className="certification_img" />
                         <View className="certification_text">官网</View>
                       </View>
-                      <View className="match">匹配{item.score}%</View>
+                      {/* <View className="match">匹配{item.score}%</View> */}
                     </View>
                   </View>
                 </View>

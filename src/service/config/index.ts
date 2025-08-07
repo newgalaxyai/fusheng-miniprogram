@@ -1,6 +1,7 @@
 export const TIME_OUT = 120000
 
-export const BASE_URL = 'http://192.168.110.35:10017'
+// export const BASE_URL = process.env.BASE_URL
+export const BASE_URL = 'http://192.168.110.43:10017'
 // export const BASE_URL = 'https://fs.xiaohengquan.com'
 
 // 上传文件

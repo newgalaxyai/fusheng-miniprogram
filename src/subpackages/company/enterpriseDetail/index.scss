@@ -627,6 +627,14 @@
         color: #333333;
         position: relative;
 
+        .enterprise_info_content_item_value {
+          width: calc(100% - 60rpx);
+          height: 40rpx;
+          line-height: 40rpx;
+          font-size: 20rpx;
+          color: #929292;
+        }
+
         .info_Img {
           width: 40rpx;
           height: 40rpx;
