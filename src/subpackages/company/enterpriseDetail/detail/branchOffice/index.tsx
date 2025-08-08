@@ -22,7 +22,7 @@ function Index() {
       gid: companyInfo.gid
       // gid: 47183021
     }, branchOfficeRes => {
-      console.log('branchOfficeRes', branchOfficeRes);
+      // console.log('branchOfficeRes', branchOfficeRes);
       setBranchOffice(branchOfficeRes.data || [])
     })
   })

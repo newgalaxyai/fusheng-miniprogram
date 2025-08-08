@@ -21,7 +21,7 @@ function Index() {
       gid: companyInfo.gid
       // gid: 47183021
     }, suspectedRelationRes => {
-      console.log('suspectedRelationRes', suspectedRelationRes);
+      // console.log('suspectedRelationRes', suspectedRelationRes);
       setSuspectedRelation(suspectedRelationRes.data || [])
     })
   })

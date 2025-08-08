@@ -24,7 +24,7 @@ function Index() {
       gid: companyInfo.gid
       // gid: 47183021
     }, actualControllerRes => {
-      console.log('actualControllerRes', actualControllerRes);
+      // console.log('actualControllerRes', actualControllerRes);
       setBeneficialOwner(actualControllerRes.data?.beneficialOwnerList || [])
       setBeneficialHuman(actualControllerRes.data?.beneficialHumanList || [])
     })

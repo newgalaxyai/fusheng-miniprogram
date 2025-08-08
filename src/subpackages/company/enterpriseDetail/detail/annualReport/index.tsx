@@ -28,7 +28,7 @@ function Index() {
       gid: companyInfo.gid
       // gid: 47183021
     }, annualReportRes => {
-      console.log('annualReportRes', annualReportRes);
+      // console.log('annualReportRes', annualReportRes);
       setAnnualReport(annualReportRes.data || [])
     })
   })

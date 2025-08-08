@@ -65,30 +65,30 @@ function Index() {
       router: ROUTE.BRANCH_OFFICE,
       img: IMG.BRANCH_OFFICE
     },
-    // {
-    //   title: ROUTE_NAME.ACTUAL_CONTROLLER,
-    //   value: 1,
-    //   router: ROUTE.ACTUAL_CONTROLLER,
-    //   img: IMG.ACTUAL_CONTROLLER
-    // },
+    {
+      title: ROUTE_NAME.ACTUAL_CONTROLLER,
+      value: 1,
+      router: ROUTE.ACTUAL_CONTROLLER,
+      img: IMG.ACTUAL_CONTROLLER
+    },
     // { 
     //   title: ROUTE_NAME.ACTUAL_CONTROL, 
     //   value: 67, 
     //   router: ROUTE.ACTUAL_CONTROL,
     //   img: IMG.ACTUAL_CONTROL
     // },
-    // {
-    //   title: ROUTE_NAME.DIRECT_CONTROL,
-    //   value: 1,
-    //   router: ROUTE.DIRECT_CONTROL,
-    //   img: IMG.DIRECT_CONTROL
-    // },
-    // {
-    //   title: ROUTE_NAME.BUSINESS_PUBLICITY,
-    //   value: 1,
-    //   router: ROUTE.BUSINESS_PUBLICITY,
-    //   img: IMG.BUSINESS_PUBLICITY
-    // },
+    {
+      title: ROUTE_NAME.DIRECT_CONTROL,
+      value: 1,
+      router: ROUTE.DIRECT_CONTROL,
+      img: IMG.DIRECT_CONTROL
+    },
+    {
+      title: ROUTE_NAME.BUSINESS_PUBLICITY,
+      value: 1,
+      router: ROUTE.BUSINESS_PUBLICITY,
+      img: IMG.BUSINESS_PUBLICITY
+    },
     // { 
     //   title: ROUTE_NAME.COOPERATIVE_SHAREHOLDER, 
     //   value: 67, 
@@ -101,12 +101,12 @@ function Index() {
     //   router: ROUTE.INDIRECT_HOLDING,
     //   img: IMG.INDIRECT_HOLDING
     // },
-    // { 
-    //   title: ROUTE_NAME.SUSPECTED_RELATION,
-    //   value: 1,
-    //   router: ROUTE.SUSPECTED_RELATION,
-    //   img: IMG.SUSPECTED_RELATION
-    // },
+    {
+      title: ROUTE_NAME.SUSPECTED_RELATION,
+      value: 1,
+      router: ROUTE.SUSPECTED_RELATION,
+      img: IMG.SUSPECTED_RELATION
+    },
     // { 
     //   title: ROUTE_NAME.ENTERPRISE_PRODUCT, 
     //   value: 67, 
@@ -351,9 +351,9 @@ function Index() {
   }
 
   useLoad(options => {
-    // let res = JSON.parse(options.company)
-    const testString = '{"gid":"2330850654","logo":"金成领先","name":"武汉金成领先电机有限公司","tags":["小微企业"],"score":70.05,"orgType":"有限责任公司(自然人独资)","industry":"金属制品、机械和设备修理业","location":"湖北省武汉市蔡甸区","websites":"-","regStatus":"存续","riskLevel":65,"creditCode":"914201143035742207","regCapital":"500万人民币","contactInfo":{"emails":["13667255900@qq.com","754589965@qq.com","1311828357@qq.com"],"phones":["13667255900","13831371178"]},"legalPerson":"蔡成威","productMatch":80,"businessScope":"电机、变压器、变频器、高低压水泵的改造、维修；电动门、防火门、电动设备的改造、安装；电机零售。（依法须经批准的项目，经相关部门批准后方可开展经营活动）","establishTime":"2014-11-17","handleLocation":"湖北省","marketPotential":75,"companyScaleInfo":"注册资本500万人民币,员工人数0人的企业"}'
-    let res = JSON.parse(testString)
+    let res = JSON.parse(options.company)
+    // const testString = '{"gid":"2330850654","logo":"金成领先","name":"武汉金成领先电机有限公司","tags":["小微企业"],"score":70.05,"orgType":"有限责任公司(自然人独资)","industry":"金属制品、机械和设备修理业","location":"湖北省武汉市蔡甸区","websites":"-","regStatus":"存续","riskLevel":65,"creditCode":"914201143035742207","regCapital":"500万人民币","contactInfo":{"emails":["13667255900@qq.com","754589965@qq.com","1311828357@qq.com"],"phones":["13667255900","13831371178"]},"legalPerson":"蔡成威","productMatch":80,"businessScope":"电机、变压器、变频器、高低压水泵的改造、维修；电动门、防火门、电动设备的改造、安装；电机零售。（依法须经批准的项目，经相关部门批准后方可开展经营活动）","establishTime":"2014-11-17","handleLocation":"湖北省","marketPotential":75,"companyScaleInfo":"注册资本500万人民币,员工人数0人的企业"}'
+    // let res = JSON.parse(testString)
 
     // 统计联系方式总数
     const totalCount = Object.values(res.contactInfo || {}).reduce<number>((sum, arr: any) => {
@@ -734,7 +734,7 @@ function Index() {
         <View className="enterprise_info_title">基本信息</View>
         <View className="enterprise_info_content">
           {enterpriseInfo.map((item, index) => (
-            <View className="enterprise_info_content_item" onClick={() => Taro.navigateTo({ url: item.router + `?company=${JSON.stringify({ ...company, })}` })} key={index}>
+            <View className="enterprise_info_content_item" onClick={() => Taro.navigateTo({ url: item.router + `?company=${JSON.stringify({ ...company })}` })} key={index}>
               <View className="enterprise_info_content_item_title">{item.title}</View>
               {/* <View className="enterprise_info_content_item_value">{item.value}</View> */}
               <View className="enterprise_info_content_item_value">点击查看</View>

@@ -22,7 +22,7 @@ function Index() {
     getBusinessInfoAPI({
       keyword: companyInfo.name
     }, businessInfoRes => {
-      console.log('businessInfoRes', businessInfoRes);
+      // console.log('businessInfoRes', businessInfoRes);
       setBusinessInfo(businessInfoRes.data || null)
     })
   })

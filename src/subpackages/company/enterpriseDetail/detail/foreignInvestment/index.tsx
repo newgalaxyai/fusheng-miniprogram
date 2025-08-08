@@ -23,7 +23,7 @@ function Index() {
       gid: companyInfo.gid
       // gid: 47183021
     }, foreignInvestmentRes => {
-      console.log('foreignInvestmentRes', foreignInvestmentRes);
+      // console.log('foreignInvestmentRes', foreignInvestmentRes);
       setForeignInvestment(foreignInvestmentRes.data || [])
     })
   })

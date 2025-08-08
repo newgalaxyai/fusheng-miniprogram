@@ -18,7 +18,7 @@ function Index() {
     getPersonInfoAPI({
       gid: companyInfo.gid
     }, personInfoRes => {
-      console.log('personInfoRes', personInfoRes);
+      // console.log('personInfoRes', personInfoRes);
       setPersonInfo(personInfoRes.data?.result || [])
     })
   })

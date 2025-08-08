@@ -19,7 +19,7 @@ function Index() {
     getShareholderInfoAPI({
       gid: companyInfo.gid
     }, shareholderInfoRes => {
-      console.log('shareholderInfoRes', shareholderInfoRes);
+      // console.log('shareholderInfoRes', shareholderInfoRes);
       setShareholderInfo(shareholderInfoRes.data?.result || [])
     })
   })
