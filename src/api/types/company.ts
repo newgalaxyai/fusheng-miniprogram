@@ -135,25 +135,117 @@ export type IAnnualReportDetail = {
 
 // 对外投资
 export type IOutsideInvestment = {
-
+    name: string; // 公司名称
+    alias: string; // 别名
+    logo: string; // logo
+    tags: {
+        name: string
+    }[];
+    legalPersonName: string; // 法定代表人
+    amount: string; // 注册资本
+    percent: string; // 出资比例
+    estiblishTime: number; // 成立时间
+    regStatus: string; // 注册状态
+    province: string; // 省份
+    category: string; // 行业
 }
 
 // 分支机构
 export type IBranchOffice = {
+    name: string; // 公司名称
+    alias: string; // 别名
+    logo: string; // logo
+    tags: {
+        name: string
+    }[];
+    regStatus: string; // 注册状态
+    legalPersonName: string; // 法定代表人
+    area: string; // 注册地址
+    estiblishTime: string; // 成立时间
+}
 
+// 受益所有人
+export interface IBeneficialList {
+    humanName: string; // 姓名
+    humanLogo: string; // logo
+    positionType: string; // 职位类型
+    finalBenefitShare: string; // 最终受益比例
+    benefitType: string; // 受益类型
+    decisionReason: string; // 决策原因
 }
 
 // 受益人
 export type IActualController = {
-
+    beneficialHumanList: IBeneficialList[]; // 受益自然人
+    beneficialOwnerList: IBeneficialList[]; // 受益所有人
 }
 
 // 直接控制企业
 export type IDirectControl = {
-
+    area: string; // 注册地址
+    companyAlias: string; // 公司别名
+    companyGid: number; // 公司id
+    companyLogo: string; // 公司logo
+    companyName: string; // 公司名称
+    establishDate: string; // 成立日期
+    id: number; // 直接控制企业id
+    industry: string; // 行业
+    industryInfo: {
+        nameLevel1: string; // 一级行业
+        nameLevel2: string; // 二级行业
+        nameLevel3: string; // 三级行业
+        nameLevel4: string; // 四级行业
+        code: string; // 行业代码
+    }; // 行业信息
+    code: string; // 行业代码
+    nameLevel1: string; // 一级行业
+    nameLevel2: string; // 二级行业
+    nameLevel3: string; // 三级行业
+    nameLevel4: string; // 四级行业
+    investRatio: string; // 出资比例
+    legalPersonGid: number; // 法人GID
+    legalPersonHid: number; // 法人HID
+    legalPersonName: string; // 法人姓名
+    legalPersonType: number; // 法人类型
+    registerCapital: string; // 注册资本
+    registerStatus: string; // 注册状态
 }
 
 // 工商自主公示
 export type IBusibessPublicity = {
+    alias: string; // 别名
+    logo: string; // logo
+    name: string; // 公司名称
+    capital:{
+        amomon: string; // 金额
+        publicDate: string; // 公示日期
+        time: string; // 时间
+    }[]; // 资本信息
+    capitalActl:{
+        amomon: string; // 金额
+        time: string; // 时间
+    }[]; // 资本信息
+}
 
+// 疑似关系
+export type ISuspectedRelation = {
+    alias: string; // 别名
+    logo: string; // logo
+    companyName: string; // 公司名称
+    suspectedTypeText: string; // 关系类型
+    regStatus: string; // 注册状态
+    legalPerson: {
+        legalRepName: string; // 法定代表人
+    }[]; // 法定代表人
+    regCapital: string; // 注册资本
+    establishYearsShowText: string; // 成立时间
+    phoneList: {
+        phone: string; // 手机号
+    }[]; // 手机号
+    emailList: {
+        email: string; // 邮箱
+    }[]; // 邮箱
+    addressList: {
+        address: string; // 地址
+    }[]; // 地址
 }

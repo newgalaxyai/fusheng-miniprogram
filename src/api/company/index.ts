@@ -17,14 +17,26 @@ import type {
   IAnnualReport,
   IAnnualReportDetailRequest,
   IAnnualReportDetail,
-  IBusinessInfoRequest
+  IBusinessInfoRequest,
+  IOutsideInvestment,
+  IBranchOffice,
+  IActualController,
+  IDirectControl,
+  IBusibessPublicity,
+  ISuspectedRelation
 } from '../types'
 import { 
   getBusinessInfoURL, 
   getPersonInfoURL, 
   getShareholderInfoURL,
   getAnnualReportURL,
-  getAnnualReportDetailURL
+  getAnnualReportDetailURL,
+  getOutsideInvestmentURL,
+  getBranchOfficeURL,
+  getActualControllerURL,
+  getDirectControlURL,
+  getBusinessSelfPublicationURL,
+  getSuspectedRelationURL
  } from '../url'
 
 // 获取产品卖点
@@ -327,6 +339,180 @@ export const getAnnualReportDetailAPI = (data: IAnnualReportDetailRequest, callb
       callback({
         success: true,
         data: res.data
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => { })
+}
+
+// 获取对外投资
+export const getOutsideInvestmentAPI = (data: ICorpInfoRequest, callback: (res: IResponse<IOutsideInvestment[]>) => void) => {
+  taroGet({
+    url: getOutsideInvestmentURL,
+    data,
+    success: (res: any) => {
+      callback({
+        success: true,
+        data: res.data.result
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => { })
+}
+
+// 获取分支机构
+export const getBranchOfficeAPI = (data: ICorpInfoRequest, callback: (res: IResponse<IBranchOffice[]>) => void) => {
+  taroGet({
+    url: getBranchOfficeURL,
+    data,
+    success: (res: any) => {
+      callback({
+        success: true,
+        data: res.data.result
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => { })
+}
+
+// 获取受益人
+export const getActualControllerAPI = (data: ICorpInfoRequest, callback: (res: IResponse<IActualController>) => void) => {
+  taroGet({
+    url: getActualControllerURL,
+    data,
+    success: (res: any) => {
+      callback({
+        success: true,
+        data: res.data
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => { })
+}
+
+// 获取直接控制企业
+export const getDirectControlAPI = (data: ICorpInfoRequest, callback: (res: IResponse<IDirectControl[]>) => void) => {
+  taroGet({
+    url: getDirectControlURL,
+    data,
+    success: (res: any) => {
+      callback({
+        success: true,
+        data: res.data.list
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => { })
+}
+
+// 获取工商自主公示
+export const getBusinessSelfPublicationAPI = (data: ICorpInfoRequest, callback: (res: IResponse<IBusibessPublicity[]>) => void) => {
+  taroGet({
+    url: getBusinessSelfPublicationURL,
+    data,
+    success: (res: any) => {
+      callback({
+        success: true,
+        data: res.data.result
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => { })
+}
+
+// 获取疑似关系
+export const getSuspectedRelationAPI = (data: ICorpInfoRequest, callback: (res: IResponse<ISuspectedRelation[]>) => void) => {
+  taroGet({
+    url: getSuspectedRelationURL,
+    data,
+    success: (res: any) => {
+      callback({
+        success: true,
+        data: res.data.list
       })
     },
     fail: (err: any) => {

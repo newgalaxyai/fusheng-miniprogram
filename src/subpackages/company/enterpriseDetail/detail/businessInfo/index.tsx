@@ -18,10 +18,9 @@ function Index() {
   useLoad((params) => {
     const { company } = params
     const companyInfo = JSON.parse(company)
-    console.log('params', companyInfo);
-
+    // console.log('params', companyInfo);
     getBusinessInfoAPI({
-      keyword: companyInfo.companyName
+      keyword: companyInfo.name
     }, businessInfoRes => {
       console.log('businessInfoRes', businessInfoRes);
       setBusinessInfo(businessInfoRes.data || null)

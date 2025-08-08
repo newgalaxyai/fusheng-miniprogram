@@ -53,18 +53,18 @@ function Index() {
       router: ROUTE.ENTERPRISE_REPORT,
       img: IMG.ENTERPRISE_REPORT
     },
-    // {
-    //   title: ROUTE_NAME.OUTSIDE_INVESTMENT,
-    //   value: 67,
-    //   router: ROUTE.OUTSIDE_INVESTMENT,
-    //   img: IMG.OUTSIDE_INVESTMENT
-    // },
-    // {
-    //   title: ROUTE_NAME.BRANCH_OFFICE,
-    //   value: 1,
-    //   router: ROUTE.BRANCH_OFFICE,
-    //   img: IMG.BRANCH_OFFICE
-    // },
+    {
+      title: ROUTE_NAME.OUTSIDE_INVESTMENT,
+      value: 67,
+      router: ROUTE.OUTSIDE_INVESTMENT,
+      img: IMG.OUTSIDE_INVESTMENT
+    },
+    {
+      title: ROUTE_NAME.BRANCH_OFFICE,
+      value: 1,
+      router: ROUTE.BRANCH_OFFICE,
+      img: IMG.BRANCH_OFFICE
+    },
     // {
     //   title: ROUTE_NAME.ACTUAL_CONTROLLER,
     //   value: 1,
@@ -734,7 +734,7 @@ function Index() {
         <View className="enterprise_info_title">基本信息</View>
         <View className="enterprise_info_content">
           {enterpriseInfo.map((item, index) => (
-            <View className="enterprise_info_content_item" onClick={() => Taro.navigateTo({ url: item.router + `?company=${JSON.stringify({ ...company, gid: 47183021 })}` })} key={index}>
+            <View className="enterprise_info_content_item" onClick={() => Taro.navigateTo({ url: item.router + `?company=${JSON.stringify({ ...company, })}` })} key={index}>
               <View className="enterprise_info_content_item_title">{item.title}</View>
               {/* <View className="enterprise_info_content_item_value">{item.value}</View> */}
               <View className="enterprise_info_content_item_value">点击查看</View>
