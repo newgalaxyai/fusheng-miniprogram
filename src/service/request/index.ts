@@ -224,9 +224,27 @@ class TaroRequest {
           ;(res as any).config = mergedConfig
           // 执行响应拦截器
           const processedRes = this.executeResponseInterceptors(res, mergedConfig, true)
-          // 调用原始success回调
-          if (originalSuccess) {
-            originalSuccess(processedRes)
+          
+          // 检查是否返回了 Promise（token 刷新场景）
+          if (processedRes && typeof processedRes.then === 'function') {
+            console.log('返回了 Promise，等待刷新 token 完成');
+            // 如果是 Promise，等待其完成后再调用原始 success 回调
+            processedRes
+              .then((actualData: any) => {
+                if (originalSuccess) {
+                  originalSuccess(actualData)
+                }
+              })
+              .catch((error: any) => {
+                if (originalFail) {
+                  originalFail(error)
+                }
+              })
+          } else {
+            // 正常情况，直接调用原始 success 回调
+            if (originalSuccess) {
+              originalSuccess(processedRes)
+            }
           }
         } catch (error) {
           // 如果响应拦截器抛出错误，调用fail回调

@@ -66,11 +66,26 @@ const handleTokenRefresh = async (originalRequest: any, requestInstance: TaroReq
 
         // 为所有等待的请求更新token并重试
         waitQueue.forEach(({ config, resolve, reject, requestInstance }) => {
-          config.headers = config.headers || {}
-          config.headers['Authorization'] = `Bearer ${newToken}`
+          // 更新请求头中的token
+          config.header = config.header || {}
+          config.header['Authorization'] = `Bearer ${newToken}`
 
           // 使用原始的请求实例重新发起请求，确保经过相同的拦截器处理
-          requestInstance.request(config).then(resolve).catch(reject)
+          requestInstance.request(config)
+            .then(response => {
+              // 统一处理响应数据
+              if (response.statusCode === 200) {
+                if (response.data.code == 0) {
+                  // 确保返回的是处理后的响应数据
+                  resolve(response.data)
+                } else {
+                  throw response.data
+                }
+              } else {
+                throw response
+              }
+            })
+            .catch(reject)
         })
 
         // 清空等待队列
