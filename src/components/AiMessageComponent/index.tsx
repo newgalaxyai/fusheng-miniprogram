@@ -16,13 +16,8 @@ const parseMarkdown = (text: string): string => {
 
   try {
     // 先对HTML标签进行转义，防止接口返回的HTML标签被直接渲染
-    const escapedText = text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;')
-    
+    const escapedText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+
     const result = marked.parse(escapedText)
     if (typeof result === 'string') {
       return result
@@ -113,13 +108,13 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
                       <Image src={val.logo} className="company_left_img" />
                     ) : (
                       // 如果是文字，显示文字
-                      <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '24rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="company_left_img">
+                      <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="company_left_img">
                         {val.logo}
                       </Text>
                     )
                   ) : (
                     // 如果为空，显示"暂无"
-                    <Text className="company_left_img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '24rpx' }}>
+                    <Text className="company_left_img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx' }}>
                       暂无
                     </Text>
                   )}

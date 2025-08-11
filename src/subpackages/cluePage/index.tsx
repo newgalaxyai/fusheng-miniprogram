@@ -659,13 +659,13 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                           <Image src={item.logo} className="cluePage_item_Img" />
                         ) : (
                           // 如果是文字，显示文字
-                          <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '24rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="cluePage_item_Img">
+                          <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="cluePage_item_Img">
                             {item.logo}
                           </Text>
                         )
                       ) : (
                         // 如果为空，显示"暂无"
-                        <Text className="cluePage_item_Img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '24rpx' }}>
+                        <Text className="cluePage_item_Img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx' }}>
                           暂无
                         </Text>
                       )}
@@ -851,13 +851,13 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                             <Image src={item.companyInfo.logo} className="history_img_img" />
                           ) : (
                             // 如果是文字，显示文字
-                            <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '24rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="history_img_img">
+                            <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="history_img_img">
                               {item.companyInfo.logo}
                             </Text>
                           )
                         ) : (
                           // 如果为空，显示"暂无"
-                          <Text className="history_img_img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '24rpx' }}>
+                          <Text className="history_img_img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx' }}>
                             暂无
                           </Text>
                         )}
