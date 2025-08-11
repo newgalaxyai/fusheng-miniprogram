@@ -1,0 +1,78 @@
+.detailPage {
+    width: 100%;
+    height: 100vh; // 改为固定高度
+    padding: 32rpx;
+    box-sizing: border-box;
+    padding-bottom: 0; // 默认底部padding
+
+    // 当键盘弹起时的样式
+    &.keyboard-active {
+        padding-bottom: 500rpx;
+    }
+
+    wx-button {
+        background: transparent;
+        background-color: transparent;
+
+        &:after {
+            border: none;
+        }
+    }
+
+    .avatar {
+        width: 144rpx;
+        height: 144rpx;
+        border-radius: 50%;
+        border: 2rpx solid #F2F2F2;
+        margin: 0 auto;
+        margin-bottom: 72rpx;
+        padding: 0;
+
+        .avatar_img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+    }
+
+    .info_list {
+        width: 100%;
+
+        .info_item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 38rpx 32rpx;
+            box-sizing: border-box;
+            border: 2rpx solid #F2F2F2;
+            background: #FAFAFA;
+            margin-bottom: 40rpx;
+            font-family: PingFang SC, PingFang SC;
+            font-weight: 500;
+            font-size: 28rpx;
+            color: #333333;
+            border-radius: 12rpx;
+        }
+    }
+
+    .save_btn {
+        width: 350rpx;
+        height: 86rpx;
+        background: #2156FE;
+        border-radius: 20rpx;
+        font-family: PingFang SC, PingFang SC;
+        font-weight: 500;
+        font-size: 28rpx;
+        color: #FFFFFF;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: background 0.3s ease;
+        margin: 0 auto;
+        margin-top: 60rpx;
+
+        &:active {
+            background: rgba(#2156FE, 0.8);
+        }
+    }
+}

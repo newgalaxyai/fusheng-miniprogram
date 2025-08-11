@@ -1,0 +1,29 @@
+.nut-popup-title-title {
+    font-family: PingFang SC, PingFang SC !important;
+    font-weight: 500 !important;
+    font-size: 32rpx !important;
+    color: #333333 !important;
+}
+
+.nut-tabs-titles {
+    background: transparent !important;
+}
+
+.nut-tabpane {
+    padding: 0 !important;
+}
+
+page {
+    --nutui-color-primary: #4981F8;
+    --nutui-color-primary-stop-1: #4981F8;
+    --nutui-color-primary-stop-2: #4981F8;
+}
+
+.keyboard-active {
+    padding-bottom: 500rpx !important;
+}
+
+.nut-empty-description {
+    margin-top: 30rpx !important;
+    font-size: 28rpx !important;
+}
