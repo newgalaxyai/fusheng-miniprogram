@@ -21,9 +21,9 @@ function Index() {
   // 获取conversation相关状态
   const {
     conversations, // 会话列表数据
-    favorites // 收藏列表数据
+    favorites, // 收藏列表数据
   } = useAppSelector(state => state.conversation)
-  const cluePageRef = useRef<{ getClueList: (page?: number, append?: boolean) => void }>(null)
+
   const [capsuleInfo, setCapsuleInfo] = useState({ height: 32, statusBarHeight: 0 })
   const [activeIndex, setActiveIndex] = useState(0)
   const [showSetting, setShowSetting] = useState(false)
@@ -37,12 +37,7 @@ function Index() {
   const openRef = useRef<any>(null)
   // 将单个展开状态改为对象，用于管理每个收藏项的展开状态
   const [expandedItems, setExpandedItems] = useState<{ [key: number]: boolean }>({})
-  const handleActiveIndex = (idx: any) => {
-    if (idx == 1) {
-      cluePageRef.current?.getClueList()
-    }
-    setActiveIndex(idx)
-  }
+  const handleActiveIndex = idx => setActiveIndex(idx)
 
   // 添加ref来调用子组件方法
   const aiChatRef = useRef<any>(null)
@@ -204,11 +199,9 @@ function Index() {
   }
 
   const getChatItem = (chatItem: any) => {
-    Taro.showLoading({ title: '获取内容中', mask: true })
     aiSessionGetHistorySessionAPI({ id: chatItem.id }, res => {
       if (res.success && res.data) {
         setActiveIndex(0)
-        Taro.hideLoading()
         nextTick(() => {
           Taro.eventCenter.trigger('getChatItem', res.data)
           Taro.setStorageSync('aiSessionId', chatItem.id)
@@ -398,7 +391,7 @@ function Index() {
       </View>
 
       <View style={{ display: activeIndex === 1 ? 'block' : 'none' }}>
-        <CluePage ref={cluePageRef} height={totalHeight} />
+        <CluePage height={totalHeight} />
       </View>
     </View>
   )

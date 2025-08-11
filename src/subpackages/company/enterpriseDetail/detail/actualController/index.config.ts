@@ -1,3 +1,3 @@
 export default definePageConfig({
-  navigationBarTitleText: '实际控制人'
+  navigationBarTitleText: '受益人'
 })

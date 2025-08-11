@@ -8,28 +8,115 @@ import CustomDialog from '@/components/CustomDialog'
 import { companyFeedbackCreateAPI, enterpriseDetailAPI } from '@/api/company'
 import { clueCreateAPI, clueDeleteAPI } from '@/api/clue'
 import ContactPopup from '@/components/ContactPopup'
+import { IMG, ROUTE_NAME, ROUTE } from '@/constants'
 
 function Index() {
   // 企业信息数据，提取自图片（无children）
   const [enterpriseInfo, setEnterpriseInfo] = useState([
-    { title: '工商信息', value: 67, router: '/subpackages/company/enterpriseDetail/detail/businessInfo/index' },
-    { title: '股东信息', value: 1, router: '/subpackages/company/enterpriseDetail/detail/shareholderInfo/index' },
-    { title: '人员信息', value: 1, router: '/subpackages/company/enterpriseDetail/detail/personnelInfo/index' },
-    { title: '核心人员', value: 67, router: '/subpackages/company/enterpriseDetail/detail/corePersonnel/index' },
-    { title: '工商变更', value: 1, router: '/subpackages/company/enterpriseDetail/detail/businessChange/index' },
-    { title: '企业年报', value: 1, router: '/subpackages/company/enterpriseDetail/detail/annualReport/index' },
-    { title: '对外投资', value: 67, router: '/subpackages/company/enterpriseDetail/detail/foreignInvestment/index' },
-    { title: '分支机构', value: 1, router: '/subpackages/company/enterpriseDetail/detail/branchOffice/index' },
-    { title: '实际控制人', value: 1, router: '/subpackages/company/enterpriseDetail/detail/actualController/index' },
-    { title: '实际控制权', value: 67, router: '/subpackages/company/enterpriseDetail/detail/actualControl/index' },
-    { title: '直接控制企业', value: 1, router: '/subpackages/company/enterpriseDetail/detail/directControl/index' },
-    { title: '工商自主公示', value: 1, router: '/subpackages/company/enterpriseDetail/detail/businessPublicity/index' },
-    { title: '协同股东', value: 67, router: '/subpackages/company/enterpriseDetail/detail/cooperativeShareholder/index' },
-    { title: '间接持股企业', value: 1, router: '/subpackages/company/enterpriseDetail/detail/indirectHolding/index' },
-    { title: '疑似关系', value: 1, router: '/subpackages/company/enterpriseDetail/detail/suspectedRelation/index' },
-    { title: '企业产品', value: 67, router: '/subpackages/company/enterpriseDetail/detail/enterpriseProduct/index' },
-    { title: '同业分析', value: 1, router: '/subpackages/company/enterpriseDetail/detail/industryAnalysis/index' }
+    {
+      title: ROUTE_NAME.BUSINESS_INFO,
+      value: 67,
+      router: ROUTE.BUSINESS_INFO,
+      img: IMG.BUSINESS_INFO
+    },
+    {
+      title: ROUTE_NAME.SHAREHOLDER_INFO,
+      value: 1,
+      router: ROUTE.SHAREHOLDER_INFO,
+      img: IMG.SHAREHOLDER_INFO
+    },
+    {
+      title: ROUTE_NAME.PERSONNEL_INFO,
+      value: 1,
+      router: ROUTE.PERSONNEL_INFO,
+      img: IMG.PERSONNEL_INFO
+    },
+    // {
+    //   title: ROUTE_NAME.CORE_PERSONNEL,
+    //   value: 67,
+    //   router: ROUTE.CORE_PERSONNEL,
+    //   img: IMG.CORE_PERSONNEL
+    // },
+    // {
+    //   title: ROUTE_NAME.BUSINESS_CHANGE,
+    //   value: 1,
+    //   router: ROUTE.BUSINESS_CHANGE,
+    //   img: IMG.BUSINESS_CHANGE
+    // },
+    {
+      title: ROUTE_NAME.ENTERPRISE_REPORT,
+      value: 1,
+      router: ROUTE.ENTERPRISE_REPORT,
+      img: IMG.ENTERPRISE_REPORT
+    },
+    {
+      title: ROUTE_NAME.OUTSIDE_INVESTMENT,
+      value: 67,
+      router: ROUTE.OUTSIDE_INVESTMENT,
+      img: IMG.OUTSIDE_INVESTMENT
+    },
+    {
+      title: ROUTE_NAME.BRANCH_OFFICE,
+      value: 1,
+      router: ROUTE.BRANCH_OFFICE,
+      img: IMG.BRANCH_OFFICE
+    },
+    {
+      title: ROUTE_NAME.ACTUAL_CONTROLLER,
+      value: 1,
+      router: ROUTE.ACTUAL_CONTROLLER,
+      img: IMG.ACTUAL_CONTROLLER
+    },
+    // {
+    //   title: ROUTE_NAME.ACTUAL_CONTROL,
+    //   value: 67,
+    //   router: ROUTE.ACTUAL_CONTROL,
+    //   img: IMG.ACTUAL_CONTROL
+    // },
+    {
+      title: ROUTE_NAME.DIRECT_CONTROL,
+      value: 1,
+      router: ROUTE.DIRECT_CONTROL,
+      img: IMG.DIRECT_CONTROL
+    },
+    {
+      title: ROUTE_NAME.BUSINESS_PUBLICITY,
+      value: 1,
+      router: ROUTE.BUSINESS_PUBLICITY,
+      img: IMG.BUSINESS_PUBLICITY
+    },
+    // {
+    //   title: ROUTE_NAME.COOPERATIVE_SHAREHOLDER,
+    //   value: 67,
+    //   router: ROUTE.COOPERATIVE_SHAREHOLDER,
+    //   img: IMG.COOPERATIVE_SHAREHOLDER
+    // },
+    // {
+    //   title: ROUTE_NAME.INDIRECT_HOLDING,
+    //   value: 1,
+    //   router: ROUTE.INDIRECT_HOLDING,
+    //   img: IMG.INDIRECT_HOLDING
+    // },
+    {
+      title: ROUTE_NAME.SUSPECTED_RELATION,
+      value: 1,
+      router: ROUTE.SUSPECTED_RELATION,
+      img: IMG.SUSPECTED_RELATION
+    }
+    // {
+    //   title: ROUTE_NAME.ENTERPRISE_PRODUCT,
+    //   value: 67,
+    //   router: ROUTE.ENTERPRISE_PRODUCT,
+    //   img: IMG.ENTERPRISE_PRODUCT
+    // },
+    // {
+    //   title: ROUTE_NAME.PEER_ANALYSIS,
+    //   value: 1,
+    //   router: ROUTE.PEER_ANALYSIS,
+    //   img: IMG.PEER_ANALYSIS
+    // }
   ])
+
   const [company, setCompany] = useState<any>({})
   const [companyDetail, setCompanyDetail] = useState<any>({
     similarCompanies: [],
@@ -741,10 +828,10 @@ function Index() {
         <View className="enterprise_info_title">基本信息</View>
         <View className="enterprise_info_content">
           {enterpriseInfo.map((item, index) => (
-            <View className="enterprise_info_content_item" onClick={() => Taro.navigateTo({ url: item.router })} key={index}>
+            <View className="enterprise_info_content_item" onClick={() => Taro.navigateTo({ url: item.router + `?company=${JSON.stringify({ ...company })}` })} key={index}>
               <View className="enterprise_info_content_item_title">{item.title}</View>
-              <View className="enterprise_info_content_item_value">{item.value}</View>
-              <Image src={`http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail${index + 1}.png`} className="info_Img" />
+              <View className="enterprise_info_content_item_value">点击查看</View>
+              <Image src={item.img} className="info_Img" />
             </View>
           ))}
         </View>

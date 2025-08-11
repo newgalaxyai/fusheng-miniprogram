@@ -1,4 +1,64 @@
 .detailPage {
     width: 100%;
     height: 100%;
+
+    .header {
+        width: 100%;
+        height: 88rpx;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 0 24rpx;
+        box-sizing: border-box;
+        background: #F0F2F6;
+
+        .header-title {
+            font-weight: 500;
+            font-size: 28rpx;
+            color: #333;
+        }
+    }
+
+    .table {
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        --nutui-table-border-color: #F3F3F3;
+
+        .nut-table-wrapper {
+            width: auto;
+        }
+
+        .nut-table-main-head-tr {
+            height: 106rpx;
+            line-height: 106rpx;
+            background: #F5F7FB;
+        }
+
+        .nut-table-main-body-tr {
+            height: 100rpx;
+            line-height: 100rpx;
+        }
+
+        .nut-table-main-head-tr-th,
+        .nut-table-main-body-tr-td {
+            padding: 0;
+            font-family: PingFang SC, PingFang SC;
+            font-weight: 500;
+            font-size: 28rpx;
+            color: #333333;
+        }
+
+        .nut-table-main-body-tr-td {
+            font-family: PingFang SC, PingFang SC;
+            font-weight: 500;
+            font-size: 24rpx;
+            color: #7B7B7B;
+        }
+
+        .nut-table-summary {
+            padding-left: 0;
+            padding-right: 0;
+        }
+    }
 }
