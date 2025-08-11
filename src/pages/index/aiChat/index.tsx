@@ -42,14 +42,17 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
   const [input, setInput] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
   const contentRef = useRef<any>(null)
+  const scrollViewRef = useRef<any>(null)
   const [recommendAnim, setRecommendAnim] = useState('')
   const [conversationId, setConversationId] = useState('')
   const recommendRef = useRef<HTMLDivElement>(null)
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true)
   const [loadFailed, setLoadFailed] = useState(false)
   const [currentScrollTop, setCurrentScrollTop] = useState(0)
-  const [scrollToBottomTrigger, setScrollToBottomTrigger] = useState(0)
-  const [scrollToBottomTriggerCopy, setScrollToBottomTriggerCopy] = useState(0)
+  const [isAtTop, setIsAtTop] = useState(true)
+  const [isAtBottom, setIsAtBottom] = useState(false)
+  const [scrollTop, setScrollTop] = useState(0)
+  const [scrollCounter, setScrollCounter] = useState(0)
   const [keyboardHeight, setKeyboardHeight] = useState(0)
   const [bottomHeight, setBottomHeight] = useState('314rpx')
   const companyInfo = Taro.getStorageSync('companyInfo') || {}
@@ -460,10 +463,12 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
       if (rects && rects.length) {
         // 获取最后一条消息的数据
         const lastRect = rects[rects.length - 1]
+        console.log(rects)
+        console.log(lastRect)
+
         // 计算最后一条消息的底部位置 + 高度 + 100的偏移量
         const lastMsgHeight = (lastRect?.top || 0) + (lastRect?.height || 0) + 100
-        setScrollToBottomTrigger(lastMsgHeight)
-        setScrollToBottomTriggerCopy(lastMsgHeight)
+        setScrollTop(lastMsgHeight)
       } else {
       }
     })
@@ -845,24 +850,36 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
   }
 
   const handleScroll = (e: any) => {
-    const { scrollTop: currentScrollTop, scrollHeight: currentScrollHeight, clientHeight } = e.detail
-    const isNearBottom = currentScrollHeight - currentScrollTop - clientHeight < 50
+    const { scrollTop: currentScrollTop, scrollHeight: currentScrollHeight, scrollLeft, scrollWidth } = e.detail
+
+    // 使用固定的视口高度计算
+    const viewportHeight = height ? (window.innerHeight || 667) - height - 319 : 400
+
+    const isNearBottom = currentScrollHeight - currentScrollTop - viewportHeight < 10
     setShouldAutoScroll(isNearBottom)
     setCurrentScrollTop(currentScrollTop)
 
-    // 新增：控制置顶置底按钮显示
-    const isAtTopPosition = currentScrollTop <= 10
-    const isAtBottomPosition = currentScrollHeight - currentScrollTop - clientHeight < 50
+    setTimeout(() => {
+      // 控制置顶置底按钮显示
+      const isAtTopPosition = currentScrollTop <= 50
+      const isAtBottomPosition = currentScrollHeight - currentScrollTop - viewportHeight <= 400
+      setIsAtTop(isAtTopPosition)
+      setIsAtBottom(isAtBottomPosition)
+    }, 100)
   }
 
-  // 新增：滚动到顶部函数
+  // 滚动到顶部函数
   const scrollToTop = () => {
-    setScrollToBottomTrigger(1)
+    setScrollCounter(prev => prev + 1)
+    // 使用接近0但不为0的值，避免状态混乱
+    setScrollTop(scrollCounter + 1)
   }
 
-  // 新增：滚动到底部函数
+  // 滚动到底部函数
   const scrollToBottom = () => {
-    setScrollToBottomTrigger(scrollToBottomTriggerCopy)
+    setScrollCounter(prev => prev + 1)
+    // 使用一个足够大的值确保滚动到底部，即使聊天记录很长
+    setScrollTop(999999999 + scrollCounter)
   }
 
   const handleInput = (e: any) => {
@@ -914,7 +931,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
         </View>
       ) : (
         // 在ScrollView后面添加置顶置底按钮
-        <ScrollView className="chatPage_content" ref={contentRef} style={{ height: `calc(100vh - ${height}px - 319rpx)` }} scrollY scrollTop={scrollToBottomTrigger} onScroll={handleScroll} enhanced={true} scrollWithAnimation={true} showScrollbar={false}>
+        <ScrollView className="chatPage_content" ref={scrollViewRef} style={{ height: `calc(100vh - ${height}px - 319rpx)` }} scrollY scrollTop={scrollTop} onScroll={handleScroll} enhanced={true} scrollWithAnimation={true} showScrollbar={false}>
           {messages.map((msg, idx) => (
             <View key={idx} className={`chatMsg ${msg.role === 'user' ? 'user' : 'ai'}`} style={{ padding: '8px 0' }}>
               {msg.role === 'user' ? (
@@ -944,12 +961,12 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
 
       {messages.length != 0 && (
         <View className="floatingButton">
-          {currentScrollTop > 2 && (
+          {!isAtTop && (
             <View className="floatingButtonTop" onClick={() => scrollToTop()}>
               <ArrowUpSize6 color="#333" size="30rpx" />
             </View>
           )}
-          {scrollToBottomTriggerCopy - currentScrollTop > 400 && (
+          {!isAtBottom && (
             <View className="floatingButtonBottom" onClick={() => scrollToBottom()}>
               <ArrowDownSize6 color="#333" size="30rpx" />
             </View>

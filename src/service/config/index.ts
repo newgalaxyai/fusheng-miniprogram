@@ -2,7 +2,7 @@ export const TIME_OUT = 120000
 
 // export const BASE_URL = 'http://192.168.110.20:10017'
 export const BASE_URL = 'http://192.168.110.43:10017'
-// export const BASE_URL = 'https://fs.xiaohengquan.com'
+// export const BASE_URL = 'https://xiaohengquan.com/'
 
 // 上传文件
 export const uploadFileURL = '/infra/file/upload'

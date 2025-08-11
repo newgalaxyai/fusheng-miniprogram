@@ -460,9 +460,18 @@ function Index() {
               <ArrowRightSize6 color="#333" size="32rpx" />
             </View>
           </View>
-          <View className="enterprise-row" onClick={() => setIsVisible(true)}>
+          <View className="enterprise-row" onClick={() => setSectorVisible(true)}>
             <Text className="enterprise-label" style={{ color: '#333333' }}>
               所属行业
+            </Text>
+            <View className="enterprise-show">
+              <View className="text">{sectorDesc}</View>
+              <ArrowRightSize6 color="#333" size="32rpx" />
+            </View>
+          </View>
+          <View className="enterprise-row" onClick={() => setIsVisible(true)}>
+            <Text className="enterprise-label" style={{ color: '#333333' }}>
+              企业详细地址
             </Text>
             <View className="enterprise-show">
               <View className="text">{selectedAreaText}</View>

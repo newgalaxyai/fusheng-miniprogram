@@ -101,7 +101,6 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
   }, [])
   return (
     <View>
-      {msg.splitNum == 0 || msg.splitNum == null ? 10 : msg.splitNum}
       {msg.content ? <View className="chatMsg_ai_text" dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.content) }}></View> : null}
       {msg.role === 'ai' && msg.companyList && msg.companyList.length > 0
         ? msg.companyList.slice(0, msg.splitNum == 0 || msg.splitNum == null ? 10 : msg.splitNum).map((val, valIdx) => (
