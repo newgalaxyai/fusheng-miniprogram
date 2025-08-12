@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react'
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { Checkbox, Popup, Tabs, TextArea } from '@nutui/nutui-react-taro'
 import { View, Image, Text, ScrollView } from '@tarojs/components'
 import { Add, ArrowDown } from '@nutui/icons-react-taro'
@@ -155,6 +155,12 @@ function Index() {
   // ==================== 内容展开状态 ====================
   const [expandedCompanyScale, setExpandedCompanyScale] = useState(false) // 企业规模展开状态
   const [expandedCompanyIntro, setExpandedCompanyIntro] = useState(false) // 企业简介展开状态
+  const [isCompanyScaleOverflow, setIsCompanyScaleOverflow] = useState(false) // 企业规模是否超出
+  const [isCompanyIntroOverflow, setIsCompanyIntroOverflow] = useState(false) // 企业简介是否超出
+
+  // 文本元素引用
+  const companyScaleRef = useRef(null)
+  const companyIntroRef = useRef(null)
 
   // ==================== 反馈相关状态 ====================
   const [feedBackValue, setFeedBackValue] = useState('') // 反馈内容
@@ -296,12 +302,10 @@ function Index() {
   // 处理确认弹窗
   const handleDialogConfirm = () => {
     setShowCustomDialog(false)
-    const itemId = company.gid || company.id || company.name
-
     if (dialogType === 'add') {
       clueCreateAPI({ unifiedSocialCreditCodes: company.creditCode }, res => {
         if (res.success) {
-          setCompany(prevCompany => ({
+          setCompany((prevCompany: any) => ({
             ...prevCompany,
             isJoinClue: true
           }))
@@ -323,7 +327,7 @@ function Index() {
       // 移除线索
       clueDeleteAPI({ unifiedSocialCreditCode: company.creditCode }, res => {
         if (res.success) {
-          setCompany(prevCompany => ({
+          setCompany((prevCompany: any) => ({
             ...prevCompany,
             isJoinClue: false
           }))
@@ -433,9 +437,36 @@ function Index() {
 
   function toAiResearchReport(): void {
     Taro.navigateTo({
-      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.creditCode}`
+      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.creditCode}&companyParameter=${company.enterpriseAnalysisBack}`
     })
   }
+
+  // ==================== 检测文本溢出函数 ====================
+  const checkTextOverflow = useCallback(() => {
+    // 检测企业规模是否溢出
+    if (companyScaleRef.current) {
+      const element = companyScaleRef.current as HTMLElement
+      const isOverflow = element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth
+      setIsCompanyScaleOverflow(isOverflow)
+    }
+
+    // 检测企业简介是否溢出
+    if (companyIntroRef.current) {
+      const element = companyIntroRef.current as HTMLElement
+      const isOverflow = element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth
+      setIsCompanyIntroOverflow(true)
+    }
+  }, [])
+
+  // 监听公司数据变化，重新检测溢出
+  useEffect(() => {
+    if (company && (company.scale || company.businessScope)) {
+      // 延迟检测，确保DOM已渲染
+      setTimeout(() => {
+        checkTextOverflow()
+      }, 100)
+    }
+  }, [company, checkTextOverflow])
 
   Taro.useLoad(options => {
     setNotDisplaying(options && options.notDisplaying ? Boolean(options.notDisplaying) : false)
@@ -592,22 +623,26 @@ function Index() {
           </View>
         </View>
 
-        <View className="enterpriseContent_item_product">
-          <View className={`enterpriseContent_item_product_left${expandedCompanyScale ? ' expanded' : ''}`}>
+        {/* <View className="enterpriseContent_item_product">
+          <View ref={companyScaleRef} className={`enterpriseContent_item_product_left${expandedCompanyScale ? ' expanded' : ''}`}>
             企业规模：<Text style={{ color: '#7B7B7B' }}>{company.companyScaleInfo}</Text>
           </View>
-          <View className="enterpriseContent_item_product_right" onClick={() => setExpandedCompanyScale(!expandedCompanyScale)}>
-            {expandedCompanyScale ? '收起' : '展开'}
-          </View>
-        </View>
+          {isCompanyScaleOverflow && (
+            <View className="enterpriseContent_item_product_right" onClick={() => setExpandedCompanyScale(!expandedCompanyScale)}>
+              {expandedCompanyScale ? '收起' : '展开'}
+            </View>
+          )}
+        </View> */}
 
         <View className="enterpriseContent_item_product">
-          <View className={`enterpriseContent_item_product_left${expandedCompanyIntro ? ' expanded' : ''}`}>
+          <View ref={companyIntroRef} className={`enterpriseContent_item_product_left${expandedCompanyIntro ? ' expanded' : ''}`}>
             企业简介：<Text style={{ color: '#7B7B7B' }}>{company.businessScope}</Text>
           </View>
-          <View className="enterpriseContent_item_product_right" onClick={() => setExpandedCompanyIntro(!expandedCompanyIntro)}>
-            {expandedCompanyIntro ? '收起' : '展开'}
-          </View>
+          {isCompanyIntroOverflow && (
+            <View className="enterpriseContent_item_product_right" onClick={() => setExpandedCompanyIntro(!expandedCompanyIntro)}>
+              {expandedCompanyIntro ? '收起' : '展开'}
+            </View>
+          )}
         </View>
 
         <View className="enterpriseContent_item_product_phone">
@@ -805,23 +840,16 @@ function Index() {
       </View>
 
       {/* 企业图谱 */}
-      {/* <View className="enterprise_graph">
+      <View className="enterprise_graph">
         <View className="enterprise_graph_title">企业图谱</View>
         <View className="enterprise_graph_content">
-          <View className="enterprise_graph_content_item">
+          <View className="enterprise_graph_content_item" onClick={() => Taro.navigateTo({ url: '/subpackages/company/enterpriseDetail/detail/mindMap/index' })}>
             <Image onClick={() => Taro.previewImage({ urls: ['http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail17.png'] })} src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail17.png" className="enterprise_graph_content_item_img" />
             <View className="enterprise_graph_content_item_text">企业图谱</View>
           </View>
-          <View className="enterprise_graph_content_item">
-            <Image src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail17.png" className="enterprise_graph_content_item_img" />
-            <View className="enterprise_graph_content_item_text">企业图谱</View>
-          </View>
-          <View className="enterprise_graph_content_item">
-            <Image src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail17.png" className="enterprise_graph_content_item_img" />
-            <View className="enterprise_graph_content_item_text">企业图谱</View>
-          </View>
+       
         </View>
-      </View> */}
+      </View>
 
       {/* 基本信息 */}
       <View className="enterprise_info">

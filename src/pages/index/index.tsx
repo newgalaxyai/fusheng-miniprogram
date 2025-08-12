@@ -21,7 +21,7 @@ function Index() {
   // 获取conversation相关状态
   const {
     conversations, // 会话列表数据
-    favorites, // 收藏列表数据
+    favorites // 收藏列表数据
   } = useAppSelector(state => state.conversation)
 
   const [capsuleInfo, setCapsuleInfo] = useState({ height: 32, statusBarHeight: 0 })
@@ -34,10 +34,17 @@ function Index() {
   // 替换原来的 openRef，添加状态管理
   const [currentOpenSwipe, setCurrentOpenSwipe] = useState<string | null>(null)
   const swipeRefs = useRef<{ [key: string]: any }>({})
-  const openRef = useRef<any>(null)
+  const cluePageRef = useRef<any>(null)
   // 将单个展开状态改为对象，用于管理每个收藏项的展开状态
   const [expandedItems, setExpandedItems] = useState<{ [key: number]: boolean }>({})
-  const handleActiveIndex = idx => setActiveIndex(idx)
+  const handleActiveIndex = (idx: any) => {
+    if (idx == 1) {
+      console.log(cluePageRef.current)
+
+      cluePageRef.current?.getClueList()
+    }
+    setActiveIndex(idx)
+  }
 
   // 添加ref来调用子组件方法
   const aiChatRef = useRef<any>(null)
@@ -391,7 +398,7 @@ function Index() {
       </View>
 
       <View style={{ display: activeIndex === 1 ? 'block' : 'none' }}>
-        <CluePage height={totalHeight} />
+        <CluePage ref={cluePageRef} height={totalHeight} />
       </View>
     </View>
   )

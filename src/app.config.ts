@@ -28,6 +28,7 @@ export default defineAppConfig({
         'enterpriseDetail/detail/corePersonnel/index',
         'enterpriseDetail/detail/businessChange/index',
         'enterpriseDetail/detail/annualReport/index',
+        'enterpriseDetail/detail/annualDetail/index',
         'enterpriseDetail/detail/foreignInvestment/index',
         'enterpriseDetail/detail/branchOffice/index',
         'enterpriseDetail/detail/actualController/index',
@@ -46,6 +47,7 @@ export default defineAppConfig({
         'enterpriseDetail/detail/legalCase/index',
         'enterpriseDetail/detail/legalCaseDetail/index',
         'enterpriseDetail/detail/judgmentDetail/index',
+        'enterpriseDetail/detail/mindMap/index',
         'enterpriseSearch/index',
         'advancedFilter/index',
         'searchEnterprise/index'

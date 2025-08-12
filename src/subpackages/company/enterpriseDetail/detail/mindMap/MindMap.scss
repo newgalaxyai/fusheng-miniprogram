@@ -1,0 +1,110 @@
+.mindmap-container {
+  flex: 1;
+  padding: 20px;
+  background-color: #f9f9f9;
+  height: 100vh;
+}
+
+.mindmap-content {
+  padding: 10px;
+}
+
+.mindmap-node {
+  position: relative;
+  margin-bottom: 8px;
+  
+  &.level-0 .node-content {
+    background-color: #4285f4;
+    color: white;
+  }
+  
+  &.level-1 .node-content {
+    background-color: #ea4335;
+    color: white;
+  }
+  
+  &.level-2 .node-content {
+    background-color: #fbbc05;
+    color: #333;
+  }
+  
+  &.level-3 .node-content {
+    background-color: #34a853;
+    color: white;
+  }
+  
+  &.level-4 .node-content {
+    background-color: #9c27b0;
+    color: white;
+  }
+}
+
+.node-content {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateX(2px);
+  }
+}
+
+.node-text {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 8px;
+}
+
+.node-actions {
+  display: flex;
+  gap: 4px;
+  margin-right: 8px;
+}
+
+.action-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  transition: all 0.2s;
+  
+  &:hover {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.add-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.edit-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.delete-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.toggle-icon {
+  margin-left: 4px;
+  opacity: 0.8;
+}
+
+.node-children {
+  margin-left: 24px;
+  padding-left: 12px;
+  border-left: 2px dashed #ccc;
+  margin-top: 4px;
+}

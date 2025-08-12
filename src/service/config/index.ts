@@ -1,7 +1,7 @@
 export const TIME_OUT = 120000
 
-// export const BASE_URL = 'http://192.168.110.20:10017'
-export const BASE_URL = 'http://192.168.110.43:10017'
+export const BASE_URL = 'http://192.168.110.20:10017'
+// export const BASE_URL = 'http://192.168.110.43:10017'
 // export const BASE_URL = 'https://xiaohengquan.com/'
 
 // 上传文件
@@ -31,6 +31,7 @@ export const loginInfoURL = '/member/user/get'
 export const loginInfoUpdateURL = '/member/user/update'
 export const loginSocialURL = '/member/auth/social-login'
 export const refreshTokenURL = '/member/auth/refresh-token'
+export const deleteUserURL = '/member/auth/delete-user'
 export const validateSmsCodeURL = '/member/auth/validate-sms-code'
 export const sendSmsCodeURL = '/member/auth/send-sms-code'
 export const logoutURL = '/member/auth/logout'

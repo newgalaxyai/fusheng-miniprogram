@@ -15,14 +15,21 @@ const parseMarkdown = (text: string): string => {
   if (!text) return ''
 
   try {
-    // 先对HTML标签进行转义，防止接口返回的HTML标签被直接渲染
-    const escapedText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+    // 调整转义顺序和方式，优先处理引号
+    let escapedText = text
+      // 先转义&符号，避免影响其他转义字符
+      .replace(/&/g, '&amp;')
+      // 转义引号，使用HTML实体编码
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      // 转义HTML标签
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
 
     const result = marked.parse(escapedText)
     if (typeof result === 'string') {
       return result
     } else if (result instanceof Promise) {
-      // 如果是Promise，返回转义后的文本
       console.warn('Marked returned a Promise, using escaped text')
       return escapedText.replace(/\n/g, '<br>')
     } else {
@@ -30,8 +37,8 @@ const parseMarkdown = (text: string): string => {
     }
   } catch (error) {
     console.error('Markdown parsing error:', error)
-    // 如果解析失败，返回转义后的文本
-    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/\n/g, '<br>')
+    // 错误处理中也保持相同的转义逻辑
+    return text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')
   }
 }
 
@@ -82,6 +89,8 @@ const navigateToCompanyList = (msg: any) => {
 }
 
 const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
+  console.log(msg)
+
   useEffect(() => {
     const handleEnterpriseSearchDataEdit = (data: any) => {
       if (data.messageId === msg.messageId) {

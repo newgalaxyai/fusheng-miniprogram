@@ -23,6 +23,17 @@ const TechLoadingAnimation = () => {
   )
 }
 
+// HTML实体解码工具函数
+const decodeHtmlEntities = (text: string): string => {
+  if (!text) return text
+  return text
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+}
+
 const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(({ height }, ref) => {
   type Message = {
     splitNum: any
@@ -58,6 +69,8 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
   const companyInfo = Taro.getStorageSync('companyInfo') || {}
   const userInfo = useAppSelector(state => state.login.userInfo)
   const [recommendBatches, setRecommendBatches] = useState<any[]>([])
+  const [recommendQueue, setRecommendQueue] = useState<any[][]>([]) // 存储三次API调用的结果
+  const [currentBatchIndex, setCurrentBatchIndex] = useState(0) // 当前显示的批次索引
   const [aiSessionId, setAiSessionId] = useState('')
   const [questionTime, setQuestionTime] = useState('')
   const [yiJianVisible, setYiJianVisible] = useState(false)
@@ -329,11 +342,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
 
   // 监听键盘高度变化（仅微信小程序）
   useEffect(() => {
-    console.log(messages)
-  }, [messages])
-
-  // 监听键盘高度变化（仅微信小程序）
-  useEffect(() => {
     if (process.env.TARO_ENV === 'weapp') {
       Taro.onKeyboardHeightChange(res => {
         setKeyboardHeight(res.height)
@@ -463,9 +471,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
       if (rects && rects.length) {
         // 获取最后一条消息的数据
         const lastRect = rects[rects.length - 1]
-        console.log(rects)
-        console.log(lastRect)
-
         // 计算最后一条消息的底部位置 + 高度 + 100的偏移量
         const lastMsgHeight = (lastRect?.top || 0) + (lastRect?.height || 0) + 100
         setScrollTop(lastMsgHeight)
@@ -662,6 +667,11 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
           },
           parameter => {
             if (parameter.success || parameter.data) {
+              Taro.showToast({
+                title: parameter.data.askType || '没有返回类型',
+                icon: 'none',
+                duration: 3000
+              })
               // 直接调用textStageAPI
               textStageAPI({ ...parameter.data, conversationId }, res => {
                 if (res && res.success && res.data) {
@@ -673,7 +683,13 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                   })
                   let responseText = ''
                   if (res.data.introduction) {
-                    responseText = `${res.data.introduction || ''}${res.data.analysisContent || ''}`
+                    // 解码HTML实体，处理引号编码问题
+                    const decodedIntroduction = decodeHtmlEntities(res.data.introduction || '')
+                    const decodedAnalysisContent = decodeHtmlEntities(res.data.analysisContent || '')
+                    console.log(decodeHtmlEntities(res.data.introduction), 'introduction')
+                    console.log(decodeHtmlEntities(res.data.analysisContent), 'analysisContent')
+
+                    responseText = `${decodedIntroduction}${decodedAnalysisContent}`
                     streamAIReply(responseText, aiMessageId, userMessageId)
                     setMessages(msgs => {
                       return msgs.map(msg => {
@@ -699,9 +715,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                             } else {
                               item.legalPerson = '- -'
                             }
-
-                            console.log(item)
-
                             return item
                           })
 
@@ -716,7 +729,10 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                       })
                     })
                   } else {
-                    responseText = res.data.normalAnswer
+                    // 解码HTML实体，处理引号编码问题
+                    responseText = decodeHtmlEntities(res.data.normalAnswer)
+                    console.log(decodeHtmlEntities(res.data.normalAnswer), 'normalAnswer')
+
                     streamAIReply(responseText, aiMessageId, userMessageId)
                   }
                 } else {
@@ -726,7 +742,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                         return {
                           ...msg,
                           content: '抱歉，我暂时无法回答您的问题，请稍后再试。',
-                          apiStatus: { textComplete: true, companyComplete: true }
+                          apiStatus: { textComplete: true, companyComplete: false }
                         }
                       }
                       return msg
@@ -821,32 +837,98 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
     }
     doAll()
     setInput('')
+
+    // 发送消息后滚动到底部
+    setTimeout(() => {
+      scrollToBottom()
+    }, 100)
   }
 
   const assignment = (val: any) => {
     setInput(val)
+    // 自动发送推荐问题
+    setTimeout(() => {
+      defaultSend(val)
+    }, 100)
   }
 
-  const getRecommendBatches = () => {
-    guessYouWantAPI(companyInfo.expansionDomainKeywordsSelected || [], res => {
-      if (res && res.success && res.data) {
+  // 预加载五次推荐数据
+  const loadFiveBatches = async () => {
+    const promises: Promise<any[]>[] = []
+    for (let i = 0; i < 5; i++) {
+      promises.push(
+        new Promise<any[]>(resolve => {
+          guessYouWantAPI(companyInfo.expansionDomainKeywordsSelected || [], res => {
+            if (res && res.success && res.data) {
+              let batches: any[] = []
+              if (Array.isArray(res.data)) {
+                batches = res.data
+              } else if (typeof res.data === 'object' && res.data.batches) {
+                batches = res.data.batches
+              }
+              resolve(batches)
+            } else {
+              resolve([])
+            }
+          })
+        })
+      )
+    }
+
+    try {
+      const results = await Promise.all(promises)
+      const validResults = results.filter((batch: any[]) => Array.isArray(batch) && batch.length > 0)
+      console.log(validResults)
+
+      if (validResults.length > 0) {
+        setRecommendQueue(validResults)
+        setRecommendBatches(validResults[0])
+        setCurrentBatchIndex(0)
         setLoadFailed(true)
-        // 确保返回的数据是数组格式
-        let batches: any[] = []
-        if (Array.isArray(res.data)) {
-          batches = res.data
-        } else if (typeof res.data === 'object' && res.data.batches) {
-          batches = res.data.batches
-        }
-        setRecommendBatches(batches)
       } else {
         setLoadFailed(false)
       }
-    })
+    } catch (error) {
+      setLoadFailed(false)
+    }
+  }
+
+  const getRecommendBatches = () => {
+    loadFiveBatches()
   }
 
   const handleChangeBatch = () => {
-    getRecommendBatches()
+    if (recommendQueue.length > 1) {
+      // 删除当前显示的第一条，显示队列中的下一条
+      const newQueue = [...recommendQueue.slice(1)]
+
+      setRecommendQueue(newQueue)
+      setRecommendBatches(newQueue[0] || [])
+      setCurrentBatchIndex(0)
+
+      // 异步调用新的API，补充队列到三条
+      guessYouWantAPI(companyInfo.expansionDomainKeywordsSelected || [], res => {
+        if (res && res.success && res.data) {
+          let batches: any[] = []
+          if (Array.isArray(res.data)) {
+            batches = res.data
+          } else if (typeof res.data === 'object' && res.data.batches) {
+            batches = res.data.batches
+          }
+
+          if (batches.length > 0) {
+            setRecommendQueue(prevQueue => [...prevQueue, batches])
+          }
+        }
+      })
+    } else {
+      Taro.showToast({
+        title: '您点击过快了，请稍后重试！',
+        icon: 'none'
+      })
+      // 如果队列不足，重新加载五次
+      loadFiveBatches()
+    }
   }
 
   const handleScroll = (e: any) => {
@@ -983,7 +1065,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
         }}
       >
         <View className="chatPage_bottom_input">
-          <Textarea adjust-position={false} value={input} onInput={handleInput} className="chatPage_input" onConfirm={send} placeholder="请输入您的客户需求～" placeholderStyle="color: #A9A9A9;" disabled={isStreaming} />
+          <Textarea show-confirm-bar={false} adjust-position={false} value={input} onInput={handleInput} className="chatPage_input" onConfirm={send} placeholder="请输入您的客户需求～" placeholderStyle="color: #A9A9A9;" disabled={isStreaming} />
           <View className="chatPage_fun">
             <View className="chatPage_fun_left">
               {/* <Image
@@ -1007,6 +1089,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
             />
           </View>
         </View>
+        <View style={{ color: '#333', fontSize: '22rpx', width: '100%', textAlign: 'center', marginTop: '20rpx' }}>内容由AI生成，仅供参考</View>
       </View>
 
       <View className="customizeDialog">

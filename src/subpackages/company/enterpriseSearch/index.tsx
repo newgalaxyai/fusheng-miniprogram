@@ -175,8 +175,6 @@ function Index() {
   // 添加事件监听来接收复杂数据
   useEffect(() => {
     const handleEnterpriseSearchData = (res: any) => {
-      console.log('enterpriseSearchDataenterpriseSearchData')
-
       setCustomList(formatInfo(res).companyList)
       setTotal(res.total)
       setMessageId(res.messageId)
@@ -200,13 +198,16 @@ function Index() {
   // 监听企业详情页面卸载事件
   useEffect(() => {
     const handleEnterpriseDetailUnload = (res: any) => {
+      console.log(res, 'res')
+
       setCustomList((prevList: any[]) => {
         return prevList.map((item: any) => {
-          if (item.creditCode === res.creditCode) {
+          if (item.creditCode == res.creditCode) {
+            console.log(item, 'item')
             return {
               ...item,
               hasFeedback: res.hasFeedback,
-              isCollect: res.isCollect,
+              isJoinClue: res.isJoinClue,
               commentContent: res.commentContent
             }
           }
@@ -219,7 +220,7 @@ function Index() {
     return () => {
       Taro.eventCenter.off('enterpriseDetailUnload', handleEnterpriseDetailUnload)
     }
-  })
+  }, [])
 
   // 监听全选状态变化
   useEffect(() => {
@@ -346,7 +347,7 @@ function Index() {
   // AI研究报告
   const handleAiResearchReport = (company: any) => {
     Taro.navigateTo({
-      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.creditCode}`
+      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.creditCode}&companyParameter=${company.enterpriseAnalysisBack}`
     })
   }
 

@@ -270,7 +270,7 @@ function Index() {
 
   const handleAiResearchReport = (company: any) => {
     Taro.navigateTo({
-      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.creditCode}`
+      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.creditCode}&companyParameter=${company.enterpriseAnalysisBack}`
     })
   }
 

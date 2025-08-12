@@ -1,0 +1,87 @@
+.tree-node-container {
+  position: relative;
+}
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  color: white;
+  border-radius: 4px;
+  margin: 4px 0;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tree-node:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.expand-indicator {
+  margin-right: 8px;
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+}
+
+.node-text {
+  flex: 1;
+  word-break: break-all;
+  padding-right: 8px;
+}
+
+.node-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.action-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-btn {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.edit-btn {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.delete-btn {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.action-btn:active {
+  transform: scale(0.9);
+}
+
+.node-children {
+  position: relative;
+}
+
+.node-children::before {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: #ddd;
+}
+
+.touchable {
+  transition: opacity 0.2s;
+}
+
+.touchable:active {
+  opacity: 0.7;
+}
+    

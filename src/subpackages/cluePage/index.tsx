@@ -329,7 +329,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
 
   const handleAiResearchReport = (company: any) => {
     Taro.navigateTo({
-      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.unifiedSocialCreditCode}`
+      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.unifiedSocialCreditCode}&companyParameter=${company.enterpriseAnalysisBack}`
     })
   }
 
@@ -757,7 +757,12 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
         </Tabs.TabPane>
         <Tabs.TabPane title="跟进记录">
           <View className="cluePage_list">
-            <SearchBar placeholder="搜索内容" style={{ width: '100%' }} value={searchValueFollowRecord} onChange={e => setSearchValueFollowRecord(e)} onBlur={handleSearchFollowRecord} />
+            <View className="cluePage_input_box">
+              <View className="cluePage_input_icon">
+                <Search color="#AAAAAA" size="36rpx" />
+              </View>
+              <Input className="cluePage_input" placeholder="搜索内容" style={{ width: '100%' }} value={searchValueFollowRecord} onChange={e => setSearchValueFollowRecord(e)} onBlur={handleSearchFollowRecord} clearable={true} />
+            </View>
             {/* <View className="cluePage_filter">
 
               <View className="filter_item" onClick={() => handleActiveIndex(0)}>

@@ -3,7 +3,7 @@ import { View, Text, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { loginInfoUpdateAPI } from '@/api/setting'
 import { useAppSelector } from '@/hooks/useAppStore'
-import { sendSmsCodeAPI, validateSmsCodeAPI } from '@/api/login'
+import { sendSmsCodeAPI, validateSmsCodeAPI, deleteUserAPI } from '@/api/login'
 import { useAppDispatch } from '@/hooks/useAppStore'
 import { userInfoAction } from '@/redux/modules/login'
 import './index.scss'
@@ -113,26 +113,34 @@ function Index() {
         },
         res => {
           if (res.success) {
-            Taro.showToast({ title: '注销成功', icon: 'success' })
-            Taro.reLaunch({ url: '/pages/login/index' })
-            Taro.clearStorageSync()
-            dispatch(
-              userInfoAction({
-                type: 'set',
-                data: {
-                  openid: '',
-                  userInfo: {},
-                  id: undefined,
-                  nickname: undefined,
-                  avatar: undefined,
-                  routineOpenid: undefined,
-                  mobile: undefined,
-                  companyName: undefined,
-                  name: undefined,
-                  targetCompanyServe: undefined,
-                  companyServe: undefined
+            deleteUserAPI({ userId: userInfo?.id },
+              res => {
+                if (res.success) {
+                  Taro.showToast({ title: '注销成功', icon: 'success' })
+                  Taro.reLaunch({ url: '/pages/login/index' })
+                  Taro.clearStorageSync()
+                  dispatch(
+                    userInfoAction({
+                      type: 'set',
+                      data: {
+                        openid: '',
+                        userInfo: {},
+                        id: undefined,
+                        nickname: undefined,
+                        avatar: undefined,
+                        routineOpenid: undefined,
+                        mobile: undefined,
+                        companyName: undefined,
+                        name: undefined,
+                        targetCompanyServe: undefined,
+                        companyServe: undefined
+                      }
+                    })
+                  )
+                } else {
+                  Taro.showToast({ title: '注销失败', icon: 'none' })
                 }
-              })
+              }
             )
           } else {
             Taro.showToast({ title: '验证码错误', icon: 'none' })

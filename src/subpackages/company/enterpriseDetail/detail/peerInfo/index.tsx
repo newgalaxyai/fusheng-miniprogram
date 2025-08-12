@@ -134,7 +134,7 @@ function Index() {
 
   function toAiResearchReport(company: any): void {
     Taro.navigateTo({
-      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.creditCode}`
+      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.creditCode}&companyParameter=${company.enterpriseAnalysisBack}`
     })
   }
 
@@ -221,9 +221,9 @@ function Index() {
                     ))}
                 </View>
                 <View className="enterpriseContent_item_info">
-                  <View className="enterpriseContent_item_info_item">{item.legalPersonName}</View>
+                  <View className="enterpriseContent_item_info_item">{item.legalPerson || item.legalPersonName}</View>
                   <View className="enterpriseContent_item_info_item">{item.regCapital}</View>
-                  <View className="enterpriseContent_item_info_item">{item.estiblishTime}</View>
+                  <View className="enterpriseContent_item_info_item">{item.establishTime || item.estiblishTime}</View>
                   <View className="enterpriseContent_item_info_item">{item.location}</View>
                 </View>
                 <View className="enterpriseContent_item_product">

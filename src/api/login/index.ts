@@ -1,5 +1,5 @@
 import { taroPost, taroGet, taroPut, taroDelete } from '@/service'
-import { loginByPhoneURL, loginByCodeURL, loginInfoURL, loginSocialURL, refreshTokenURL, sendSmsCodeURL, validateSmsCodeURL, logoutURL, BASE_URL } from '@/service/config'
+import { loginByPhoneURL, loginByCodeURL, loginInfoURL, loginSocialURL, refreshTokenURL, sendSmsCodeURL, validateSmsCodeURL, logoutURL, BASE_URL, deleteUserURL } from '@/service/config'
 import type { IResponse } from '../types'
 import { request } from '@tarojs/taro'
 import { appURL } from '@/service/url'
@@ -30,7 +30,7 @@ export const loginByPhoneAPI = (data: any, callback: (res: IResponse<any>) => vo
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 获取登录信息
@@ -58,7 +58,7 @@ export const loginByInfoAPI = (callback: (res: IResponse<any>) => void) => {
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 社交登录
@@ -87,7 +87,7 @@ export const loginSocialAPI = (data: any, callback: (res: IResponse<any>) => voi
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 验证码登录
@@ -116,7 +116,7 @@ export const loginByCodeAPI = (data: any, callback: (res: IResponse<any>) => voi
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 验证短信验证码
@@ -145,7 +145,7 @@ export const validateSmsCodeAPI = (data: any, callback: (res: IResponse<any>) =>
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 发送短信验证码
@@ -174,23 +174,21 @@ export const sendSmsCodeAPI = (data: any, callback: (res: IResponse<any>) => voi
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 刷新token
 export const refreshTokenAPI = async (refreshToken: string): Promise<any> => {
-  const response: any = await request(
-    {
-      url: `${BASE_URL}${appURL}${refreshTokenURL}`,
-      method: 'POST',
-      data: { refreshToken },
-      header: {
-        'Authorization': `Bearer test1`,
-        'tenant-id': '1',
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
+  const response: any = await request({
+    url: `${BASE_URL}${appURL}${refreshTokenURL}`,
+    method: 'POST',
+    data: { refreshToken },
+    header: {
+      Authorization: `Bearer test1`,
+      'tenant-id': '1',
+      'Content-Type': 'application/x-www-form-urlencoded'
     }
-  )
+  })
 
   // console.log('刷新token', response);
 
@@ -237,5 +235,33 @@ export const logoutAPI = (data: any, callback: (res: IResponse<any>) => void) =>
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
+}
+
+// 注销
+export const deleteUserAPI = (data: any, callback: (res: IResponse<any>) => void) => {
+  taroDelete({
+    url: deleteUserURL + '?userId=' + data.userId,
+    success: (res: any) => {
+      callback({
+        success: true,
+        data: res.data
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => {})
 }
