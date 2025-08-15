@@ -135,7 +135,7 @@ function Index() {
     generateReportAPI(
       {
         creditCode: options.creditCode,
-        enterpriseAnalysisBack: options.companyParameter,
+        enterpriseAnalysisBack: options.companyParameter || '',
         targetCompanyName: companyInfo.companyName,
         targetCompanyServe: JSON.stringify(companyInfo.expansionDomainKeywordsSelected)
       },

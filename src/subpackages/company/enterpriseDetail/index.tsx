@@ -482,10 +482,10 @@ function Index() {
     setAddress(res.contactInfo?.address || [])
     setOthers(res.contactInfo?.others || [])
     setAllContactInformation(totalCount)
-    Taro.showLoading({
-      title: '正在加载企业详情',
-      mask: true
-    })
+    // Taro.showLoading({
+    //   title: '正在加载企业详情',
+    //   mask: true
+    // })
     enterpriseDetailAPI({ gid: res.gid, pageNum: 1, pageSize: 3 }, res => {
       if (res.success) {
         setCompanyDetail(res.data)
@@ -775,7 +775,7 @@ function Index() {
           <ScrollView scrollX>
             <View className="businessItem-tags">
               <View className="enterprise_graph_content_item">
-                <Image onClick={() => Taro.previewImage({ urls: ['http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail17.png'] })} src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail17.png" className="enterprise_graph_content_item_img" />
+                <Image src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail17.png" className="enterprise_graph_content_item_img" />
                 <View className="enterprise_graph_content_item_text">企业图谱</View>
               </View>
               <View className="enterprise_graph_content_item">
@@ -843,11 +843,10 @@ function Index() {
       <View className="enterprise_graph">
         <View className="enterprise_graph_title">企业图谱</View>
         <View className="enterprise_graph_content">
-          <View className="enterprise_graph_content_item" onClick={() => Taro.navigateTo({ url: '/subpackages/company/enterpriseDetail/detail/mindMap/index' })}>
-            <Image onClick={() => Taro.previewImage({ urls: ['http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail17.png'] })} src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail17.png" className="enterprise_graph_content_item_img" />
+          <View className="enterprise_graph_content_item" onClick={() => Taro.navigateTo({ url: '/subpackages/company/enterpriseDetail/detail/mindMap/index?creditCode=' + company.creditCode })}>
+            <Image src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail17.png" className="enterprise_graph_content_item_img" />
             <View className="enterprise_graph_content_item_text">企业图谱</View>
           </View>
-       
         </View>
       </View>
 

@@ -1,43 +1,7 @@
 import { taroPost, taroGet, taroPut, taroDelete } from '@/service'
-import { 
-  getCompanyInfoURL, 
-  searchCompaniesURL, 
-  getProductSellingPointsURL, 
-  generateReportURL, 
-  enterpriseDetailURL, 
-  companyFeedbackCreateURL
- } from '@/service/config'
-import type {
-  IBusinessInfo,
-  ICorpInfoRequest,
-  ICorpInfoResponse,
-  IPersonInfo,
-  IResponse,
-  IShareholderInfo,
-  IAnnualReport,
-  IAnnualReportDetailRequest,
-  IAnnualReportDetail,
-  IBusinessInfoRequest,
-  IOutsideInvestment,
-  IBranchOffice,
-  IActualController,
-  IDirectControl,
-  IBusibessPublicity,
-  ISuspectedRelation
-} from '../types'
-import { 
-  getBusinessInfoURL, 
-  getPersonInfoURL, 
-  getShareholderInfoURL,
-  getAnnualReportURL,
-  getAnnualReportDetailURL,
-  getOutsideInvestmentURL,
-  getBranchOfficeURL,
-  getActualControllerURL,
-  getDirectControlURL,
-  getBusinessSelfPublicationURL,
-  getSuspectedRelationURL
- } from '../url'
+import { getCompanyInfoURL, searchCompaniesURL, getProductSellingPointsURL, generateReportURL, enterpriseDetailURL, companyFeedbackCreateURL, enterpriseGraphURL } from '@/service/config'
+import type { IBusinessInfo, ICorpInfoRequest, ICorpInfoResponse, IPersonInfo, IResponse, IShareholderInfo, IAnnualReport, IAnnualReportDetailRequest, IAnnualReportDetail, IBusinessInfoRequest, IOutsideInvestment, IBranchOffice, IActualController, IDirectControl, IBusibessPublicity, ISuspectedRelation } from '../types'
+import { getBusinessInfoURL, getPersonInfoURL, getShareholderInfoURL, getAnnualReportURL, getAnnualReportDetailURL, getOutsideInvestmentURL, getBranchOfficeURL, getActualControllerURL, getDirectControlURL, getBusinessSelfPublicationURL, getSuspectedRelationURL } from '../url'
 
 // 获取产品卖点
 export const getProductSellingPointsAPI = (data: any, callback: (res: IResponse<any>) => void) => {
@@ -65,7 +29,36 @@ export const getProductSellingPointsAPI = (data: any, callback: (res: IResponse<
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
+}
+
+// 获取企业图谱
+export const getEnterpriseGraphAPI = (data: any, callback: (res: IResponse<any>) => void) => {
+  taroPost({
+    url: enterpriseGraphURL,
+    data,
+    success: (res: any) => {
+      callback({
+        success: true,
+        data: res.data
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => {})
 }
 
 // 获取企业信息
@@ -94,7 +87,7 @@ export const companyInfoAPI = (data: any, callback: (res: IResponse<any>) => voi
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 搜索企业
@@ -124,7 +117,7 @@ export const searchCompaniesAPI = (data: any, callback: (res: IResponse<any>) =>
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 生成报告
@@ -153,7 +146,7 @@ export const generateReportAPI = (data: any, callback: (res: IResponse<any>) => 
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 企业详情
@@ -182,7 +175,7 @@ export const enterpriseDetailAPI = (data: any, callback: (res: IResponse<any>) =
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 企业反馈
@@ -211,7 +204,7 @@ export const companyFeedbackCreateAPI = (data: any, callback: (res: IResponse<an
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 获取工商信息
@@ -240,7 +233,7 @@ export const getBusinessInfoAPI = (data: IBusinessInfoRequest, callback: (res: I
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 获取股东信息
@@ -269,7 +262,7 @@ export const getShareholderInfoAPI = (data: ICorpInfoRequest, callback: (res: IR
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 获取人员信息
@@ -298,7 +291,7 @@ export const getPersonInfoAPI = (data: ICorpInfoRequest, callback: (res: IRespon
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 获取企业年报
@@ -327,7 +320,7 @@ export const getAnnualReportAPI = (data: ICorpInfoRequest, callback: (res: IResp
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 获取企业年报详情
@@ -356,7 +349,7 @@ export const getAnnualReportDetailAPI = (data: IAnnualReportDetailRequest, callb
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 获取对外投资
@@ -385,7 +378,7 @@ export const getOutsideInvestmentAPI = (data: ICorpInfoRequest, callback: (res: 
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 获取分支机构
@@ -414,7 +407,7 @@ export const getBranchOfficeAPI = (data: ICorpInfoRequest, callback: (res: IResp
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 获取受益人
@@ -443,7 +436,7 @@ export const getActualControllerAPI = (data: ICorpInfoRequest, callback: (res: I
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 获取直接控制企业
@@ -472,7 +465,7 @@ export const getDirectControlAPI = (data: ICorpInfoRequest, callback: (res: IRes
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 获取工商自主公示
@@ -501,7 +494,7 @@ export const getBusinessSelfPublicationAPI = (data: ICorpInfoRequest, callback: 
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }
 
 // 获取疑似关系
@@ -530,5 +523,5 @@ export const getSuspectedRelationAPI = (data: ICorpInfoRequest, callback: (res: 
         })
       }
     }
-  }).catch(() => { })
+  }).catch(() => {})
 }

@@ -119,7 +119,7 @@ function CompanyProfile() {
       <Popup visible={showSuggest} title="查询企业" style={{ minHeight: '70%' }} position="bottom" onClose={() => setShowSuggest(false)}>
         <View className="cp_suggest">
           <View className="cp_suggest_input">
-            <Input className="cp_suggest_input" clearable={true} placeholder="请输入企业名称" onChange={onInputChange} />
+            <Input autoFocus={true} className="cp_suggest_input" clearable={true} placeholder="请输入企业名称" onChange={onInputChange} />
           </View>
           <View className="cp_suggest_list">
             {suggestList.map(item => (

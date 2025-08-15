@@ -84,10 +84,7 @@ function Index() {
     // MEMBER_UPDATE_PASSWORD(3, "user-update-password", "会员用户 - 修改密码"),
     // MEMBER_RESET_PASSWORD(4, "user-reset-password", "会员用户 - 忘记密码"),
 
-    sendSmsCodeAPI({
-      mobile: phone,
-      scene: 1
-    }, res => {
+    sendSmsCodeAPI({ mobile: phone, scene: 1 }, res => {
       if (res.success) {
         Taro.showToast({
           title: '短信验证码发送成功',
@@ -99,7 +96,7 @@ function Index() {
         })
       } else {
         Taro.showToast({
-          title: res.data.msg,
+          title: '短信验证码发送失败',
           icon: 'none',
           duration: 2000
         })

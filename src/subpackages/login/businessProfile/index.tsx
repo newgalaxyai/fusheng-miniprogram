@@ -12,11 +12,20 @@ function BusinessProfile() {
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [customInput, setCustomInput] = useState('')
   const [tags, setTags] = useState<any>([])
-
   const [coreSellingPoints, setCoreSellingPoints] = useState<any>({})
   const userInfo = useAppSelector(state => state.login.userInfo)
+
   const handleTagClick = (tag: string) => {
-    setSelectedTags(prev => (prev.includes(tag) ? prev.filter((t: string) => t !== tag) : [...prev, tag]))
+    setSelectedTags(prev => {
+      if (prev.includes(tag)) {
+        return prev.filter((t: string) => t !== tag)
+      }
+      if (prev.length >= 3) {
+        Taro.showToast({ title: '最多选择三个', icon: 'none' })
+        return prev
+      }
+      return [...prev, tag]
+    })
   }
 
   const defaultProduct = () => {

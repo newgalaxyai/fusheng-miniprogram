@@ -72,6 +72,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
   const [recommendQueue, setRecommendQueue] = useState<any[][]>([]) // 存储三次API调用的结果
   const [currentBatchIndex, setCurrentBatchIndex] = useState(0) // 当前显示的批次索引
   const [aiSessionId, setAiSessionId] = useState('')
+  const aiSessionIdRef = useRef('')
   const [questionTime, setQuestionTime] = useState('')
   const [yiJianVisible, setYiJianVisible] = useState(false)
   const [yiJianInput, setYiJianInput] = useState('')
@@ -85,6 +86,16 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
   const generateUniqueId = () => {
     return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   }
+
+  // 更新 ref 当 aiSessionId 状态改变时
+  useEffect(() => {
+    aiSessionIdRef.current = aiSessionId
+  }, [aiSessionId])
+
+  // 更新 ref 当 aiSessionId 状态改变时
+  useEffect(() => {
+    console.log(messages)
+  }, [messages])
 
   // 暴露方法给父组件
   useImperativeHandle(ref, () => ({
@@ -245,6 +256,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
 
   const yiJianConfirm = () => {
     let msg = messages.filter(item => item.messageId === copyMessageId)
+
     // 直接计算answerContent，不依赖状态
     const currentAnswerContent = {
       content: msg.filter(item => item.role === 'ai')[0].content,
@@ -291,11 +303,12 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
       const answerTimestamp = new Date(answerTime).getTime()
       const responseDurationMs = answerTimestamp - questionTimestamp
       const responseDuration = Number((responseDurationMs / 1000).toFixed(1))
+      console.log(aiMessage.companyList)
 
       const result = await new Promise((resolve, reject) => {
         aiMessageCreateAPI(
           {
-            sessionId: aiSessionId,
+            sessionId: aiSessionIdRef.current,
             userMessage: userMessage?.content,
             aiResponse: aiMessage.content,
             questionTime,
@@ -321,7 +334,10 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
       if (result) {
         setMessages(msgs => {
           return msgs.map(msg => {
-            if (msg.messageId === messageId) {
+            if (msg.messageId === messageId && msg.role === 'ai') {
+              return { ...msg, messageId: result as string }
+            }
+            if (msg.messageId === userMessage.messageId && msg.role === 'user') {
               return { ...msg, messageId: result as string }
             }
             return msg
@@ -350,7 +366,11 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
 
     Taro.eventCenter.on('send', res => {
       if (res) {
-        defaultSend(res)
+        setTimeout(() => {
+          if (aiSessionIdRef.current) {
+            continueWithSessionId(aiSessionIdRef.current, res)
+          }
+        }, 300)
       }
     })
 
@@ -406,9 +426,9 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
     })
   }
 
-  // 将其他初始化逻辑移到单独的 useEffect 中
   useEffect(() => {
     getRecommendBatches()
+
     if (Taro.getStorageSync('aiSessionId')) {
       setAiSessionId(Taro.getStorageSync('aiSessionId'))
     } else {
@@ -418,6 +438,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
 
   useEffect(() => {
     Taro.eventCenter.on('getChatItem', res => {
+      setAiSessionId(res.id)
       setConversationId(res.conversationId)
       setMessages([])
       setTimeout(() => {
@@ -490,7 +511,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
 
     setIsStreaming(true)
     let reply = ''
-
     for (let i = 0; i < text.length; i += STREAM_CONFIG.chunkSize) {
       const chunk = text.slice(i, i + STREAM_CONFIG.chunkSize)
       reply += chunk
@@ -568,35 +588,12 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
     }
   }
 
-  // 发送消息
-  const defaultSend = (val: string) => {
-    if (!Taro.getStorageSync('aiSessionId')) {
-      aiSessionCreateAPI({ userId: userInfo?.id }, res => {
-        if (res.success && res.data) {
-          Taro.setStorageSync('aiSessionId', res.data)
-          setAiSessionId(res.data)
-          dispatch(getSessionListAsync())
-          continueWithSessionId(res.data, val)
-        }
-      })
-    } else {
-      continueWithSessionId(aiSessionId, val)
-    }
-  }
-
   // 提取公共逻辑到单独函数
   const continueWithSessionId = (sessionId: string, text: string) => {
     if (!Taro.getStorageSync('companyInfo')) {
       Taro.eventCenter.trigger('companyShow', true)
     }
     if (!text.trim() || isStreaming) return
-
-    // 使用传入的 sessionId 而不是状态中的 aiSessionId
-    // aiSessionUpdateAPI({ userId: userInfo?.id, id: sessionId, title: text, conversationId: conversationId }, res => {
-    //   if (res.success) {
-    //     dispatch(getSessionListAsync())
-    //   }
-    // })
 
     setQuestionTime(formatTime(new Date())) // 用户发送消息的时间
 
@@ -686,9 +683,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                     // 解码HTML实体，处理引号编码问题
                     const decodedIntroduction = decodeHtmlEntities(res.data.introduction || '')
                     const decodedAnalysisContent = decodeHtmlEntities(res.data.analysisContent || '')
-                    console.log(decodeHtmlEntities(res.data.introduction), 'introduction')
-                    console.log(decodeHtmlEntities(res.data.analysisContent), 'analysisContent')
-
                     responseText = `${decodedIntroduction}${decodedAnalysisContent}`
                     streamAIReply(responseText, aiMessageId, userMessageId)
                     setMessages(msgs => {
@@ -696,7 +690,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                         // 只更新匹配的消息
                         if (msg.messageId === aiMessageId && msg.role === 'ai') {
                           // 处理企业信息
-                          const processedCompanyList = res.data.companyBody.companyInfoResponseList.map((item: any) => {
+                          const processedCompanyList = res.data?.companyBody?.companyInfoResponseList.map((item: any) => {
                             let locationStr = item.province || item.address || item.location || '未知省份'
                             if (locationStr.includes('省')) {
                               item.handleLocation = locationStr.split('省')[0] + '省'
@@ -720,9 +714,9 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
 
                           return {
                             ...msg,
-                            companyList: processedCompanyList,
-                            total: res.data.companyBody.total,
-                            splitNum: res.data.companyBody.splitNum || 10
+                            companyList: processedCompanyList || [],
+                            total: res.data.companyBody?.total || 0,
+                            splitNum: res.data.companyBody?.splitNum || 10
                           }
                         }
                         return msg
@@ -731,7 +725,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                   } else {
                     // 解码HTML实体，处理引号编码问题
                     responseText = decodeHtmlEntities(res.data.normalAnswer)
-                    console.log(decodeHtmlEntities(res.data.normalAnswer), 'normalAnswer')
 
                     streamAIReply(responseText, aiMessageId, userMessageId)
                   }
@@ -848,7 +841,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
     setInput(val)
     // 自动发送推荐问题
     setTimeout(() => {
-      defaultSend(val)
+      continueWithSessionId(aiSessionId, val)
     }, 100)
   }
 
@@ -878,8 +871,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
     try {
       const results = await Promise.all(promises)
       const validResults = results.filter((batch: any[]) => Array.isArray(batch) && batch.length > 0)
-      console.log(validResults)
-
       if (validResults.length > 0) {
         setRecommendQueue(validResults)
         setRecommendBatches(validResults[0])
@@ -973,7 +964,19 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
   }
 
   return (
-    <View className="chatPage" style={{ height: `calc(100vh - ${height}px)` }}>
+    <View
+      className="chatPage"
+      style={{ height: `calc(100vh - ${height}px)` }}
+      onTouchMove={e => {
+        e.stopPropagation()
+      }}
+      onTouchStart={e => {
+        e.stopPropagation()
+      }}
+      onTouchEnd={e => {
+        e.stopPropagation()
+      }}
+    >
       {messages.length === 0 ? (
         <View className="chatPage_default" ref={contentRef} style={{ height: `calc(100% - 314rpx)` }}>
           <Image src="http://36.141.100.123:10013/glks/assets/home/home4.png" className="chatPage_img" />
@@ -1089,7 +1092,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
             />
           </View>
         </View>
-        <View style={{ color: '#333', fontSize: '22rpx', width: '100%', textAlign: 'center', marginTop: '20rpx' }}>内容由AI生成，仅供参考</View>
+        <View style={{ color: '#A9A9A9', fontSize: '22rpx', width: '100%', textAlign: 'center', marginTop: '20rpx' }}>内容由AI生成，仅供参考</View>
       </View>
 
       <View className="customizeDialog">

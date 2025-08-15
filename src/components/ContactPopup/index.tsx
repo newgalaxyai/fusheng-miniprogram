@@ -72,7 +72,7 @@ const ContactPopup: React.FC<ContactPopupProps> = ({ visible, onClose, contactDa
   }
 
   return (
-    <Popup position="bottom" style={{ maxHeight: '95%', minHeight: '95%' }} visible={visible} onClose={onClose}>
+    <Popup position="bottom" style={{ maxHeight: '75%', minHeight: '75%' }} visible={visible} onClose={onClose}>
       <View className="popup_header">
         <View className="popup_header_title">联系人</View>
         <Image onClick={onClose} src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />

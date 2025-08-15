@@ -7,7 +7,7 @@ import Taro from '@tarojs/taro'
 // 配置marked选项，适合小程序环境
 marked.setOptions({
   breaks: true, // 支持换行
-  gfm: true // 启用GitHub风格的Markdown
+  gfm: false // 启用GitHub风格的Markdown
 })
 
 // 使用marked.parse解析Markdown
@@ -15,8 +15,19 @@ const parseMarkdown = (text: string): string => {
   if (!text) return ''
 
   try {
+    // 先保护邮箱地址，避免被HTML转义影响
+    const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g
+    const emails: string[] = []
+    let emailIndex = 0
+
+    // 用占位符替换邮箱
+    let protectedText = text.replace(emailRegex, match => {
+      emails.push(match)
+      return `__EMAIL_PLACEHOLDER_${emailIndex++}__`
+    })
+
     // 调整转义顺序和方式，优先处理引号
-    let escapedText = text
+    let escapedText = protectedText
       // 先转义&符号，避免影响其他转义字符
       .replace(/&/g, '&amp;')
       // 转义引号，使用HTML实体编码
@@ -25,6 +36,11 @@ const parseMarkdown = (text: string): string => {
       // 转义HTML标签
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
+
+    // 恢复邮箱地址
+    emails.forEach((email, index) => {
+      escapedText = escapedText.replace(`__EMAIL_PLACEHOLDER_${index}__`, email)
+    })
 
     const result = marked.parse(escapedText)
     if (typeof result === 'string') {
@@ -89,7 +105,24 @@ const navigateToCompanyList = (msg: any) => {
 }
 
 const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
-  console.log(msg)
+  useEffect(() => {
+    const handleEnterpriseDetailUnload = (res: any) => {
+      if (res.messageId === msg.messageId) {
+        msg.companyList.forEach((item: any) => {
+          if (item.creditCode === res.creditCode) {
+            item.hasFeedback = res.hasFeedback
+            item.isJoinClue = res.isJoinClue
+            item.commentContent = res.commentContent
+          }
+        })
+      }
+    }
+    Taro.eventCenter.on('enterpriseDetailUnload', handleEnterpriseDetailUnload)
+
+    return () => {
+      Taro.eventCenter.off('enterpriseDetailUnload', handleEnterpriseDetailUnload)
+    }
+  }, [])
 
   useEffect(() => {
     const handleEnterpriseSearchDataEdit = (data: any) => {
@@ -109,7 +142,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
       {msg.role === 'ai' && msg.companyList && msg.companyList.length > 0
         ? msg.companyList.slice(0, msg.splitNum == 0 || msg.splitNum == null ? 10 : msg.splitNum).map((val, valIdx) => (
             <View key={valIdx}>
-              <View className="chat_ai_company" onClick={() => navigateToCompanyDetail(val)}>
+              <View className="chat_ai_company" onClick={() => navigateToCompanyDetail({ ...val, messageId: msg.messageId })}>
                 <View className="company_left">
                   {val.logo ? (
                     // 判断是否为图片链接（包含http或https）

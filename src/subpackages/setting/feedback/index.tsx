@@ -33,8 +33,16 @@ function Index() {
   }
 
   const getImage = () => {
+    // 计算还能选择多少张图片
+    const remainingCount = Math.max(0, 6 - image.length)
+    
+    if (remainingCount === 0) {
+      Taro.showToast({ title: '最多只能上传6张图片', icon: 'none' })
+      return
+    }
+    
     Taro.chooseImage({
-      count: 6,
+      count: remainingCount, // 动态设置可选择的图片数量
       sizeType: ['original', 'compressed'],
       sourceType: ['album', 'camera'],
       success: res => {

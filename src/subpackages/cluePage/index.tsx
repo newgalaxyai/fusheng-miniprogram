@@ -242,13 +242,13 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
     }
   }
 
-  const handleRemove = (id: number) => {
+  const handleRemove = (id: any) => {
     Taro.showModal({
       title: '提示',
       content: '确定删除吗？',
       success: res => {
         if (res.confirm) {
-          clueDeleteAPI({ id }, res => {
+          clueDeleteAPI({ unifiedSocialCreditCode: id.unifiedSocialCreditCode }, res => {
             if (res.success) {
               getClueList()
               Taro.showToast({
@@ -672,7 +672,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                       <View className="cluePage_item_Text">
                         <View className="item_title">
                           <View dangerouslySetInnerHTML={{ __html: parseSafeHTML(item.name || '') }}></View>
-                          <View className="item_title_text" onClick={() => handleRemove(item.id)}>
+                          <View className="item_title_text" onClick={() => handleRemove(item)}>
                             移除
                             <View
                               style={{

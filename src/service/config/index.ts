@@ -1,4 +1,4 @@
-export const TIME_OUT = 120000
+export const TIME_OUT = 1200000
 
 export const BASE_URL = 'http://192.168.110.20:10017'
 // export const BASE_URL = 'http://192.168.110.43:10017'
@@ -43,6 +43,9 @@ export const searchCompaniesURL = '/fs/ai/search-companies'
 export const getProductSellingPointsURL = '/fs/ai/getProductSellingPoints'
 export const generateReportURL = '/fs/ai/generate-report'
 export const enterpriseDetailURL = '/fs/ai/enterprise-detail'
+
+// 企业图谱
+export const enterpriseGraphURL = '/fs/ai/enterprise-graph'
 
 // AI对话相关API
 export const textStageURL = '/fs/ai/text-stage'
