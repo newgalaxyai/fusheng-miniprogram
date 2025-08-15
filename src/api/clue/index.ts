@@ -1,11 +1,40 @@
 import { taroPost, taroGet, taroPut, taroDelete } from '@/service'
-import { clueListURL, clueCreateURL, clueDeleteURL, clueFollowUpDeleteURL, clueFollowUpCreateURL, clueFollowUpPageURL, clueFollowUpUpdateURL, uploadFileURL, clueFollowUpHistoryURL, clueFollowUpDetailURL } from '@/service/config'
+import { clueListURL, clueCreateURL, clueDeleteURL, clueFollowUpDeleteURL, clueFollowUpCreateURL, clueFollowUpPageURL, clueFollowUpUpdateURL, uploadFileURL, clueFollowUpHistoryURL, clueFollowUpDetailURL, clueCreateSelectURL } from '@/service/config'
 import type { IResponse } from '../types'
 
 // 获得线索列表
 export const clueListAPI = (data: any, callback: (res: IResponse<any>) => void) => {
   taroGet({
     url: clueListURL,
+    data,
+    success: (res: any) => {
+      callback({
+        success: true,
+        data: res.data
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => {})
+}
+
+// 获得线索下拉
+export const clueListSelectAPI = (data: any, callback: (res: IResponse<any>) => void) => {
+  taroGet({
+    url: clueCreateSelectURL,
     data,
     success: (res: any) => {
       callback({

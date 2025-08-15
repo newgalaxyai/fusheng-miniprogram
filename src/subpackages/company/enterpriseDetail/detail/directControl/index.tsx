@@ -22,7 +22,6 @@ function Index() {
       gid: companyInfo.gid
       // gid: 47183021
     }, directControlRes => {
-      // console.log('directControlRes', directControlRes);
       setDirectControl(directControlRes.data || [])
     })
   })

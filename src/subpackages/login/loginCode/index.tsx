@@ -132,8 +132,6 @@ function Index() {
 
   const setInfo = (apiResponse: IResponse<IUserInfo>) => {
     if (apiResponse.success) {
-      console.log(apiResponse)
-
       dispatch(userInfoAction({ type: 'set', data: apiResponse.data }))
       if (apiResponse.data?.companyName && apiResponse.data?.targetCompanyServe) {
         let targetCompanyServe = JSON.parse(apiResponse?.data?.targetCompanyServe || '{}')

@@ -23,7 +23,6 @@ function Index() {
       gid: companyInfo.gid
       // gid: 47183021
     }, foreignInvestmentRes => {
-      // console.log('foreignInvestmentRes', foreignInvestmentRes);
       setForeignInvestment(foreignInvestmentRes.data || [])
     })
   })
@@ -81,10 +80,6 @@ function Index() {
                 <View className="item">
                   <Text className="label">法定代表人</Text>
                   <Text className="value">{foreign.legalPersonName || '--'}</Text>
-                </View>
-                <View className="item">
-                  <Text className="label">注册资本</Text>
-                  <Text className="value">{'--'}</Text>
                 </View>
               </View>
               <View className="row">

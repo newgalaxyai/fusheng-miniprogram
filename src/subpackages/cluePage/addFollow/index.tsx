@@ -7,7 +7,7 @@ import { Calendar, CalendarCard, type CalendarCardValue, Popup } from '@nutui/nu
 import Taro from '@tarojs/taro'
 import './index.scss'
 import { useSelector } from 'react-redux'
-import { clueListAPI } from '@/api/clue'
+import { clueListSelectAPI } from '@/api/clue'
 import { BASE_URL } from '@/service/config' // 新增导入
 
 // 文件类型定义
@@ -95,7 +95,7 @@ function AddFollowPage() {
   }
 
   useEffect(() => {
-    clueListAPI({ pageNo: 1, pageSize: 10, userId: userInfo?.id }, res => {
+    clueListSelectAPI({ userId: userInfo?.id }, res => {
       if (res.success && res.data) {
         // 将 API 返回的数据转换为正确的数组格式
         // 添加HTML清理函数
@@ -104,7 +104,7 @@ function AddFollowPage() {
         }
 
         // 修改第95-98行
-        const newOptions = res.data.list.map((item: any) => ({
+        const newOptions = res.data.map((item: any) => ({
           id: item.id,
           name: stripHtml(item.name || '- -')
         }))
@@ -118,10 +118,10 @@ function AddFollowPage() {
 
   // 处理搜索输入
   const handleSearchInput = (field: string, value: string) => {
-    clueListAPI({ pageNo: 1, pageSize: 10, userId: userInfo?.id, keywords: value }, res => {
+    clueListSelectAPI({ userId: userInfo?.id, keywords: value }, res => {
       if (res.success && res.data) {
         // 将 API 返回的数据转换为正确的数组格式
-        const newOptions = res.data.list.map((item: any) => ({
+        const newOptions = res.data.map((item: any) => ({
           id: item.id,
           name: item.name
         }))

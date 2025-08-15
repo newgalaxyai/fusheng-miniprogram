@@ -23,17 +23,6 @@ const TechLoadingAnimation = () => {
   )
 }
 
-// HTML实体解码工具函数
-const decodeHtmlEntities = (text: string): string => {
-  if (!text) return text
-  return text
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-}
-
 const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(({ height }, ref) => {
   type Message = {
     splitNum: any
@@ -94,7 +83,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
 
   // 更新 ref 当 aiSessionId 状态改变时
   useEffect(() => {
-    console.log(messages)
   }, [messages])
 
   // 暴露方法给父组件
@@ -132,10 +120,10 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
         currentAnswerContent.companyList.forEach((company, index) => {
           copyContent += `\n${index + 1}. ${company.name || '未知企业名称'}\n`
           if (company.legalPerson) copyContent += `   法人: ${company.legalPerson}\n`
-          if (company.tags && company.tags.length > 0) {
+          if (company.tags && Array.isArray(company.tags) && company.tags.length > 0) {
             copyContent += `   标签: ${company.tags.join(', ')}\n`
           }
-          if (company.contactInfo.phones && company.contactInfo.phones.length > 0) {
+          if (company.contactInfo?.phones && company.contactInfo.phones.length > 0) {
             copyContent += `   联系方式: ${company.contactInfo.phones.join(', ')}\n`
           }
           if (company.score) copyContent += `   匹配度: ${company.score}%\n`
@@ -303,8 +291,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
       const answerTimestamp = new Date(answerTime).getTime()
       const responseDurationMs = answerTimestamp - questionTimestamp
       const responseDuration = Number((responseDurationMs / 1000).toFixed(1))
-      console.log(aiMessage.companyList)
-
       const result = await new Promise((resolve, reject) => {
         aiMessageCreateAPI(
           {
@@ -420,6 +406,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
         dispatch(getSessionListAsync())
         Taro.eventCenter.trigger('addSession', true)
         setMessages([])
+        setIsStreaming(false)
         Taro.showToast({ title: '会话创建成功', icon: 'none' })
         setConversationId('')
       }
@@ -428,7 +415,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
 
   useEffect(() => {
     getRecommendBatches()
-
     if (Taro.getStorageSync('aiSessionId')) {
       setAiSessionId(Taro.getStorageSync('aiSessionId'))
     } else {
@@ -463,7 +449,40 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
               role: 'ai',
               content: item.aiResponse,
               conclusion: item.conclusion,
-              companyList: JSON.parse(item.enterpriseInfo).companyList,
+              companyList: JSON.parse(item.enterpriseInfo).companyList.map((item: any) => {
+                // 确保 contactInfo 存在且有正确的结构
+                if (!item.contactInfo) {
+                  item.contactInfo = { phones: [] }
+                }
+                if (!Array.isArray(item.contactInfo.phones)) {
+                  item.contactInfo.phones = []
+                }
+
+                // 确保 tags 是数组
+                if (!Array.isArray(item.tags)) {
+                  item.tags = []
+                }
+
+                let locationStr = item.province || item.address || item.location || '未知省份'
+                if (locationStr.includes('省')) {
+                  item.handleLocation = locationStr.split('省')[0] + '省'
+                } else if (locationStr.includes('自治区')) {
+                  item.handleLocation = locationStr.split('自治区')[0] + '自治区'
+                } else if (locationStr.includes('市')) {
+                  const directMunicipalities = ['北京', '上海', '天津', '重庆']
+                  const found = directMunicipalities.find(city => locationStr.includes(city))
+                  item.handleLocation = found ? found + '市' : locationStr.split('市')[0] + '市'
+                } else {
+                  item.handleLocation = '未知省份'
+                }
+
+                if (item.legalPerson) {
+                  item.legalPerson = item.legalPerson.replace(/\s*\([^)]*\)\s*/g, '').trim() || '- -'
+                } else {
+                  item.legalPerson = '- -'
+                }
+                return item
+              }),
               splitNum: JSON.parse(item.enterpriseInfo).splitNum,
               total: JSON.parse(item.enterpriseInfo).total,
               apiStatus: { textComplete: true, companyComplete: true },
@@ -478,6 +497,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
           getChatMsgHeight()
         }, 100)
       }, 100)
+      Taro.hideLoading()
     })
 
     return () => {
@@ -681,9 +701,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                   let responseText = ''
                   if (res.data.introduction) {
                     // 解码HTML实体，处理引号编码问题
-                    const decodedIntroduction = decodeHtmlEntities(res.data.introduction || '')
-                    const decodedAnalysisContent = decodeHtmlEntities(res.data.analysisContent || '')
-                    responseText = `${decodedIntroduction}${decodedAnalysisContent}`
+                    responseText = `${res.data.introduction || ''}${res.data.analysisContent || ''}${res.data.conclusion || ''}`
                     streamAIReply(responseText, aiMessageId, userMessageId)
                     setMessages(msgs => {
                       return msgs.map(msg => {
@@ -691,6 +709,19 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                         if (msg.messageId === aiMessageId && msg.role === 'ai') {
                           // 处理企业信息
                           const processedCompanyList = res.data?.companyBody?.companyInfoResponseList.map((item: any) => {
+                            // 确保 contactInfo 存在且有正确的结构
+                            if (!item.contactInfo) {
+                              item.contactInfo = { phones: [] }
+                            }
+                            if (!Array.isArray(item.contactInfo.phones)) {
+                              item.contactInfo.phones = []
+                            }
+
+                            // 确保 tags 是数组
+                            if (!Array.isArray(item.tags)) {
+                              item.tags = []
+                            }
+
                             let locationStr = item.province || item.address || item.location || '未知省份'
                             if (locationStr.includes('省')) {
                               item.handleLocation = locationStr.split('省')[0] + '省'
@@ -724,7 +755,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                     })
                   } else {
                     // 解码HTML实体，处理引号编码问题
-                    responseText = decodeHtmlEntities(res.data.normalAnswer)
+                    responseText = res.data.normalAnswer || ''
 
                     streamAIReply(responseText, aiMessageId, userMessageId)
                   }
@@ -755,6 +786,19 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                       if (msg.messageId === aiMessageId && msg.role === 'ai') {
                         // 处理企业信息
                         const processedCompanyList = res.data.companyInfoResponseList.map((item: any) => {
+                          // 确保 contactInfo 存在且有正确的结构
+                          if (!item.contactInfo) {
+                            item.contactInfo = { phones: [] }
+                          }
+                          if (!Array.isArray(item.contactInfo.phones)) {
+                            item.contactInfo.phones = []
+                          }
+
+                          // 确保 tags 是数组
+                          if (!Array.isArray(item.tags)) {
+                            item.tags = []
+                          }
+
                           let locationStr = item.province || item.address || item.location || '未知省份'
                           if (locationStr.includes('省')) {
                             item.handleLocation = locationStr.split('省')[0] + '省'
@@ -823,6 +867,21 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                   }
                 }
               })
+            } else {
+              setIsStreaming(false)
+              setMessages(msgs => {
+                const updatedMessages = msgs.map(msg => {
+                  if (msg.messageId === aiMessageId && msg.role === 'ai') {
+                    return {
+                      ...msg,
+                      content: '抱歉，我暂时无法回答您的问题，请稍后再试。',
+                      apiStatus: { textComplete: true, companyComplete: true }
+                    }
+                  }
+                  return msg
+                })
+                return updatedMessages
+              })
             }
           }
         )
@@ -851,6 +910,9 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
     for (let i = 0; i < 5; i++) {
       promises.push(
         new Promise<any[]>(resolve => {
+          if (companyInfo?.customInput) {
+            companyInfo.expansionDomainKeywordsSelected = [...companyInfo.expansionDomainKeywordsSelected, companyInfo.customInput]
+          }
           guessYouWantAPI(companyInfo.expansionDomainKeywordsSelected || [], res => {
             if (res && res.success && res.data) {
               let batches: any[] = []
@@ -896,7 +958,9 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
       setRecommendQueue(newQueue)
       setRecommendBatches(newQueue[0] || [])
       setCurrentBatchIndex(0)
-
+      if (companyInfo?.customInput) {
+        companyInfo.expansionDomainKeywordsSelected = [...companyInfo.expansionDomainKeywordsSelected, companyInfo.customInput]
+      }
       // 异步调用新的API，补充队列到三条
       guessYouWantAPI(companyInfo.expansionDomainKeywordsSelected || [], res => {
         if (res && res.success && res.data) {

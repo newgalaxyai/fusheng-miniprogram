@@ -1,7 +1,7 @@
 export const TIME_OUT = 1200000
 
-export const BASE_URL = 'http://192.168.110.20:10017'
-// export const BASE_URL = 'http://192.168.110.43:10017'
+// export const BASE_URL = 'http://192.168.110.20:10017'
+export const BASE_URL = 'http://192.168.110.43:10017'
 // export const BASE_URL = 'https://xiaohengquan.com/'
 
 // 上传文件
@@ -80,6 +80,8 @@ export const userFavoriteListURL = '/fs/user-favorite/list'
 export const clueListURL = '/fs/lead/page'
 // 创建线索
 export const clueCreateURL = '/fs/lead/create'
+// 创建线索下拉
+export const clueCreateSelectURL = '/fs/lead/getLeadNameAndId'
 // 删除线索
 export const clueDeleteURL = '/fs/lead/delete'
 // 创建线索跟进

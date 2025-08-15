@@ -482,10 +482,10 @@ function Index() {
     setAddress(res.contactInfo?.address || [])
     setOthers(res.contactInfo?.others || [])
     setAllContactInformation(totalCount)
-    // Taro.showLoading({
-    //   title: '正在加载企业详情',
-    //   mask: true
-    // })
+    Taro.showLoading({
+      title: '正在加载企业详情',
+      mask: true
+    })
     enterpriseDetailAPI({ gid: res.gid, pageNum: 1, pageSize: 3 }, res => {
       if (res.success) {
         setCompanyDetail(res.data)
@@ -684,7 +684,7 @@ function Index() {
       {/* 智能分析结果 */}
       {company.score && (
         <View className="analysis">
-          <View className="analysis_content" onClick={() => Taro.navigateTo({ url: '/subpackages/company/enterpriseDetail/detail/analysisInfo/index' })}>
+          <View className="analysis_content">
             <View className="analysis_top">
               <Image src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail25.png" className="analysis_top_Img" />
               <View className="analysis_top_left">

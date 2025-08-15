@@ -182,8 +182,6 @@ function Index() {
   }
 
   function onChooseAvatar(val: any) {
-    console.log(val)
-
     // 获取token
     const tokenData = Taro.getStorageSync('token')
     const token = tokenData?.accessToken

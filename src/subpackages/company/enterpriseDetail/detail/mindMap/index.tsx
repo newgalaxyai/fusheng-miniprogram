@@ -257,7 +257,7 @@ const MindMapPage = () => {
       success: res => {
         setCanvasSize({
           width: res.windowWidth,
-          height: res.windowHeight - 100
+          height: res.windowHeight
         })
       }
     })
@@ -618,7 +618,7 @@ const MindMapPage = () => {
       const targetNode = prevNodes.find(n => n.id === nodeId)
       if (!targetNode) return prevNodes
       const newExpanded = !targetNode.expanded
-      
+
       // 如果是展开操作且节点有子节点但当前没有加载
       if (newExpanded && targetNode.hasChildren) {
         // 调用接口获取子节点数据
@@ -632,34 +632,26 @@ const MindMapPage = () => {
               // 检查位置冲突的函数（包含新创建的节点）
               const isPositionOccupied = (x: number, y: number, excludeIds: string[] = [], newNodes: Node[] = []) => {
                 // 检查现有节点
-                const existingConflict = nodes.some(node => 
-                  !excludeIds.includes(node.id) &&
-                  Math.abs(node.x - x) < 120 && 
-                  Math.abs(node.y - y) < 60
-                )
-                
+                const existingConflict = nodes.some(node => !excludeIds.includes(node.id) && Math.abs(node.x - x) < 120 && Math.abs(node.y - y) < 60)
+
                 // 检查新创建的节点
-                const newNodesConflict = newNodes.some(node => 
-                  !excludeIds.includes(node.id) &&
-                  Math.abs(node.x - x) < 120 && 
-                  Math.abs(node.y - y) < 60
-                )
-                
+                const newNodesConflict = newNodes.some(node => !excludeIds.includes(node.id) && Math.abs(node.x - x) < 120 && Math.abs(node.y - y) < 60)
+
                 return existingConflict || newNodesConflict
               }
-              
+
               // 寻找可用位置的函数（只向右侧扩展）
               const findAvailablePosition = (baseX: number, baseY: number, newNodes: Node[] = []) => {
                 let x = baseX
                 let y = baseY
                 let attempts = 0
-                
+
                 while (isPositionOccupied(x, y, [], newNodes) && attempts < 20) {
                   x += 80 // 减少水平偏移，从140改为80
                   y += 15 // 减少垂直偏移，从20改为15
                   attempts++
                 }
-                
+
                 return { x, y }
               }
 
@@ -667,14 +659,14 @@ const MindMapPage = () => {
                 // 修复ID重复问题：使用父节点ID + 索引确保唯一性
                 const childId = childData.Id || `${nodeId}_child_${index}_${childData.NodeType}`
                 const childWidth = Math.max(80, getTextWidth(childData.Name))
-                
+
                 // 简化逻辑：所有子节点都显示在父节点右侧
                 const childX = targetNode.x + (targetNode.width || 100) + 80
-                
+
                 // 直接计算Y位置，不需要避让
                 const nodeSpacing = 50
                 const childY = targetNode.y + index * nodeSpacing
-              
+
                 const childNode: Node = {
                   id: childId,
                   x: childX,
@@ -774,18 +766,6 @@ const MindMapPage = () => {
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         />
-        <View className="toolbar">
-          <View className="toolbar-btn" onClick={zoomOut}>
-            缩小
-          </View>
-          <View className="toolbar-btn" onClick={resetView}>
-            重置
-          </View>
-          <View className="toolbar-btn" onClick={zoomIn}>
-            放大
-          </View>
-        </View>
-        <View className="scale-indicator">{Math.round(transform.scale * 100)}%</View>
       </View>
     </View>
   )

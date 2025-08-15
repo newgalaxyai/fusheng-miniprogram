@@ -23,7 +23,6 @@ export const refreshToken = async () => {
       throw new Error(result.errMsg || '刷新令牌失败')
     }
   } catch (error) {
-    console.log('刷新token失败:', error)
     throw error
   }
 }
@@ -62,7 +61,6 @@ const handleTokenRefresh = async (originalRequest: any, requestInstance: TaroReq
     refreshToken()
       .then((newToken) => {
         // 刷新成功，处理等待队列中的所有请求
-        // console.log('Token刷新成功，重试等待队列中的请求')
 
         // 为所有等待的请求更新token并重试
         waitQueue.forEach(({ config, resolve, reject, requestInstance }) => {
@@ -92,7 +90,6 @@ const handleTokenRefresh = async (originalRequest: any, requestInstance: TaroReq
         waitQueue.length = 0
       })
       .catch((error) => {
-        console.log('Token刷新失败:', error)
 
         // 刷新失败，拒绝所有等待的请求
         waitQueue.forEach(({ reject }) => {

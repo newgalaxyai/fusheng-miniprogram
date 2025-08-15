@@ -70,20 +70,21 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
   // 安全的HTML解析函数
   const parseSafeHTML = useCallback((html: string) => {
     if (!html) return ''
-
-    // 只允许特定的HTML标签
-    const allowedTags = ['em', 'strong', 'b', 'i', 'u', 'mark']
-    const allowedAttributes = ['class', 'style']
-
-    // 简单的HTML清理（在实际项目中建议使用更完善的HTML清理库）
-    let cleanHTML = html
+    const cleanHTML = html
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // 移除script标签
       .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '') // 移除iframe标签
       .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '') // 移除事件处理器
+      .replace(/<[^>]*>/g, '') // 移除所有HTML标签
+      .replace(/&nbsp;/g, ' ') // 替换HTML实体
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'")
+      .trim() // 去除首尾空白
 
     return cleanHTML
   }, [])
-
   // ==================== 事件处理函数 ====================
   // 处理头部筛选按钮点击
   const handleActiveIndex = (index: number) => {
@@ -131,6 +132,10 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
   // 修改getClueList支持分页加载
   const getClueList = (page = 1, append = false) => {
     if (clueLoading) return
+    Taro.showLoading({
+      title: '获取中',
+      mask: true
+    })
     setClueLoading(true)
     clueListAPI({ pageNo: page, pageSize: 10, userId: userInfo?.id, keywords: searchValueClueList }, res => {
       if (res.success && res.data) {
@@ -149,6 +154,13 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
         }
         setClueHasMore(res.data.list.length === 10) // 判断是否还有更多
         setCluePageNum(page)
+        Taro.hideLoading()
+      } else {
+        Taro.showToast({
+          title: '获取失败',
+          icon: 'none'
+        })
+        Taro.hideLoading()
       }
       setClueLoading(false)
     })
@@ -157,6 +169,10 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
   // 修改getFollowUpList支持分页加载
   const getFollowUpList = (page = 1, append = false) => {
     if (followUpLoading) return
+    Taro.showLoading({
+      title: '获取中',
+      mask: true
+    })
     setFollowUpLoading(true)
     clueFollowUpPageAPI({ pageNum: page, pageSize: 20, userId: userInfo?.id, keywords: searchValueClueList }, res => {
       if (res.success && res.data) {
@@ -167,6 +183,13 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
         }
         setFollowUpHasMore(res.data.list.length === 20)
         setFollowUpPageNum(page)
+        Taro.hideLoading()
+      } else {
+        Taro.showToast({
+          title: '获取失败',
+          icon: 'none'
+        })
+        Taro.hideLoading()
       }
       setFollowUpLoading(false)
     })
@@ -175,6 +198,10 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
   // 修改getSession支持分页加载
   const getSession = (page = 1, append = false) => {
     if (historyLoading) return
+    Taro.showLoading({
+      title: '获取中',
+      mask: true
+    })
     setHistoryLoading(true)
     clueFollowUpHistoryAPI({ pageNum: page, pageSize: 20 }, res => {
       if (res.success && res.data) {
@@ -226,6 +253,13 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
         }
         setHistoryHasMore(filteredList.length === 20)
         setHistoryPageNum(page)
+        Taro.hideLoading()
+      } else {
+        Taro.showToast({
+          title: '获取失败',
+          icon: 'none'
+        })
+        Taro.hideLoading()
       }
       setHistoryLoading(false)
     })
@@ -250,7 +284,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
         if (res.confirm) {
           clueDeleteAPI({ unifiedSocialCreditCode: id.unifiedSocialCreditCode }, res => {
             if (res.success) {
-              getClueList()
+              setClueList(prevList => prevList.filter(item => item.unifiedSocialCreditCode !== id.unifiedSocialCreditCode))
               Taro.showToast({
                 title: '删除成功',
                 icon: 'none'
@@ -307,12 +341,6 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
   }
 
   const handleFilterConfirm = () => {
-    console.log('筛选条件：', {
-      module: selectedModule,
-      visitMethods: selectedVisitMethods,
-      keyword: filterKeyword,
-      timeRange: filterTimeRange
-    })
     setIsShowFilter(false)
   }
 
@@ -448,7 +476,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
         <View className="address_content">
           <Cell.Group>
             {address.map((item, index) => (
-              <Cell key={index} align="center" title={`公司地址${index + 1}`} description={item} />
+              <Cell key={index} align="center" title={`公司地址${index + 1}`} description={parseSafeHTML(item)} />
             ))}
           </Cell.Group>
         </View>
@@ -577,7 +605,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
       </Popup>
 
       {/* 跟进列表 */}
-      <Popup position="bottom" title={`${selectedItem?.name || ''} - 跟进记录`} style={{ maxHeight: '85%', minHeight: '85%' }} visible={isShowFollowUp} onClose={() => setIsShowFollowUp(false)}>
+      <Popup position="bottom" title={`${parseSafeHTML(selectedItem?.name) || ''} - 跟进记录`} style={{ maxHeight: '85%', minHeight: '85%' }} visible={isShowFollowUp} onClose={() => setIsShowFollowUp(false)}>
         <ScrollView scrollY className="followUp_list" onScrollToLower={loadMoreFollowUpList} lowerThreshold={50}>
           {followUpListPopup.map((item: any, index: number) => (
             <View className="clueRecord_item" onClick={() => toFollowPage(item)} key={index}>

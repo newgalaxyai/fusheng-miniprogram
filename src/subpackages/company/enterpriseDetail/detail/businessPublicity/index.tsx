@@ -20,7 +20,6 @@ function Index() {
       gid: companyInfo.gid
       // gid: 47183021
     }, businessPublicityRes => {
-      // console.log('businessPublicityRes', businessPublicityRes);
       setBusinessPublicity(businessPublicityRes.data || [])
     })
   })

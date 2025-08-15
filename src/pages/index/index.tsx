@@ -39,8 +39,6 @@ function Index() {
   const [expandedItems, setExpandedItems] = useState<{ [key: number]: boolean }>({})
   const handleActiveIndex = (idx: any) => {
     if (idx == 1) {
-      console.log(cluePageRef.current)
-
       cluePageRef.current?.getClueList()
     }
     setActiveIndex(idx)
@@ -206,6 +204,7 @@ function Index() {
   }
 
   const getChatItem = (chatItem: any) => {
+    Taro.showLoading({ title: '加载中', mask: true })
     aiSessionGetHistorySessionAPI({ id: chatItem.id }, res => {
       if (res.success && res.data) {
         setActiveIndex(0)

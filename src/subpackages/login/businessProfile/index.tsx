@@ -42,7 +42,7 @@ function BusinessProfile() {
       ...existingUserInfo, // 保留之前的数据（包括公司名称和名字）
       coreSellingPoints: coreSellingPoints,
       expansionDomainKeywords: tags,
-      expansionDomainKeywordsSelected: selectedTags.length === 0 ? tags : selectedTags,
+      expansionDomainKeywordsSelected: selectedTags.length === 0 ? tags[0] : selectedTags,
       customInput: customInput
     })
     loginInfoUpdateAPI(
@@ -53,7 +53,7 @@ function BusinessProfile() {
         targetCompanyServe: JSON.stringify({
           coreSellingPoints: coreSellingPoints,
           expansionDomainKeywords: tags,
-          expansionDomainKeywordsSelected: selectedTags.length === 0 ? tags : selectedTags,
+          expansionDomainKeywordsSelected: selectedTags.length === 0 ? tags[0] : selectedTags,
           customInput: customInput
         })
       },

@@ -15,46 +15,56 @@ const parseMarkdown = (text: string): string => {
   if (!text) return ''
 
   try {
-    // 先保护邮箱地址，避免被HTML转义影响
-    const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g
-    const emails: string[] = []
-    let emailIndex = 0
+    // 首先解码HTML实体
+    let decodedText = text
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'")
+      .replace(/&nbsp;/g, ' ')
 
-    // 用占位符替换邮箱
-    let protectedText = text.replace(emailRegex, match => {
-      emails.push(match)
-      return `__EMAIL_PLACEHOLDER_${emailIndex++}__`
-    })
+    // 预处理：确保换行符被正确处理
+    let processedText = decodedText
+      // 将单独的\n转换为两个\n（markdown段落分隔）
+      .replace(/([^\n])\n([^\n])/g, '$1\n\n$2')
 
-    // 调整转义顺序和方式，优先处理引号
-    let escapedText = protectedText
-      // 先转义&符号，避免影响其他转义字符
-      .replace(/&/g, '&amp;')
-      // 转义引号，使用HTML实体编码
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;')
-      // 转义HTML标签
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
+    // 使用marked解析Markdown
+    const result = marked.parse(processedText)
 
-    // 恢复邮箱地址
-    emails.forEach((email, index) => {
-      escapedText = escapedText.replace(`__EMAIL_PLACEHOLDER_${index}__`, email)
-    })
-
-    const result = marked.parse(escapedText)
+    let htmlResult: string
     if (typeof result === 'string') {
-      return result
-    } else if (result instanceof Promise) {
-      console.warn('Marked returned a Promise, using escaped text')
-      return escapedText.replace(/\n/g, '<br>')
+      htmlResult = result
     } else {
-      return String(result)
+      htmlResult = String(result)
     }
+
+    // 关键修改：在marked.parse之后再次解码HTML实体，解决&quot;问题
+    let decodedHtmlResult = htmlResult
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'")
+      .replace(/&nbsp;/g, ' ')
+
+    // 最后确保所有\n都被转换
+    const finalResult = decodedHtmlResult.replace(/\n/g, '<br>')
+
+    return finalResult
   } catch (error) {
-    console.error('Markdown parsing error:', error)
-    // 错误处理中也保持相同的转义逻辑
-    return text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')
+    console.error('❌ parseMarkdown - 解析错误:', error)
+    // 错误处理时也要解码HTML实体
+    const fallbackResult = text
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'")
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\n/g, '<br>')
+
+    return fallbackResult
   }
 }
 
@@ -136,6 +146,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
       Taro.eventCenter.off('enterpriseSearchDataEdit', handleEnterpriseSearchDataEdit)
     }
   }, [])
+
   return (
     <View>
       {msg.content ? <View className="chatMsg_ai_text" dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.content) }}></View> : null}
@@ -167,8 +178,8 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
                     <ArrowRightSmall color="#2B2B2B" size="24rpx" />
                   </View>
                   <View className="company_right_tags">
-                    <Text className="company_right_tag">活跃号</Text>
-                    <Text className="company_right_tag">{val.contactInfo.phones.length}联系方式</Text>
+                    <Text className="company_right_tag">{val.regStatus}</Text>
+                    <Text className="company_right_tag">{val?.contactInfo?.phones?.length || 0}联系方式</Text>
                     <Text className="company_right_tag">300-500人</Text>
                   </View>
                   <View className="company_right_info">

@@ -232,7 +232,6 @@ class TaroRequest {
           
           // 检查是否返回了 Promise（token 刷新场景）
           if (processedRes && typeof processedRes.then === 'function') {
-            console.log('返回了 Promise，等待刷新 token 完成');
             // 如果是 Promise，等待其完成后再调用原始 success 回调
             processedRes
               .then((actualData: any) => {

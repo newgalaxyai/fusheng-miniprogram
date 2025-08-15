@@ -21,7 +21,6 @@ function Index() {
         // reportId: 4706205343
       },
       annualDetailRes => {
-        // console.log('annualDetailRes', annualDetailRes);
         if (typeof annualDetailRes.data?.reportSocialSecurityInfo === 'string') {
           annualDetailRes.data.reportSocialSecurityInfo = JSON.parse(annualDetailRes.data.reportSocialSecurityInfo) as ISocialSecurityInfo
         }
