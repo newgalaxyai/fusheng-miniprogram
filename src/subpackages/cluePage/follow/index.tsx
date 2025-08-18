@@ -16,6 +16,16 @@ function FollowPage() {
     })
   }
 
+  // 新增：图片预览
+  const imagePreview = (index: number) => {
+    console.log(index)
+
+    Taro.previewImage({
+      urls: followUpDetail?.followUpFileList?.map((item: any) => item.url),
+      current: index
+    })
+  }
+
   const deleteFollowUp = () => {
     Taro.showModal({
       title: '删除跟进',
@@ -144,14 +154,12 @@ function FollowPage() {
               <Text className="item-value link">{followUpDetail?.followUpCompany?.contact || '联系人'}</Text>
             </View>
 
-            <View className="detail-item">
+            <View className="detail-item" style={{ minHeight: '20rpx' }}>
               <Text className="item-label">相关附件</Text>
-              {followUpDetail?.followUpFileList?.length > 0 && (
-                <>
-                  <Text className="item-value link">{followUpDetail.followUpFileList[0]?.name || '附件'}</Text>
-                  {followUpDetail.followUpFileList.length > 1 && <Text style={{ color: '#2156FE', fontSize: '28rpx', fontWeight: '500', marginLeft: '14rpx' }}>(+{followUpDetail.followUpFileList.length - 1})</Text>}
-                </>
-              )}
+            </View>
+
+            <View className="detail-item_img">
+              {followUpDetail?.followUpFileList?.length > 0 && followUpDetail.followUpFileList.map((item: any, index: number) => <Image key={index} src={item?.url} className="btn-icon" onClick={() => imagePreview(index)} />)}
               {followUpDetail?.followUpFileList?.length === 0 && <Text className="item-value link">暂无附件</Text>}
             </View>
 

@@ -53,8 +53,8 @@ interface Transform {
 
 const MindMapPage = () => {
   // 在getEnterpriseGraph函数中添加坐标检查
-  function getEnterpriseGraph(creditCode: any, keyno: string = '') {
-    getEnterpriseGraphAPI({ creditCode, keyno }, res => {
+  function getEnterpriseGraph(gid: any, keyno: string = '') {
+    getEnterpriseGraphAPI({ gid, keyno }, res => {
       if (res.success) {
         const convertedNodes = convertApiDataToNodes(res.data)
         const layoutedNodes = calculateNodeLayout(updateNodeWidths(convertedNodes))
@@ -87,8 +87,8 @@ const MindMapPage = () => {
   }
 
   Taro.useLoad(options => {
-    if (options.creditCode) {
-      getEnterpriseGraph(options.creditCode)
+    if (options.gid) {
+      getEnterpriseGraph(options.gid)
     } else {
       Taro.showToast({
         title: '没有企业编码',

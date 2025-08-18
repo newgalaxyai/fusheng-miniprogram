@@ -27,8 +27,7 @@ const ContactPopup: React.FC<ContactPopupProps> = ({ visible, onClose, contactDa
     { id: 1, name: `手机号 ${phoneInfo?.length || 0}` },
     { id: 2, name: `固话 ${fixedLines?.length || 0}` },
     { id: 3, name: `邮箱 ${emails?.length || 0}` },
-    { id: 4, name: `地址 ${address?.length || 0}` },
-    { id: 5, name: `其他 ${others?.length || 0}` }
+    { id: 4, name: `其他 ${others?.length || 0}` }
   ]
 
   // 渲染联系人项目
@@ -103,15 +102,8 @@ const ContactPopup: React.FC<ContactPopupProps> = ({ visible, onClose, contactDa
         </ScrollView>
       )}
 
-      {/* 地址 */}
-      {tabValue === 3 && (
-        <ScrollView scrollY className="tab_content">
-          {address.map((item, index) => renderContactItem(item, index, 'other'))}
-        </ScrollView>
-      )}
-
       {/* 其他 */}
-      {tabValue === 4 && (
+      {tabValue === 3 && (
         <ScrollView scrollY className="tab_content">
           {others.map((item, index) => renderContactItem(item, index, 'other'))}
         </ScrollView>

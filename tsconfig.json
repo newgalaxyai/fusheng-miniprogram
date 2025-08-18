@@ -18,13 +18,25 @@
     "allowJs": true,
     "resolveJsonModule": true,
     "typeRoots": [
-      "node_modules/@types"
+      "node_modules/@types",
+      "./src/types"
+    ],
+    "types": [
+      "node",
+      "react",
+      "taro"
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     },
     "baseUrl": "."
   },
-  "include": ["./src", "./types"],
+  "include": [
+    "./src",
+    "src/types/**/*",
+    "src/**/*"
+  ],
   "compileOnSave": false
 }

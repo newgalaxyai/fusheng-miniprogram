@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { View, Text, Image } from '@tarojs/components'
 import { Cell, Checkbox, Empty, SearchBar } from '@nutui/nutui-react-taro'
-import Taro from '@tarojs/taro'
+import Taro, { useLoad } from '@tarojs/taro'
 import { Button, Input, Form, Popup } from '@nutui/nutui-react-taro'
 import './index.scss'
 import { companyInfoAPI, searchCompaniesAPI } from '@/api/company'
@@ -37,6 +37,12 @@ function CompanyProfile() {
   }, [debouncedInputValue])
 
   useEffect(() => {
+    const companyInfo = Taro.getStorageSync('companyInfo')
+    if (companyInfo) {
+      setSelected(0)
+      setName(companyInfo.userName)
+      setCustomCompany(companyInfo.companyName)
+    }
     try {
       companyInfoAPI({ phone: userInfo?.mobile }, res => {
         if (res.success) {
@@ -74,8 +80,10 @@ function CompanyProfile() {
     // 获取选中的企业名称
     const selectedCompanyName = selected === companyList.length - 1 ? customCompany : companyList[selected]
 
+    const companyInfoCopy = Taro.getStorageSync('companyInfo')
     // 保存企业名称和姓名并跳转
     Taro.setStorageSync('companyInfo', {
+      ...companyInfoCopy,
       companyName: selectedCompanyName,
       userName: name
     })

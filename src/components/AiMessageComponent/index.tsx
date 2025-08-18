@@ -150,7 +150,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
   return (
     <View>
       {msg.content ? <View className="chatMsg_ai_text" dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.content) }}></View> : null}
-      {msg.role === 'ai' && msg.companyList && msg.companyList.length > 0
+      {msg.role === 'ai' && msg.apiStatus.textComplete && msg.companyList && msg.companyList.length > 0
         ? msg.companyList.slice(0, msg.splitNum == 0 || msg.splitNum == null ? 10 : msg.splitNum).map((val, valIdx) => (
             <View key={valIdx}>
               <View className="chat_ai_company" onClick={() => navigateToCompanyDetail({ ...val, messageId: msg.messageId })}>
@@ -180,7 +180,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
                   <View className="company_right_tags">
                     <Text className="company_right_tag">{val.regStatus}</Text>
                     <Text className="company_right_tag">{val?.contactInfo?.phones?.length || 0}联系方式</Text>
-                    <Text className="company_right_tag">300-500人</Text>
+                    <Text className="company_right_tag">{val?.staffNum}人</Text>
                   </View>
                   <View className="company_right_info">
                     <Text className="legal-person">法人:{val.legalPerson}</Text>
@@ -208,7 +208,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
             </View>
           ))
         : null}
-      {msg.conclusion ? <View className="chatMsg_ai_text" dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.conclusion) }}></View> : null}
+      {msg.conclusion ? <View style={{ marginTop: '16rpx' }} className="chatMsg_ai_text" dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.conclusion) }}></View> : null}
       {/* 加载动画单独显示在文字和公司列表下方 */}
       {(!msg.apiStatus.textComplete || !msg.apiStatus.companyComplete) && <ChatTechLoadingAnimation />}
     </View>

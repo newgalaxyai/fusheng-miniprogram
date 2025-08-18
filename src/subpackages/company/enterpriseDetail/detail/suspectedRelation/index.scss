@@ -138,6 +138,14 @@
                     align-items: center;
                     font-size: 24rpx;
                     color: #b0b3bb;
+
+                    .text-ellipsis {
+                        min-width: 110rpx;
+                        max-width: 150rpx;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
                 }
             }
         }

@@ -45,7 +45,7 @@ export const generateReportURL = '/fs/ai/generate-report'
 export const enterpriseDetailURL = '/fs/ai/enterprise-detail'
 
 // 企业图谱
-export const enterpriseGraphURL = '/fs/ai/enterprise-graph'
+export const enterpriseGraphURL = '/fs/ai/enterprise-graph-tyc'
 
 // AI对话相关API
 export const textStageURL = '/fs/ai/text-stage'

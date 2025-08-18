@@ -283,6 +283,27 @@ function Index() {
       }
     )
   }
+
+  // 打开企业图谱
+  const openTheEnterpriseMap = () => {
+    Taro.showToast({
+      title: '企业图谱暂未开放',
+      icon: 'none',
+      duration: 1000
+    })
+    // if (!company?.gid) {
+    //   Taro.showToast({
+    //     title: '企业信息错误',
+    //     icon: 'none',
+    //     duration: 1000
+    //   })
+    //   return
+    // }
+    // Taro.navigateTo({
+    //   url: '/subpackages/company/enterpriseDetail/detail/mindMap/index?gid=' + company.gid
+    // })
+  }
+
   // ==================== 线索操作处理函数 ====================
   // 处理加入线索点击
   const handleAddToLeads = (e: any) => {
@@ -368,6 +389,10 @@ function Index() {
 
   // 处理查看全部动态点击
   const toAllDynamic = () => {
+    // Taro.showToast({ title: '企业动态暂未开放', icon: 'none' })
+    console.log(companyDetail?.companyHotResultResponse)
+    console.log(company.name)
+
     let res = { companyHotResultResponse: companyDetail?.companyHotResultResponse, name: company.name }
     Taro.navigateTo({
       url: `/subpackages/company/enterpriseDetail/detail/dynamicInfo/index?item=${JSON.stringify(res)}`
@@ -376,10 +401,12 @@ function Index() {
 
   // 处理查看全部风险点击
   const toAllRisk = () => {
-    let res = { enterpriseResponses: companyDetail?.enterpriseResponses, name: company.name }
-    Taro.navigateTo({
-      url: `/subpackages/company/enterpriseDetail/detail/scanInfo/index?item=${JSON.stringify(res)}`
-    })
+    Taro.showToast({ title: '企业风险暂未开放', icon: 'none' })
+
+    // let res = { enterpriseResponses: companyDetail?.enterpriseResponses, name: company.name }
+    // Taro.navigateTo({
+    //   url: `/subpackages/company/enterpriseDetail/detail/scanInfo/index?item=${JSON.stringify(res)}`
+    // })
   }
 
   // 处理取消弹窗
@@ -389,6 +416,19 @@ function Index() {
       title: '已取消',
       icon: 'none',
       duration: 500
+    })
+  }
+
+  function openWebsite(val) {
+    Taro.setClipboardData({
+      data: val,
+      success: () => {
+        Taro.showToast({
+          title: '已将公司地址复制到剪贴板',
+          icon: 'none',
+          duration: 500
+        })
+      }
     })
   }
 
@@ -471,6 +511,7 @@ function Index() {
   Taro.useLoad(options => {
     setNotDisplaying(options && options.notDisplaying ? Boolean(options.notDisplaying) : false)
     let res = JSON.parse(options.company)
+    console.log(res)
 
     // 统计联系方式总数
     const totalCount = Object.values(res.contactInfo || {}).reduce<number>((sum, arr: any) => {
@@ -656,7 +697,7 @@ function Index() {
             </View>
           </View>
           <View className="phone_right">
-            <View className="phone_right_item">
+            <View className="phone_right_item" onClick={() => openWebsite(company.websites)}>
               <Image src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail21.png" className="phone_right_img" />
               <View className="phone_right_text">官网</View>
             </View>
@@ -843,7 +884,7 @@ function Index() {
       <View className="enterprise_graph">
         <View className="enterprise_graph_title">企业图谱</View>
         <View className="enterprise_graph_content">
-          <View className="enterprise_graph_content_item" onClick={() => Taro.navigateTo({ url: '/subpackages/company/enterpriseDetail/detail/mindMap/index?creditCode=' + company.creditCode })}>
+          <View className="enterprise_graph_content_item" onClick={openTheEnterpriseMap}>
             <Image src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail17.png" className="enterprise_graph_content_item_img" />
             <View className="enterprise_graph_content_item_text">企业图谱</View>
           </View>

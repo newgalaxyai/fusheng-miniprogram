@@ -732,15 +732,15 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                         </View>
                       </View>
                     </View>
-                    <View className="cluePage_item_tag">
-                      {item.tags &&
-                        item.tags.length > 0 &&
-                        item.tags.map((tag: any, index: number) => (
+                    {item.tags && item.tags.length > 0 && (
+                      <View className="cluePage_item_tag">
+                        {item.tags.map((tag: any, index: number) => (
                           <View className="cluePage_item_tag_item" key={index}>
                             {tag}
                           </View>
                         ))}
-                    </View>
+                      </View>
+                    )}
                     <View className="cluePage_item_product">
                       <View className={`cluePage_item_product_left${expandedProducts[index] ? ' expanded' : ''}`}>{item.businessScope ? highlightKeyword(item.businessScope, searchValueClueList || '') : '- -'}</View>
                       <View className="cluePage_item_product_right" onClick={() => setExpandedProducts(prev => ({ ...prev, [index]: !prev[index] }))}>
@@ -836,7 +836,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                     <View className="item_link">
                       联系人：{item.followUpName || '跟进人'}｜{item.followUpPosition || '跟进人职位'}｜{item.followUpPhone || '跟进人手机号'}
                     </View>
-                    <View className="item_from">来自线索：{item.followUpCompany || '客户所属公司'}</View>
+                    <View className="item_from">来自线索：{parseSafeHTML(item.followUpCompany) || '客户所属公司'}</View>
                   </View>
                 </View>
               ))}

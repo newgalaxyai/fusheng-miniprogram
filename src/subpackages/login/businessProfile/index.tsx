@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import Taro, { useLoad } from '@tarojs/taro'
 import { Button, Input } from '@nutui/nutui-react-taro'
 import './index.scss'
 import { getProductSellingPointsAPI } from '@/api/company'
@@ -14,6 +14,41 @@ function BusinessProfile() {
   const [tags, setTags] = useState<any>([])
   const [coreSellingPoints, setCoreSellingPoints] = useState<any>({})
   const userInfo = useAppSelector(state => state.login.userInfo)
+
+  useLoad(() => {
+    const companyInfo = Taro.getStorageSync('companyInfo')
+    if (companyInfo) {
+      setCoreSellingPoints(companyInfo.coreSellingPoints)
+      setSelectedTags(companyInfo.expansionDomainKeywordsSelected)
+      setTags(companyInfo.expansionDomainKeywords)
+      setCustomInput(companyInfo.customInput)
+    } else {
+      Taro.showLoading({
+        title: 'AI分析中...',
+        mask: true
+      })
+      const companyName = Taro.getCurrentInstance().router?.params?.companyName
+      const apiParams = { work_id: '1', query: companyName, user: userInfo?.id }
+      getProductSellingPointsAPI(apiParams, res => {
+        if (res.success && res.data) {
+          setCoreSellingPoints({
+            coreBusiness: res.data.coreSellingPoints?.coreBusiness || '',
+            productDescription: res.data.coreSellingPoints?.productDescription || '',
+            productFeatures: res.data.coreSellingPoints?.productFeatures || ''
+          })
+          setTags(res.data.expansionDomainKeywords || [])
+          Taro.hideLoading()
+        } else {
+          Taro.showToast({
+            title: '获取核心卖点失败',
+            icon: 'none'
+          })
+          Taro.hideLoading()
+          Taro.navigateBack()
+        }
+      })
+    }
+  })
 
   const handleTagClick = (tag: string) => {
     setSelectedTags(prev => {
@@ -42,7 +77,7 @@ function BusinessProfile() {
       ...existingUserInfo, // 保留之前的数据（包括公司名称和名字）
       coreSellingPoints: coreSellingPoints,
       expansionDomainKeywords: tags,
-      expansionDomainKeywordsSelected: selectedTags.length === 0 ? tags[0] : selectedTags,
+      expansionDomainKeywordsSelected: selectedTags.length === 0 ? [tags[0]] : selectedTags,
       customInput: customInput
     })
     loginInfoUpdateAPI(
@@ -53,7 +88,7 @@ function BusinessProfile() {
         targetCompanyServe: JSON.stringify({
           coreSellingPoints: coreSellingPoints,
           expansionDomainKeywords: tags,
-          expansionDomainKeywordsSelected: selectedTags.length === 0 ? tags[0] : selectedTags,
+          expansionDomainKeywordsSelected: selectedTags.length === 0 ? [tags[0]] : selectedTags,
           customInput: customInput
         })
       },
@@ -65,33 +100,6 @@ function BusinessProfile() {
   const handleCustomInputChange = (e: any) => {
     setCustomInput(e)
   }
-
-  useEffect(() => {
-    Taro.showLoading({
-      title: 'AI分析中...',
-      mask: true
-    })
-    const companyName = Taro.getCurrentInstance().router?.params?.companyName
-    const apiParams = { work_id: '1', query: companyName, user: userInfo?.id }
-    getProductSellingPointsAPI(apiParams, res => {
-      if (res.success && res.data) {
-        setCoreSellingPoints({
-          coreBusiness: res.data.coreSellingPoints?.coreBusiness || '',
-          productDescription: res.data.coreSellingPoints?.productDescription || '',
-          productFeatures: res.data.coreSellingPoints?.productFeatures || ''
-        })
-        setTags(res.data.expansionDomainKeywords || [])
-        Taro.hideLoading()
-      } else {
-        Taro.showToast({
-          title: '获取核心卖点失败',
-          icon: 'none'
-        })
-        Taro.hideLoading()
-        Taro.navigateBack()
-      }
-    })
-  }, [])
 
   // 监听状态变化，用于调试
   useEffect(() => {}, [coreSellingPoints])

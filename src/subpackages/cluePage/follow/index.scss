@@ -106,6 +106,7 @@
                 width: calc(100% - 104rpx);
                 margin-left: auto;
                 align-self: flex-end;
+
                 .lead-text {
                     font-size: 24rpx;
                     color: #666;
@@ -132,6 +133,20 @@
             .detail-list {
                 display: flex;
                 flex-direction: column;
+
+                .detail-item_img {
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: flex-end;
+                    gap: 12rpx;
+
+                    .btn-icon {
+                        width: 100rpx;
+                        height: 100rpx;
+                        border-radius: 4rpx;
+                    }
+
+                }
 
                 .detail-item {
                     display: flex;

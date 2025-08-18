@@ -7,7 +7,7 @@ import Taro, { useLoad } from '@tarojs/taro'
 
 function Index() {
   const [tabvalue, setTabvalue] = useState(0)
-  const [list, setList] = useState([{}, {}, {}, {}, {}, {}])
+  const [list, setList] = useState([])
   const [botHeight, setBotHeight] = useState([])
   const [tabHeight, setTabHeight] = useState(0)
   const [company, setCompany] = useState({ name: '' })
@@ -34,10 +34,10 @@ function Index() {
 
   useLoad(options => {
     let item = JSON.parse(options.item)
-    if (item.company && item.company.name) {
-      item.company.name = item.company.name.replace(/<[^>]+>/g, '')
+    if (item.name) {
+      item.name = item.name.replace(/<[^>]+>/g, '')
     }
-    setCompany(item?.company)
+    setCompany({ name: item.name })
     setCompanyList(item?.companyHotResultResponse?.companyHotRequestList)
   })
 
@@ -143,13 +143,12 @@ function Index() {
                 </View>
               </View>
             </Tabs.TabPane>
-            <Tabs.TabPane title="工商变更">
+            {/* <Tabs.TabPane title="工商变更">
               <View className="content" style={{ height: `calc(100vh - ${tabHeight}px)` }}>
                 <View className="content-box">
                   <View className="content-item-left">
                     {botHeight.map((item, index) => (
                       <React.Fragment key={index}>
-                        {/* 线（不是第一个点时才渲染） */}
                         {index > 0 && (
                           <View
                             className="content-item__line"
@@ -159,7 +158,6 @@ function Index() {
                             }}
                           />
                         )}
-                        {/* 点 */}
                         <View className="content-item__dot" style={{ top: `calc(${item}px + 18rpx)`, background: index != 0 ? '#DBDBDB' : '#1B5BFF' }} />
                       </React.Fragment>
                     ))}
@@ -193,7 +191,6 @@ function Index() {
                   <View className="content-item-left">
                     {botHeight.map((item, index) => (
                       <React.Fragment key={index}>
-                        {/* 线（不是第一个点时才渲染） */}
                         {index > 0 && (
                           <View
                             className="content-item__line"
@@ -203,7 +200,6 @@ function Index() {
                             }}
                           />
                         )}
-                        {/* 点 */}
                         <View className="content-item__dot" style={{ top: `calc(${item}px + 18rpx)`, background: index != 0 ? '#DBDBDB' : '#1B5BFF' }} />
                       </React.Fragment>
                     ))}
@@ -242,7 +238,7 @@ function Index() {
                   </View>
                 </View>
               </View>
-            </Tabs.TabPane>
+            </Tabs.TabPane> */}
           </Tabs>
         </View>
       </View>

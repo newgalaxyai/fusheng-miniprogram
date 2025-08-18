@@ -81,9 +81,134 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
     aiSessionIdRef.current = aiSessionId
   }, [aiSessionId])
 
-  // 更新 ref 当 aiSessionId 状态改变时
+  // 更新 ref 当 message 状态改变时
   useEffect(() => {
+    getChatMsgHeight()
+    console.log(messages)
   }, [messages])
+
+  // 键盘弹起时调整底部高度
+  useEffect(() => {
+    if (keyboardHeight > 0) {
+      setBottomHeight('235rpx')
+    } else {
+      setBottomHeight('314rpx')
+    }
+  }, [keyboardHeight])
+
+  useEffect(() => {
+    // 1. 键盘高度变化监听（仅微信小程序）
+    if (process.env.TARO_ENV === 'weapp') {
+      Taro.onKeyboardHeightChange(res => {
+        setKeyboardHeight(res.height)
+      })
+    }
+
+    // 2. 初始化推荐批次和AI会话
+    getRecommendBatches()
+    if (Taro.getStorageSync('aiSessionId')) {
+      setAiSessionId(Taro.getStorageSync('aiSessionId'))
+    } else {
+      getAiSession()
+    }
+
+    // 3. 事件监听器注册
+    const handleSend = res => {
+      if (res) {
+        setTimeout(() => {
+          if (aiSessionIdRef.current) {
+            continueWithSessionId(aiSessionIdRef.current, res)
+          }
+        }, 300)
+      }
+    }
+
+    const handleGetChatItem = res => {
+      setAiSessionId(res.id)
+      setConversationId(res.conversationId)
+      setMessages([])
+      setTimeout(() => {
+        const newMessages: Message[] = []
+        res.aiMessageDOS.forEach((item: any) => {
+          if (item.userMessage) {
+            newMessages.push({
+              role: 'user',
+              splitNum: 0,
+              total: 0,
+              content: item.userMessage,
+              conclusion: '',
+              companyList: [],
+              apiStatus: { textComplete: true, companyComplete: true },
+              messageId: item.id || generateUniqueId(),
+              isCollect: item.isCollect,
+              isLike: item.isLike
+            })
+          }
+          if (item.aiResponse) {
+            newMessages.push({
+              role: 'ai',
+              content: item.aiResponse,
+              conclusion: item.aiConclusion,
+              companyList: JSON.parse(item.enterpriseInfo).companyList.map((item: any) => {
+                // 确保 contactInfo 存在且有正确的结构
+                if (!item.contactInfo) {
+                  item.contactInfo = { phones: [] }
+                }
+                if (!Array.isArray(item.contactInfo.phones)) {
+                  item.contactInfo.phones = []
+                }
+
+                // 确保 tags 是数组
+                if (!Array.isArray(item.tags)) {
+                  item.tags = []
+                }
+
+                let locationStr = item.province || item.address || item.location || '未知省份'
+                if (locationStr.includes('省')) {
+                  item.handleLocation = locationStr.split('省')[0] + '省'
+                } else if (locationStr.includes('自治区')) {
+                  item.handleLocation = locationStr.split('自治区')[0] + '自治区'
+                } else if (locationStr.includes('市')) {
+                  const directMunicipalities = ['北京', '上海', '天津', '重庆']
+                  const found = directMunicipalities.find(city => locationStr.includes(city))
+                  item.handleLocation = found ? found + '市' : locationStr.split('市')[0] + '市'
+                } else {
+                  item.handleLocation = '未知省份'
+                }
+
+                if (item.legalPerson) {
+                  item.legalPerson = item.legalPerson.replace(/\s*\([^)]*\)\s*/g, '').trim() || '- -'
+                } else {
+                  item.legalPerson = '- -'
+                }
+                return item
+              }),
+              splitNum: JSON.parse(item.enterpriseInfo).splitNum,
+              total: JSON.parse(item.enterpriseInfo).total,
+              apiStatus: { textComplete: true, companyComplete: true },
+              messageId: item.id || generateUniqueId(),
+              isCollect: item.isCollect,
+              isLike: item.isLike
+            })
+          }
+        })
+        setMessages(newMessages)
+        setTimeout(() => {
+          getChatMsgHeight()
+        }, 100)
+      }, 100)
+      Taro.hideLoading()
+    }
+
+    Taro.eventCenter.on('send', handleSend)
+    Taro.eventCenter.on('getChatItem', handleGetChatItem)
+
+    return () => {
+      Taro.eventCenter.off('addMsg')
+      Taro.eventCenter.off('send', handleSend)
+      Taro.eventCenter.off('getChatItem', handleGetChatItem)
+    }
+  }, [])
 
   // 暴露方法给父组件
   useImperativeHandle(ref, () => ({
@@ -278,7 +403,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
     if (aiMsg[0]?.apiStatus?.textComplete && aiMsg[0]?.apiStatus?.companyComplete && !saveQueue.has(messageId)) {
       // 添加到保存队列，防止重复保存
       setSaveQueue(prev => new Set([...prev, messageId]))
-
+      getChatMsgHeight()
       // 保存到数据库
       saveMessageToDatabase(userMsg[0], aiMsg[0], messageId)
     }
@@ -297,6 +422,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
             sessionId: aiSessionIdRef.current,
             userMessage: userMessage?.content,
             aiResponse: aiMessage.content,
+            aiConclusion: aiMessage.conclusion,
             questionTime,
             answerTime,
             responseDuration,
@@ -318,6 +444,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
 
       // 保存成功后更新消息ID
       if (result) {
+        getChatMsgHeight()
         setMessages(msgs => {
           return msgs.map(msg => {
             if (msg.messageId === messageId && msg.role === 'ai') {
@@ -342,30 +469,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
     }
   }
 
-  // 监听键盘高度变化（仅微信小程序）
-  useEffect(() => {
-    if (process.env.TARO_ENV === 'weapp') {
-      Taro.onKeyboardHeightChange(res => {
-        setKeyboardHeight(res.height)
-      })
-    }
-
-    Taro.eventCenter.on('send', res => {
-      if (res) {
-        setTimeout(() => {
-          if (aiSessionIdRef.current) {
-            continueWithSessionId(aiSessionIdRef.current, res)
-          }
-        }, 300)
-      }
-    })
-
-    return () => {
-      Taro.eventCenter.off('addMsg')
-      Taro.eventCenter.off('send')
-    }
-  }, [])
-
   // 页面显示时重置键盘高度
   useDidShow(() => {
     setKeyboardHeight(0)
@@ -375,15 +478,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
   useDidHide(() => {
     setKeyboardHeight(0)
   })
-
-  // 键盘弹起时调整底部高度
-  useEffect(() => {
-    if (keyboardHeight > 0) {
-      setBottomHeight('235rpx')
-    } else {
-      setBottomHeight('314rpx')
-    }
-  }, [keyboardHeight])
 
   const getAiSession = () => {
     aiSessionCreateAPI({ userId: userInfo?.id }, res => {
@@ -405,6 +499,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
         setAiSessionId(res.data)
         dispatch(getSessionListAsync())
         Taro.eventCenter.trigger('addSession', true)
+        setScrollTop(0)
         setMessages([])
         setIsStreaming(false)
         Taro.showToast({ title: '会话创建成功', icon: 'none' })
@@ -413,109 +508,21 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
     })
   }
 
-  useEffect(() => {
-    getRecommendBatches()
-    if (Taro.getStorageSync('aiSessionId')) {
-      setAiSessionId(Taro.getStorageSync('aiSessionId'))
-    } else {
-      getAiSession()
-    }
-  }, [])
-
-  useEffect(() => {
-    Taro.eventCenter.on('getChatItem', res => {
-      setAiSessionId(res.id)
-      setConversationId(res.conversationId)
-      setMessages([])
-      setTimeout(() => {
-        const newMessages: Message[] = []
-        res.aiMessageDOS.forEach((item: any) => {
-          if (item.userMessage) {
-            newMessages.push({
-              role: 'user',
-              splitNum: 0,
-              total: 0,
-              content: item.userMessage,
-              conclusion: '',
-              companyList: [],
-              apiStatus: { textComplete: true, companyComplete: true },
-              messageId: item.id || generateUniqueId(),
-              isCollect: item.isCollect,
-              isLike: item.isLike
-            })
-          }
-          if (item.aiResponse) {
-            newMessages.push({
-              role: 'ai',
-              content: item.aiResponse,
-              conclusion: item.conclusion,
-              companyList: JSON.parse(item.enterpriseInfo).companyList.map((item: any) => {
-                // 确保 contactInfo 存在且有正确的结构
-                if (!item.contactInfo) {
-                  item.contactInfo = { phones: [] }
-                }
-                if (!Array.isArray(item.contactInfo.phones)) {
-                  item.contactInfo.phones = []
-                }
-
-                // 确保 tags 是数组
-                if (!Array.isArray(item.tags)) {
-                  item.tags = []
-                }
-
-                let locationStr = item.province || item.address || item.location || '未知省份'
-                if (locationStr.includes('省')) {
-                  item.handleLocation = locationStr.split('省')[0] + '省'
-                } else if (locationStr.includes('自治区')) {
-                  item.handleLocation = locationStr.split('自治区')[0] + '自治区'
-                } else if (locationStr.includes('市')) {
-                  const directMunicipalities = ['北京', '上海', '天津', '重庆']
-                  const found = directMunicipalities.find(city => locationStr.includes(city))
-                  item.handleLocation = found ? found + '市' : locationStr.split('市')[0] + '市'
-                } else {
-                  item.handleLocation = '未知省份'
-                }
-
-                if (item.legalPerson) {
-                  item.legalPerson = item.legalPerson.replace(/\s*\([^)]*\)\s*/g, '').trim() || '- -'
-                } else {
-                  item.legalPerson = '- -'
-                }
-                return item
-              }),
-              splitNum: JSON.parse(item.enterpriseInfo).splitNum,
-              total: JSON.parse(item.enterpriseInfo).total,
-              apiStatus: { textComplete: true, companyComplete: true },
-              messageId: item.id || generateUniqueId(),
-              isCollect: item.isCollect,
-              isLike: item.isLike
-            })
-          }
-        })
-        setMessages(newMessages)
-        setTimeout(() => {
-          getChatMsgHeight()
-        }, 100)
-      }, 100)
-      Taro.hideLoading()
-    })
-
-    return () => {
-      Taro.eventCenter.off('getChatItem')
-    }
-  }, [])
-
   // 获取聊天消息高度
   const getChatMsgHeight = () => {
     const query = Taro.createSelectorQuery()
     query.selectAll('.chatMsg_ai, .chatMsg_user').boundingClientRect((rects: any[]) => {
       if (rects && rects.length) {
-        // 获取最后一条消息的数据
         const lastRect = rects[rects.length - 1]
-        // 计算最后一条消息的底部位置 + 高度 + 100的偏移量
-        const lastMsgHeight = (lastRect?.top || 0) + (lastRect?.height || 0) + 100
-        setScrollTop(lastMsgHeight)
-      } else {
+        console.log(lastRect)
+
+        const lastMsgHeight = Math.abs(lastRect?.top || 0) + Math.abs(lastRect?.height || 0) + 100
+        setScrollTop(prevScrollTop => {
+          console.log(prevScrollTop, 'prevScrollTop')
+          console.log(lastMsgHeight, 'lastMsgHeight')
+          console.log(prevScrollTop + lastMsgHeight)
+          return prevScrollTop + lastMsgHeight
+        })
       }
     })
     query.exec()
@@ -546,9 +553,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
 
       if (i % STREAM_CONFIG.scrollCheckInterval === 0) {
         setTimeout(() => {
-          if (shouldAutoScroll) {
-            getChatMsgHeight()
-          }
+          getChatMsgHeight()
         }, 50)
       }
 
@@ -684,11 +689,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
           },
           parameter => {
             if (parameter.success || parameter.data) {
-              Taro.showToast({
-                title: parameter.data.askType || '没有返回类型',
-                icon: 'none',
-                duration: 3000
-              })
               // 直接调用textStageAPI
               textStageAPI({ ...parameter.data, conversationId }, res => {
                 if (res && res.success && res.data) {
@@ -701,7 +701,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                   let responseText = ''
                   if (res.data.introduction) {
                     // 解码HTML实体，处理引号编码问题
-                    responseText = `${res.data.introduction || ''}${res.data.analysisContent || ''}${res.data.conclusion || ''}`
+                    responseText = `${res.data.introduction || ''}`
                     streamAIReply(responseText, aiMessageId, userMessageId)
                     setMessages(msgs => {
                       return msgs.map(msg => {
@@ -745,6 +745,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
 
                           return {
                             ...msg,
+                            conclusion: res.data.conclusion || '',
                             companyList: processedCompanyList || [],
                             total: res.data.companyBody?.total || 0,
                             splitNum: res.data.companyBody?.splitNum || 10
@@ -892,7 +893,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
 
     // 发送消息后滚动到底部
     setTimeout(() => {
-      scrollToBottom()
+      getChatMsgHeight()
     }, 100)
   }
 
@@ -907,7 +908,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
   // 预加载五次推荐数据
   const loadFiveBatches = async () => {
     const promises: Promise<any[]>[] = []
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 1; i++) {
       promises.push(
         new Promise<any[]>(resolve => {
           if (companyInfo?.customInput) {
@@ -977,11 +978,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
         }
       })
     } else {
-      Taro.showToast({
-        title: '您点击过快了，请稍后重试！',
-        icon: 'none'
-      })
-      // 如果队列不足，重新加载五次
       loadFiveBatches()
     }
   }
@@ -1043,7 +1039,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
     >
       {messages.length === 0 ? (
         <View className="chatPage_default" ref={contentRef} style={{ height: `calc(100% - 314rpx)` }}>
-          <Image src="http://36.141.100.123:10013/glks/assets/home/home4.png" className="chatPage_img" />
+          {keyboardHeight !== 336 && <Image src="http://36.141.100.123:10013/glks/assets/home/home4.png" className="chatPage_img" />}
           {loadFailed ? (
             <View className="chatPage_recommend">
               <View className="chatPage_recommend_title">
@@ -1123,14 +1119,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
         </View>
       )}
 
-      <View
-        className="chatPage_bottom"
-        style={{
-          height: bottomHeight,
-          bottom: keyboardHeight ? `${keyboardHeight}px` : 0,
-          transition: 'height 0.26s, bottom 0.26s'
-        }}
-      >
+      <View className="chatPage_bottom" style={{ height: bottomHeight, bottom: keyboardHeight ? `${keyboardHeight}px` : 0, transition: 'height 0.26s, bottom 0.26s' }}>
         <View className="chatPage_bottom_input">
           <Textarea show-confirm-bar={false} adjust-position={false} value={input} onInput={handleInput} className="chatPage_input" onConfirm={send} placeholder="请输入您的客户需求～" placeholderStyle="color: #A9A9A9;" disabled={isStreaming} />
           <View className="chatPage_fun">
