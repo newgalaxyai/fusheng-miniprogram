@@ -15,9 +15,9 @@ function BusinessProfile() {
   const [coreSellingPoints, setCoreSellingPoints] = useState<any>({})
   const userInfo = useAppSelector(state => state.login.userInfo)
 
-  useLoad(() => {
-    const companyInfo = Taro.getStorageSync('companyInfo')
-    if (companyInfo) {
+  useLoad(options => {
+    if (options.isChanged == 'false') {
+      const companyInfo = Taro.getStorageSync('companyInfo')
       setCoreSellingPoints(companyInfo.coreSellingPoints)
       setSelectedTags(companyInfo.expansionDomainKeywordsSelected)
       setTags(companyInfo.expansionDomainKeywords)
@@ -27,7 +27,7 @@ function BusinessProfile() {
         title: 'AI分析中...',
         mask: true
       })
-      const companyName = Taro.getCurrentInstance().router?.params?.companyName
+      const companyName = options.companyName
       const apiParams = { work_id: '1', query: companyName, user: userInfo?.id }
       getProductSellingPointsAPI(apiParams, res => {
         if (res.success && res.data) {

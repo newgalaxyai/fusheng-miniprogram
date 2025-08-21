@@ -81,6 +81,9 @@ function CompanyProfile() {
     const selectedCompanyName = selected === companyList.length - 1 ? customCompany : companyList[selected]
 
     const companyInfoCopy = Taro.getStorageSync('companyInfo')
+    // 判断当前企业名称和之前的是否一样
+    const isChanged = companyInfoCopy?.companyName !== selectedCompanyName
+    
     // 保存企业名称和姓名并跳转
     Taro.setStorageSync('companyInfo', {
       ...companyInfoCopy,
@@ -93,7 +96,7 @@ function CompanyProfile() {
       configCompanyPostAPI({ companyName: selectedCompanyName }, res => {})
     }
     Taro.navigateTo({
-      url: `/subpackages/login/businessProfile/index?companyName=${selectedCompanyName}&userName=${name}`
+      url: `/subpackages/login/businessProfile/index?companyName=${selectedCompanyName}&userName=${name}&isChanged=${isChanged}`
     })
   }
 
