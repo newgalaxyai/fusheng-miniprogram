@@ -688,10 +688,9 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
             extendContextInfo: JSON.stringify(lastCompanyList.length > 5 ? lastCompanyList.slice(0, 5) : lastCompanyList)
           },
           parameter => {
-            if (parameter.success || parameter.data) {
-              // 直接调用textStageAPI
-              textStageAPI({ ...parameter.data, conversationId }, res => {
-                if (res && res.success && res.data) {
+            if (parameter.success && parameter.data) {
+              textStageAPI({ ...parameter.data, conversationId: conversationId || '' }, res => {
+                if (res.success && res.data) {
                   setConversationId(res.data.conversationId)
                   aiSessionUpdateAPI({ userId: userInfo?.id, id: sessionId, title: text, conversationId: res.data.conversationId }, res => {
                     if (res.success) {
@@ -701,7 +700,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                   let responseText = ''
                   if (res.data.introduction) {
                     // 解码HTML实体，处理引号编码问题
-                    responseText = `${res.data.introduction || ''}`
+                    responseText = `${res.data.introduction || ''}${res.data.analysisContent || ''}`
                     streamAIReply(responseText, aiMessageId, userMessageId)
                     setMessages(msgs => {
                       return msgs.map(msg => {

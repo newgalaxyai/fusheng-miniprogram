@@ -1,13 +1,9 @@
 import React, { useState } from 'react'
-import {
-  useLoad
-} from '@tarojs/taro'
+import { useLoad } from '@tarojs/taro'
 import { View, Text, Image } from '@tarojs/components'
 import { Tabs } from '@nutui/nutui-react-taro'
 import './index.scss'
-import {
-  IBranchOffice
-} from '@/api/types'
+import { IBranchOffice } from '@/api/types'
 import { getBranchOfficeAPI } from '@/api/company'
 import dayjs from 'dayjs'
 
@@ -15,16 +11,19 @@ function Index() {
   // 分支机构
   const [branchOffice, setBranchOffice] = useState<IBranchOffice[]>([])
   // 初始化获取工商信息
-  useLoad((params) => {
+  useLoad(params => {
     const { company } = params
     const companyInfo = JSON.parse(company)
-    getBranchOfficeAPI({
-      gid: companyInfo.gid
-      // gid: 47183021
-    }, branchOfficeRes => {
-      // console.log('branchOfficeRes', branchOfficeRes);
-      setBranchOffice(branchOfficeRes.data || [])
-    })
+    getBranchOfficeAPI(
+      {
+        gid: companyInfo.gid
+        // gid: 47183021
+      },
+      branchOfficeRes => {
+        // console.log('branchOfficeRes', branchOfficeRes);
+        setBranchOffice(branchOfficeRes.data || [])
+      }
+    )
   })
   // -tabs 切换
   // const [tabvalue, setTabvalue] = useState<string | number>('out')
@@ -58,19 +57,12 @@ function Index() {
         {branchOffice.map((branch, idx) => (
           <View className="shareholder-card" key={idx}>
             <View className="card-header">
-              {
-                branch.logo ? (
-                  <Image className="logo" src={branch.logo} />
-                ) : (
-                  <View className={'avatar ' + (branch.alias.length >= 4 ? 'avatar-4' : 'avatar-1')}
-                  >{branch.alias.length >= 4 ? branch.alias.slice(0, 4) : branch.alias.slice(0, 2)}</View>
-                )
-              }
+              {branch.logo ? <Image className="logo" src={branch.logo} /> : <View className={'avatar ' + (branch.alias.length >= 4 ? 'avatar-4' : 'avatar-1')}>{branch.alias.length >= 4 ? branch.alias.slice(0, 4) : branch.alias.slice(0, 2)}</View>}
               <View className="info">
                 <View className="name-row">
-                  <Text className="name">{branch.name}</Text>
+                  <Text className="name">{branch.name || '- -'}</Text>
                 </View>
-                <Text className="tag">{branch.regStatus}</Text>
+                <Text className="tag">{branch.regStatus || '- -'}</Text>
               </View>
             </View>
             <View className="card-content">

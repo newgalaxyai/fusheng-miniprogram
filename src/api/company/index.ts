@@ -1,5 +1,5 @@
 import { taroPost, taroGet, taroPut, taroDelete } from '@/service'
-import { getCompanyInfoURL, searchCompaniesURL, getProductSellingPointsURL, generateReportURL, enterpriseDetailURL, companyFeedbackCreateURL, enterpriseGraphURL } from '@/service/config'
+import { getCompanyInfoURL, searchCompaniesURL, getProductSellingPointsURL, generateReportURL, enterpriseDetailURL, companyFeedbackCreateURL, enterpriseGraphURL, getCompanyWebNewsListURL, getCompanyWebNewsDetailURL } from '@/service/config'
 import type { IBusinessInfo, ICorpInfoRequest, ICorpInfoResponse, IPersonInfo, IResponse, IShareholderInfo, IAnnualReport, IAnnualReportDetailRequest, IAnnualReportDetail, IBusinessInfoRequest, IOutsideInvestment, IBranchOffice, IActualController, IDirectControl, IBusibessPublicity, ISuspectedRelation } from '../types'
 import { getBusinessInfoURL, getPersonInfoURL, getShareholderInfoURL, getAnnualReportURL, getAnnualReportDetailURL, getOutsideInvestmentURL, getBranchOfficeURL, getActualControllerURL, getDirectControlURL, getBusinessSelfPublicationURL, getSuspectedRelationURL } from '../url'
 
@@ -36,6 +36,64 @@ export const getProductSellingPointsAPI = (data: any, callback: (res: IResponse<
 export const getEnterpriseGraphAPI = (data: any, callback: (res: IResponse<any>) => void) => {
   taroPost({
     url: enterpriseGraphURL,
+    data,
+    success: (res: any) => {
+      callback({
+        success: true,
+        data: res.data
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => {})
+}
+
+// 获取企业动态列表
+export const getCompanyWebNewsListApi = (data: any, callback: (res: IResponse<any>) => void) => {
+  taroGet({
+    url: getCompanyWebNewsListURL,
+    data,
+    success: (res: any) => {
+      callback({
+        success: true,
+        data: res.data
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => {})
+}
+
+// 获取企业动态详情
+export const getCompanyWebNewsDetailApi = (data: any, callback: (res: IResponse<any>) => void) => {
+  taroGet({
+    url: getCompanyWebNewsDetailURL,
     data,
     success: (res: any) => {
       callback({

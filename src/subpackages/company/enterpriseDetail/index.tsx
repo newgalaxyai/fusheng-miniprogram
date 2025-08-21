@@ -6,6 +6,7 @@ import Taro from '@tarojs/taro'
 import './index.scss'
 import CustomDialog from '@/components/CustomDialog'
 import { companyFeedbackCreateAPI, enterpriseDetailAPI } from '@/api/company'
+import { getCompanyWebNewsListApi } from '@/api/company'
 import { clueCreateAPI, clueDeleteAPI } from '@/api/clue'
 import ContactPopup from '@/components/ContactPopup'
 import { IMG, ROUTE_NAME, ROUTE } from '@/constants'
@@ -121,7 +122,8 @@ function Index() {
   const [companyDetail, setCompanyDetail] = useState<any>({
     similarCompanies: [],
     enterpriseResponses: [],
-    companyHotResultResponse: []
+    companyHotResultResponse: [],
+    newsList: []
   })
   // ==================== 弹窗显示状态 ====================
   const [isShowFeedback, setIsShowFeedback] = useState(false) // 反馈弹窗
@@ -218,6 +220,10 @@ function Index() {
   Taro.useUnload(() => {
     Taro.eventCenter.trigger('enterpriseDetailUnload', company)
   })
+
+  useEffect(() => {
+    console.log(companyDetail, 'companyDetail========')
+  }, [companyDetail])
 
   // 处理点踩点击
   const handleDislike = (e: any) => {
@@ -389,11 +395,7 @@ function Index() {
 
   // 处理查看全部动态点击
   const toAllDynamic = () => {
-    // Taro.showToast({ title: '企业动态暂未开放', icon: 'none' })
-    console.log(companyDetail?.companyHotResultResponse)
-    console.log(company.name)
-
-    let res = { companyHotResultResponse: companyDetail?.companyHotResultResponse, name: company.name }
+    let res = { gid: company?.gid, name: company.name, logo: company.logo }
     Taro.navigateTo({
       url: `/subpackages/company/enterpriseDetail/detail/dynamicInfo/index?item=${JSON.stringify(res)}`
     })
@@ -420,16 +422,24 @@ function Index() {
   }
 
   function openWebsite(val) {
-    Taro.setClipboardData({
-      data: val,
-      success: () => {
-        Taro.showToast({
-          title: '已将公司地址复制到剪贴板',
-          icon: 'none',
-          duration: 500
-        })
-      }
-    })
+    if (val) {
+      Taro.setClipboardData({
+        data: val,
+        success: () => {
+          Taro.showToast({
+            title: '已将公司网址复制到剪贴板',
+            icon: 'none',
+            duration: 500
+          })
+        }
+      })
+    } else {
+      Taro.showToast({
+        title: '公司网址为空',
+        icon: 'none',
+        duration: 500
+      })
+    }
   }
 
   // ==================== 恢复操作处理函数 ====================
@@ -477,7 +487,7 @@ function Index() {
 
   function toAiResearchReport(): void {
     Taro.navigateTo({
-      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.creditCode}&companyParameter=${company.enterpriseAnalysisBack}`
+      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.creditCode}&companyParameter=${company.enterpriseAnalysisBack}&name=${company.name}`
     })
   }
 
@@ -511,8 +521,6 @@ function Index() {
   Taro.useLoad(options => {
     setNotDisplaying(options && options.notDisplaying ? Boolean(options.notDisplaying) : false)
     let res = JSON.parse(options.company)
-    console.log(res)
-
     // 统计联系方式总数
     const totalCount = Object.values(res.contactInfo || {}).reduce<number>((sum, arr: any) => {
       return sum + (Array.isArray(arr) ? arr.length : 0)
@@ -527,14 +535,19 @@ function Index() {
       title: '正在加载企业详情',
       mask: true
     })
-    enterpriseDetailAPI({ gid: res.gid, pageNum: 1, pageSize: 3 }, res => {
-      if (res.success) {
-        setCompanyDetail(res.data)
+    enterpriseDetailAPI({ gid: res.gid, pageNum: 1, pageSize: 3 }, item => {
+      if (item.success) {
+        getCompanyWebNewsListApi({ gid: res.gid, pageNum: 1, pageSize: 3 }, val => {
+          if (val.success) {
+            setCompanyDetail({ ...item.data, newsList: val.data.list || [] })
+          }
+        })
         Taro.hideLoading()
       } else {
         Taro.hideLoading()
       }
     })
+
     setCompany(res)
   })
 
@@ -593,19 +606,7 @@ function Index() {
       </Popup>
 
       {/* 联系人 */}
-      <ContactPopup
-        visible={isShowPhone}
-        onClose={() => setIsShowPhone(false)}
-        contactData={{
-          phoneInfo,
-          fixedLines,
-          emails,
-          address,
-          others
-        }}
-        tabValue={tabValue}
-        onTabChange={(value: number) => setTabValue(value)}
-      />
+      <ContactPopup visible={isShowPhone} onClose={() => setIsShowPhone(false)} contactData={{ phoneInfo, fixedLines, emails, address, others }} tabValue={tabValue} onTabChange={(value: number) => setTabValue(value)} />
 
       <View className="enterpriseContent_item">
         <View className="enterpriseContent_item_top">
@@ -869,10 +870,10 @@ function Index() {
       <View className="enterprise_dynamic">
         <View className="enterprise_dynamic_title">企业动态</View>
         <View className="enterprise_dynamic_content">
-          <View className="enterprise_dynamic_content_one">{companyDetail.companyHotResultResponse?.companyHotRequestList?.[0]?.rtm ? formatTimestamp(companyDetail.companyHotResultResponse.companyHotRequestList[0].rtm) : '--'}</View>
-          <View className="enterprise_dynamic_content_two">{companyDetail.companyHotResultResponse?.companyHotRequestList?.[0]?.title || '--'}</View>
+          <View className="enterprise_dynamic_content_one">{companyDetail.newsList?.[0]?.rtm ? formatTimestamp(companyDetail.newsList[0].rtm) : '--'}</View>
+          <View className="enterprise_dynamic_content_two">{companyDetail.newsList?.[0]?.title || '--'}</View>
           <View className="enterprise_dynamic_content_three">
-            该企业存在 <Text style={{ color: '#629EE7' }}>{companyDetail.companyHotResultResponse?.realTotal || 0}条</Text> 相关动态{' '}
+            该企业存在 <Text style={{ color: '#629EE7' }}>{companyDetail.newsList?.length || 0}条</Text> 相关动态{' '}
             <Text style={{ color: '#1B5BFF' }} onClick={toAllDynamic}>
               查看全部
             </Text>
@@ -915,32 +916,33 @@ function Index() {
           </View>
         </View>
         <View className="peer_content">
-          {companyDetail.similarCompanies.slice(0, 3).map((item: any, simIndex: number) => {
-            return (
-              <View className="peer_content_item" key={simIndex}>
-                <View className="peer_content_item_top">
-                  {item.logo ? (
-                    // 判断是否为图片链接（包含http或https）
-                    item.logo.includes('http') ? (
-                      <Image src={item.logo} className="peer_content_item_img" />
+          {companyDetail?.similarCompanies?.length > 0 &&
+            companyDetail?.similarCompanies?.slice(0, 3).map((item: any, simIndex: number) => {
+              return (
+                <View className="peer_content_item" key={simIndex}>
+                  <View className="peer_content_item_top">
+                    {item.logo ? (
+                      // 判断是否为图片链接（包含http或https）
+                      item.logo.includes('http') ? (
+                        <Image src={item.logo} className="peer_content_item_img" />
+                      ) : (
+                        // 如果是文字，显示文字
+                        <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="peer_content_item_img">
+                          {item.logo}
+                        </Text>
+                      )
                     ) : (
-                      // 如果是文字，显示文字
-                      <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="peer_content_item_img">
-                        {item.logo}
+                      // 如果为空，显示"暂无"
+                      <Text className="peer_content_item_img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx' }}>
+                        暂无
                       </Text>
-                    )
-                  ) : (
-                    // 如果为空，显示"暂无"
-                    <Text className="peer_content_item_img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx' }}>
-                      暂无
-                    </Text>
-                  )}
-                  <View className="peer_content_item_text">{item.name}</View>
+                    )}
+                    <View className="peer_content_item_text">{item.name}</View>
+                  </View>
+                  <View className="peer_content_item_bottom">主营：{item.alias}</View>
                 </View>
-                <View className="peer_content_item_bottom">主营：{item.alias}</View>
-              </View>
-            )
-          })}
+              )
+            })}
         </View>
       </View>
 

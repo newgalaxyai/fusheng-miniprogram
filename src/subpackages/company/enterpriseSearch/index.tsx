@@ -24,6 +24,7 @@ function Index() {
   // ==================== 搜索相关状态 ====================
   const [searchValue, setSearchValue] = useState('') // 搜索关键词
   const [messageId, setMessageId] = useState('') // 搜索关键词
+  const [selectAllCluesData, setSelectAllCluesData] = useState<any[]>([]) // 搜索关键词
   const [matchHighest, setMatchHighest] = useState(false) // 匹配最高开关
   const [headerHeight, setHeaderHeight] = useState(0) // 头部高度
   const [bottomHeight, setBottomHeight] = useState(0) // 底部高度
@@ -40,6 +41,7 @@ function Index() {
   const [total, setTotal] = useState(0) // 企业总数
   const companyInfo = Taro.getStorageSync('companyInfo') || {}
   const userInfo = useAppSelector(state => state.login.userInfo)
+  const [clueId, setClueId] = useState('')
 
   // ==================== 筛选器相关状态 ====================
   const [sheetList, setSheetList] = useState<any[]>([
@@ -178,12 +180,18 @@ function Index() {
       setCustomList(formatInfo(res).companyList)
       setTotal(res.total)
       setMessageId(res.messageId)
+      setClueId(res.clueId)
+    }
+    const handleSearchDataEdit = (res: any) => {
+      setCustomList(res.companyList)
     }
 
     Taro.eventCenter.on('enterpriseSearchData', handleEnterpriseSearchData)
+    Taro.eventCenter.on('searchPageEdit', handleSearchDataEdit)
 
     return () => {
       Taro.eventCenter.off('enterpriseSearchData', handleEnterpriseSearchData)
+      Taro.eventCenter.off('searchPageEdit', handleSearchDataEdit)
     }
   }, [])
 
@@ -191,15 +199,14 @@ function Index() {
     Taro.eventCenter.trigger('enterpriseSearchDataEdit', {
       companyList: customList,
       total: total,
-      messageId: messageId
+      messageId: messageId,
+      clueId: clueId
     })
   })
 
   // 监听企业详情页面卸载事件
   useEffect(() => {
     const handleEnterpriseDetailUnload = (res: any) => {
-      console.log(res, 'res')
-
       setCustomList((prevList: any[]) => {
         return prevList.map((item: any) => {
           if (item.creditCode == res.creditCode) {
@@ -227,7 +234,8 @@ function Index() {
     if (isAllSelected) {
       // 提取customList中的所有creditCode并用逗号拼接
       const creditCodes = customList
-        .filter(item => item.creditCode) // 过滤出有creditCode的项目
+        .filter(item => item.hasFeedback !== 2) // 过滤掉hasFeedback == 2的数据
+        .filter(item => !item.isJoinClue) // 过滤掉isJoinClue == true的数据
         .map(item => item.creditCode)
         .join(',') // 用逗号拼接成字符串
 
@@ -321,8 +329,13 @@ function Index() {
 
   // 处理搜索页跳转
   const toSearchPage = () => {
-    Taro.navigateTo({
-      url: '/subpackages/company/searchEnterprise/index?customList=' + JSON.stringify(customList)
+    Taro.navigateTo({ url: `/subpackages/company/searchEnterprise/index` }).then(() => {
+      // 页面跳转成功后，延迟触发事件
+      setTimeout(() => {
+        Taro.eventCenter.trigger('enterpriseSearchData', {
+          companyList: customList
+        })
+      }, 100) // 延迟100ms确保目标页面已经加载
     })
   }
 
@@ -347,7 +360,7 @@ function Index() {
   // AI研究报告
   const handleAiResearchReport = (company: any) => {
     Taro.navigateTo({
-      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.creditCode}&companyParameter=${company.enterpriseAnalysisBack}`
+      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.creditCode}&companyParameter=${company.enterpriseAnalysisBack}&name=${company.name}`
     })
   }
 
@@ -539,9 +552,17 @@ function Index() {
   // 处理加入线索点击
   const handleAddToLeads = (e: any, item: any) => {
     e.stopPropagation()
-    setDialogType('add')
-    setShowCustomDialog(true)
-    setCurrentOperatingItem(item)
+    Taro.showModal({
+      title: '您确定要将该线索匹配吗？',
+      content: '标记后会自动转入线索池哦～',
+      success: function (res) {
+        if (res.confirm) {
+          handleDialogConfirm(item, 'add')
+        } else if (res.cancel) {
+          handleDialogCancel()
+        }
+      }
+    })
   }
 
   // 处理批量加入线索点击
@@ -556,29 +577,43 @@ function Index() {
     }
 
     e.stopPropagation()
-    setDialogType('batchAdd')
-    setShowCustomDialog(true)
+    Taro.showModal({
+      title: '您确定要批量添加线索吗？',
+      content: '批量添加后会自动转入线索池哦～',
+      success: function (res) {
+        if (res.confirm) {
+          const selectedItems = customList
+            .filter(item => item.hasFeedback !== 2) // 过滤掉hasFeedback == 2的数据
+            .filter(item => !item.isJoinClue) // 过滤掉isJoinClue == true的数据
+          console.log(selectedItems)
+          handleDialogConfirm(selectedItems, 'batchAdd')
+        } else if (res.cancel) {
+          handleDialogCancel()
+        }
+      }
+    })
   }
 
   // 处理移除线索点击
   const handleRemoveFromLeads = (e: any, item: any) => {
     e.stopPropagation()
-    setDialogType('remove')
-    setShowCustomDialog(true)
-    // 保存当前操作的线索ID
-    setCurrentOperatingItem(item)
+    Taro.showModal({
+      title: '您确定要将该线索移除线索池吗？',
+      content: '移除后会自动消失线索池，请谨慎操作',
+      success: function (res) {
+        if (res.confirm) {
+          handleDialogConfirm(item, 'remove')
+        } else if (res.cancel) {
+          handleDialogCancel()
+        }
+      }
+    })
   }
 
   // 处理确认弹窗
-  const handleDialogConfirm = () => {
-    setShowCustomDialog(false)
-
+  const handleDialogConfirm = (currentOperatingItem: any, type: string) => {
     if (currentOperatingItem) {
-      const itemId = currentOperatingItem.gid || currentOperatingItem.id || currentOperatingItem.name
-
-      if (dialogType === 'add') {
-        // 添加线索
-        setLeadStatus(prev => ({ ...prev, [itemId]: false }))
+      if (type === 'add') {
         clueCreateAPI({ unifiedSocialCreditCodes: currentOperatingItem.creditCode }, res => {
           if (res.success) {
             setCustomList(prevList => {
@@ -599,8 +634,6 @@ function Index() {
               duration: 500
             })
           } else {
-            // 失败时恢复状态
-            setLeadStatus(prev => ({ ...prev, [itemId]: true }))
             Taro.showToast({
               title: res.data.msg || '添加失败',
               icon: 'none',
@@ -608,9 +641,7 @@ function Index() {
             })
           }
         })
-      } else if (dialogType === 'remove') {
-        // 移除线索
-        setLeadStatus(prev => ({ ...prev, [itemId]: true }))
+      } else if (type === 'remove') {
         clueDeleteAPI({ unifiedSocialCreditCode: currentOperatingItem.creditCode }, res => {
           if (res.success) {
             setCustomList(prevList =>
@@ -631,8 +662,6 @@ function Index() {
               duration: 500
             })
           } else {
-            // 失败时恢复状态
-            setLeadStatus(prev => ({ ...prev, [itemId]: false }))
             Taro.showToast({
               title: res.data.msg || '移除失败',
               icon: 'none',
@@ -640,58 +669,49 @@ function Index() {
             })
           }
         })
-      }
-    } else if (dialogType === 'batchAdd') {
-      // 批量添加线索
-      if (!creditCodes) {
-        Taro.showToast({
-          title: '没有可添加的企业',
-          icon: 'none',
-          duration: 1000
-        })
-        return
-      }
-
-      setLeadStatus(prev => {
-        const updatedStatus = { ...prev }
-        customList.forEach(item => {
-          const itemId = item.gid || item.id || item.name
-          updatedStatus[itemId] = false
-        })
-        return updatedStatus
-      })
-
-      clueCreateAPI({ unifiedSocialCreditCodes: creditCodes }, res => {
-        if (res.success) {
-          setCustomList(prevList =>
-            prevList.map(item => ({
-              ...item,
-              isJoinClue: true
-            }))
-          )
-
+      } else if (type === 'batchAdd') {
+        // 批量添加线索
+        if (currentOperatingItem.length === 0) {
           Taro.showToast({
-            title: '批量添加成功',
-            icon: 'none',
-            duration: 500
-          })
-        } else {
-          // 失败时恢复状态
-          setLeadStatus(prev => {
-            const updatedStatus = { ...prev }
-            customList.forEach(item => {
-              const itemId = item.gid || item.id || item.name
-              updatedStatus[itemId] = true
-            })
-            return updatedStatus
-          })
-
-          Taro.showToast({
-            title: res.data.msg || '批量添加失败',
+            title: '没有可添加的企业',
             icon: 'none',
             duration: 1000
           })
+          return
         }
+        const creditCodes = currentOperatingItem.map((item: any) => item.creditCode).join(',')
+        clueCreateAPI({ unifiedSocialCreditCodes: creditCodes }, res => {
+          if (res.success) {
+            setCustomList(prevList =>
+              prevList.map((item: any) => {
+                if (currentOperatingItem.some((i: any) => i.creditCode === item.creditCode)) {
+                  return {
+                    ...item,
+                    isJoinClue: true
+                  }
+                }
+                return item
+              })
+            )
+            Taro.showToast({
+              title: '批量添加成功',
+              icon: 'none',
+              duration: 500
+            })
+          } else {
+            Taro.showToast({
+              title: res.data.msg || '批量添加失败',
+              icon: 'none',
+              duration: 1000
+            })
+          }
+        })
+      }
+    } else {
+      Taro.showToast({
+        title: '请选择要操作的企业',
+        icon: 'none',
+        duration: 1000
       })
     }
 
@@ -708,12 +728,37 @@ function Index() {
     })
   }
 
+  const selectAllClues = (e: any) => {
+    setIsAllSelected(e)
+    setSelectAllCluesData((prevState: any[]) => {
+      const newState = customList
+        .filter(item => item.hasFeedback !== 2) // 过滤掉hasFeedback == 2的数据
+        .filter(item => !item.isJoinClue) // 过滤掉isJoinClue == true的数据
+      return newState
+    })
+  }
+
+  // 处理恢复操作
+  const recover = (item: any) => {
+    Taro.showModal({
+      title: '您确定要恢复该线索吗？',
+      content: '恢复后该线索可以重新选择匹配与不匹配',
+      success: function (res) {
+        if (res.confirm) {
+          handleRestoreConfirm(item)
+        } else if (res.cancel) {
+          handleRestoreCancel()
+        }
+      }
+    })
+  }
+
   // ==================== 恢复操作处理函数 ====================
   // 处理恢复确认
-  const handleRestoreConfirm = () => {
+  const handleRestoreConfirm = (item: any) => {
     companyFeedbackCreateAPI(
       {
-        creditCode: itemInfo?.creditCode || '',
+        creditCode: item?.creditCode || '',
         isLiked: 0,
         commentContent: ''
       },
@@ -728,7 +773,7 @@ function Index() {
           })
           setCustomList(prevList =>
             prevList.map(item => {
-              if (item.creditCode === itemInfo.creditCode) {
+              if (item.creditCode === item.creditCode) {
                 return {
                   ...item,
                   hasFeedback: 0,
@@ -773,10 +818,10 @@ function Index() {
     <View className="enterprisePage">
       {/* ==================== 弹窗组件区域 ==================== */}
       {/* 自定义弹窗 */}
-      <CustomDialog visible={showCustomDialog} title={dialogType === 'add' ? '您确定要将该线索匹配吗？' : dialogType === 'batchAdd' ? '您确定要批量添加线索吗？' : '您确定要将该线索移除线索池吗？'} content={dialogType === 'add' ? '标记后会自动转入线索池哦～' : dialogType === 'batchAdd' ? '批量添加后会自动转入线索池哦～' : '移除后会自动消失线索池，请谨慎操作'} onConfirm={handleDialogConfirm} onCancel={handleDialogCancel} />
+      {/* <CustomDialog visible={showCustomDialog} title={dialogType === 'add' ? '您确定要将该线索匹配吗？' : dialogType === 'batchAdd' ? '您确定要批量添加线索吗？' : '您确定要将该线索移除线索池吗？'} content={dialogType === 'add' ? '标记后会自动转入线索池哦～' : dialogType === 'batchAdd' ? '批量添加后会自动转入线索池哦～' : '移除后会自动消失线索池，请谨慎操作'} onConfirm={handleDialogConfirm} onCancel={handleDialogCancel} /> */}
 
       {/* 恢复弹窗 */}
-      <CustomDialog visible={showRestoreDialog} title="您确定要恢复该线索吗？" content="恢复后该线索可以重新选择匹配与不匹配" onConfirm={handleRestoreConfirm} onCancel={handleRestoreCancel} />
+      {/* <CustomDialog visible={showRestoreDialog} title="您确定要恢复该线索吗？" content="恢复后该线索可以重新选择匹配与不匹配" onConfirm={handleRestoreConfirm} onCancel={handleRestoreCancel} /> */}
 
       {/* 行业前10选择弹窗 */}
       <Popup position="bottom" style={{ height: '50%' }} visible={isShowActionSheet} onClose={() => setIsShowActionSheet(false)}>
@@ -807,7 +852,7 @@ function Index() {
           <Image onClick={() => setIsShowInvalid(false)} src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
         </View>
         <View className="invalid_content">{itemInfo.commentContent || '与我的业务无关'}</View>
-        <View onClick={() => setShowRestoreDialog(true)} className="invalid_content_button">
+        <View onClick={() => recover(itemInfo)} className="invalid_content_button">
           恢复
         </View>
       </Popup>
@@ -1123,13 +1168,7 @@ function Index() {
       {/* 底部批量加入线索 */}
       <View className="enterpriseBottom">
         <View className="enterpriseBottom_left">
-          <Checkbox
-            value={isAllSelected ? '1' : '0'}
-            onChange={(value: any) => {
-              setIsAllSelected(value)
-            }}
-            label={`全选 (${isAllSelected ? customList.length : 0})`}
-          />
+          <Checkbox value={isAllSelected ? '1' : '0'} onChange={(value: any) => selectAllClues(value)} label={`全选 (${isAllSelected ? selectAllCluesData.length : 0})`} />
         </View>
         <View onClick={handleBatchAddToLeads} style={{ background: isAllSelected ? '#2156FE' : '#9CB4FF' }} className="enterpriseBottom_right">
           批量加入线索

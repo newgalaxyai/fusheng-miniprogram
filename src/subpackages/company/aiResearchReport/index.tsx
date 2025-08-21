@@ -78,10 +78,23 @@ function Index() {
 
   // 模拟进度条逻辑
   useEffect(() => {
+    console.log(apiCompleted)
+
     if (loading) {
       let timer
-
-      if (progress < 90) {
+      if (apiCompleted && progress < 100) {
+        // 接口返回后快速走完进度条
+        timer = setInterval(() => {
+          setProgress(prev => {
+            if (prev < 100) {
+              return Math.min(prev + 15, 100) // 增加步长，快速走完
+            } else {
+              clearInterval(timer) // 达到100%时立即清除定时器
+              return 100
+            }
+          })
+        }, 50) // 减少间隔时间，更快更新
+      } else if (progress < 90) {
         timer = setInterval(() => {
           setProgress(prev => {
             if (prev < 60) {
@@ -105,16 +118,6 @@ function Index() {
             }
           })
         }, 3500)
-      } else if (apiCompleted) {
-        timer = setInterval(() => {
-          setProgress(prev => {
-            if (prev < 100) {
-              return Math.min(prev + 8, 100)
-            } else {
-              return prev
-            }
-          })
-        }, 200)
       }
 
       return () => clearInterval(timer)
@@ -125,7 +128,7 @@ function Index() {
     if (progress >= 100 && apiCompleted) {
       const timer = setTimeout(() => {
         setLoading(false)
-      }, 800)
+      }, 300) // 减少延迟时间，更快显示内容
 
       return () => clearTimeout(timer)
     }
@@ -135,6 +138,7 @@ function Index() {
     generateReportAPI(
       {
         creditCode: options.creditCode,
+        companyName: options.name,
         enterpriseAnalysisBack: options.companyParameter || '',
         targetCompanyName: companyInfo.companyName,
         targetCompanyServe: JSON.stringify(companyInfo.expansionDomainKeywordsSelected)

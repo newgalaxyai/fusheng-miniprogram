@@ -44,6 +44,8 @@ export const getProductSellingPointsURL = '/fs/ai/getProductSellingPoints'
 export const generateReportURL = '/fs/ai/generate-report'
 export const enterpriseDetailURL = '/fs/ai/enterprise-detail'
 
+export const getCompanyWebNewsListURL = '/fs/ai/getCompanyWebNewsList'
+export const getCompanyWebNewsDetailURL = '/fs/ai/getCompanyWebNewsDetail'
 // 企业图谱
 export const enterpriseGraphURL = '/fs/ai/enterprise-graph-tyc'
 

@@ -8,6 +8,40 @@
     --nutui-tabs-titles-item-font-size: 32rpx;
     --nutui-tabs-tab-line-color: #1B5BFF;
 
+    .dialog-content {
+        width: 100%;
+
+        .titleDia {
+            font-family: PingFang SC, PingFang SC;
+            font-weight: 600;
+            font-size: 28rpx;
+            color: #333333;
+            margin: 24rpx 0;
+        }
+
+        .contentDia {
+            font-family: PingFang SC, PingFang SC;
+            font-weight: 400;
+            font-size: 24rpx;
+            color: #000;
+            margin-bottom: 24rpx;
+        }
+
+        .tipsDia {
+            font-family: PingFang SC, PingFang SC;
+            font-weight: 400;
+            font-size: 20rpx;
+            color: #666666;
+        }
+        
+        .viewMore {
+            font-family: PingFang SC, PingFang SC;
+            font-weight: 400;
+            font-size: 24rpx;
+            color: #1B5BFF;
+        }
+    }
+
     .header {
         width: 100%;
         background: #fff;
@@ -172,7 +206,7 @@
 
                     // 卡片内容
                     &__card {
-                        height: 152rpx;
+                        min-height: 152rpx;
                         background: #F8F9FB;
                         border-radius: 12rpx;
                         padding: 30rpx 24rpx;
@@ -184,10 +218,12 @@
                         z-index: 2;
 
                         .title {
+                            width: 90%;
                             font-family: PingFang SC, PingFang SC;
                             font-weight: 500;
                             font-size: 26rpx;
                             color: #333333;
+                            margin-bottom: 20rpx;
                         }
 
                         .source {
@@ -290,5 +326,46 @@
                 }
             }
         }
+    }
+}
+
+/* 添加以下样式到现有的 SCSS 文件中 */
+.loading-tip,
+.no-more-tip,
+.empty-tip {
+    text-align: center;
+    padding: 20rpx 0;
+    color: #999;
+    font-size: 24rpx;
+}
+
+
+.nut-dialog {
+    padding: 20rpx !important;
+    box-sizing: border-box;
+}
+
+.nut-dialog-content {
+    margin: 0;
+    min-width: auto;
+    min-height: auto;
+    max-height: auto;
+    border-radius: 0 0 24rpx 24rpx;
+    box-sizing: border-box;
+}
+
+.nut-dialog-footer {
+    margin-top: 40rpx;
+
+    .nut-dialog-footer-ok {
+        min-width: 260rpx;
+        height: 80rpx;
+        border-radius: 24rpx;
+    }
+
+    .nut-dialog-footer-cancel {
+        min-width: 260rpx;
+        height: 80rpx;
+        border-radius: 24rpx;
     }
 }

@@ -207,12 +207,15 @@ function Index() {
     Taro.showLoading({ title: '加载中', mask: true })
     aiSessionGetHistorySessionAPI({ id: chatItem.id }, res => {
       if (res.success && res.data) {
+        Taro.hideLoading()
         setActiveIndex(0)
         nextTick(() => {
           Taro.eventCenter.trigger('getChatItem', res.data)
           Taro.setStorageSync('aiSessionId', chatItem.id)
           setShowSetting(false)
         })
+      } else {
+        Taro.hideLoading()
       }
     })
   }

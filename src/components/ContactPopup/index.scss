@@ -61,7 +61,7 @@ $border-radius-sm: 8rpx;
 
     .tab_content_item {
         width: 100%;
-        height: 232rpx;
+        min-height: 232rpx;
         background: #F7F7F7;
         border-radius: 20rpx;
         padding: 24rpx;
@@ -72,13 +72,16 @@ $border-radius-sm: 8rpx;
         .tab_content_item_one {
             width: 100%;
             display: flex;
-            align-items: center;
+            justify-content: space-between;
 
             .modile {
+                width: 80%;
+                min-height: 20rpx;
                 font-family: PingFang SC, PingFang SC;
                 font-weight: 500;
                 font-size: 40rpx;
                 color: #333333;
+                word-break: break-word;
             }
 
             .recommend {

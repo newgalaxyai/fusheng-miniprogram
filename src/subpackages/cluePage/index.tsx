@@ -174,7 +174,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
       mask: true
     })
     setFollowUpLoading(true)
-    clueFollowUpPageAPI({ pageNum: page, pageSize: 20, userId: userInfo?.id, keywords: searchValueClueList }, res => {
+    clueFollowUpPageAPI({ pageNum: page, pageSize: 20, userId: userInfo?.id, keywords: searchValueFollowRecord }, res => {
       if (res.success && res.data) {
         if (append) {
           setFollowUpList(prev => [...prev, ...res.data.list])
@@ -267,6 +267,8 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
 
   function changeTabValue(value: any) {
     setTabvalue(value)
+    setSearchValueClueList('')
+    setSearchValueFollowRecord('')
     if (value === 0) {
       getClueList()
     } else if (value === 1) {
@@ -357,30 +359,106 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
 
   const handleAiResearchReport = (company: any) => {
     Taro.navigateTo({
-      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.unifiedSocialCreditCode}&companyParameter=${company.enterpriseAnalysisBack}`
+      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.unifiedSocialCreditCode}&companyParameter=${company.enterpriseAnalysisBack}&name=${company.name}`
     })
   }
 
   const navigateToCompanyDetail = (company: any) => {
+    console.log(company)
+    const companyInfo = { ...company.companyInfo, clueId: company.id }
     Taro.navigateTo({
-      url: `/subpackages/company/enterpriseDetail/index?company=${JSON.stringify(company)}`
+      url: `/subpackages/company/enterpriseDetail/index?company=${JSON.stringify(companyInfo)}`
     })
   }
 
   // 企业列表
   const handleEnterpriseList = (item: any) => {
-    // 先跳转页面
-    Taro.navigateTo({ url: `/subpackages/company/enterpriseSearch/index?messageId=${item.messageId}` }).then(() => {
+    const enterpriseInfo = item.enterpriseInfo
+    Taro.navigateTo({ url: `/subpackages/company/enterpriseSearch/index?messageId=${enterpriseInfo.messageId}` }).then(() => {
       // 页面跳转成功后，延迟触发事件
       setTimeout(() => {
         Taro.eventCenter.trigger('enterpriseSearchData', {
-          companyList: item.companyList,
-          total: item.total,
-          messageId: item.messageId
+          companyList: enterpriseInfo.companyList,
+          total: enterpriseInfo.total,
+          messageId: enterpriseInfo.messageId,
+          clueId: item.id
         })
       }, 100) // 延迟100ms确保目标页面已经加载
     })
   }
+
+  // 监听企业详情页面卸载事件
+  useEffect(() => {
+    const handleEnterpriseDetailUnload = (res: any) => {
+      setHistorySession((prevList: any[]) => {
+        return prevList.map((item: any) => {
+          if (item.id == res.clueId) {
+            const companyList = item.enterpriseInfo?.companyList || []
+            const safeCompanyList = Array.isArray(companyList) ? companyList : []
+            return {
+              ...item,
+              companyInfo: {
+                ...item.companyInfo,
+                hasFeedback: res.hasFeedback,
+                isJoinClue: res.isJoinClue,
+                commentContent: res.commentContent
+              },
+              enterpriseInfo: {
+                ...item.enterpriseInfo,
+                // 只在确定是数组时才展开
+                companyList: [
+                  ...safeCompanyList.slice(0, 1).map(company => ({
+                    ...company,
+                    hasFeedback: res.hasFeedback,
+                    isJoinClue: res.isJoinClue,
+                    commentContent: res.commentContent
+                  })),
+                  ...safeCompanyList.slice(1) // 保留其他元素
+                ]
+              }
+            }
+          }
+          return item
+        })
+      })
+    }
+    Taro.eventCenter.on('enterpriseDetailUnload', handleEnterpriseDetailUnload)
+
+    return () => {
+      Taro.eventCenter.off('enterpriseDetailUnload', handleEnterpriseDetailUnload)
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleEnterpriseSearchDataEdit = (data: any) => {
+      console.log(data)
+      setHistorySession((prevList: any[]) => {
+        return prevList.map((item: any) => {
+          if (item.id == data.clueId) {
+            return {
+              ...item,
+              companyInfo: {
+                ...item.companyInfo,
+                hasFeedback: data.companyList[0].hasFeedback,
+                isJoinClue: data.companyList[0].isJoinClue,
+                commentContent: data.companyList[0].commentContent
+              },
+              enterpriseInfo: {
+                ...item.enterpriseInfo,
+                companyList: data.companyList
+              }
+            }
+          }
+          return item
+        })
+      })
+    }
+    Taro.eventCenter.on('enterpriseSearchDataEdit', handleEnterpriseSearchDataEdit)
+
+    return () => {
+      Taro.eventCenter.off('enterpriseSearchDataEdit', handleEnterpriseSearchDataEdit)
+    }
+  }, [])
 
   const handleSearchClueList = () => {
     getClueList()
@@ -869,12 +947,12 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
           >
             <View className="cluePage_list">
               {historySession.map((item: any, index) => (
-                <View className="history_item" key={index} onClick={() => navigateToCompanyDetail(item.companyInfo)}>
+                <View className="history_item" key={index}>
                   <View className="history_top">
                     <View className="dot"></View>
                     <View className="time">{parseDate(item.createTime)}</View>
                   </View>
-                  <View className="history_content">
+                  <View className="history_content" onClick={() => navigateToCompanyDetail(item)}>
                     <View className="history_msg">问答问题：{item.userMessage}</View>
                     <View className="history_company">
                       <View className="history_img">
@@ -924,7 +1002,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                       <View className="tags_item">最新</View>
                     </View>
                   </View>
-                  <View className="company_total" onClick={() => handleEnterpriseList(item.enterpriseInfo)}>
+                  <View className="company_total" onClick={() => handleEnterpriseList(item)}>
                     <View style={{ marginRight: '16rpx' }}>查看{item.enterpriseInfo?.total || 0}企业信息</View>
                     <ArrowRight color="#1B5BFF" size="24rpx" />
                   </View>
