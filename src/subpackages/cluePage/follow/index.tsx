@@ -90,7 +90,7 @@ function FollowPage() {
         <View className="follow-summary">
           <View className="user-info">
             <View className="avatar-section">
-              <Image className="avatar" src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" />
+              {userInfo.avatar ? <Image className="avatar" src={userInfo.avatar} /> : <Image className="avatar" src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" />}
               <View className="user-details">
                 <Text className="user-name">{userInfo?.nickname}</Text>
                 <Text className="user-role">{userInfo?.position || '职位'}</Text>
