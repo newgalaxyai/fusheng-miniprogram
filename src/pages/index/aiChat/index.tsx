@@ -514,13 +514,8 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
     query.selectAll('.chatMsg_ai, .chatMsg_user').boundingClientRect((rects: any[]) => {
       if (rects && rects.length) {
         const lastRect = rects[rects.length - 1]
-        console.log(lastRect)
-
         const lastMsgHeight = Math.abs(lastRect?.top || 0) + Math.abs(lastRect?.height || 0) + 100
         setScrollTop(prevScrollTop => {
-          console.log(prevScrollTop, 'prevScrollTop')
-          console.log(lastMsgHeight, 'lastMsgHeight')
-          console.log(prevScrollTop + lastMsgHeight)
           return prevScrollTop + lastMsgHeight
         })
       }
@@ -765,8 +760,8 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                       if (msg.messageId === aiMessageId && msg.role === 'ai') {
                         return {
                           ...msg,
-                          content: '抱歉，我暂时无法回答您的问题，请稍后再试。',
-                          apiStatus: { textComplete: true, companyComplete: false }
+                          content: '抱歉，我暂时无法回答您的问题，请稍后再试，谢谢！',
+                          apiStatus: { textComplete: true, companyComplete: true }
                         }
                       }
                       return msg
@@ -1038,17 +1033,17 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
     >
       {messages.length === 0 ? (
         <View className="chatPage_default" ref={contentRef} style={{ height: `calc(100% - 314rpx)` }}>
-          {keyboardHeight !== 336 && <Image src="http://36.141.100.123:10013/glks/assets/home/home4.png" className="chatPage_img" />}
+          {keyboardHeight !== 336 && <Image src="https://find-console.newgalaxyai.com/glks/assets/home/home4.png" className="chatPage_img" />}
           {loadFailed ? (
             <View className="chatPage_recommend">
               <View className="chatPage_recommend_title">
                 <View className="recommend_left">
-                  <Image src="http://36.141.100.123:10013/glks/assets/home/home5.png" className="recommend_left_img" />
+                  <Image src="https://find-console.newgalaxyai.com/glks/assets/home/home5.png" className="recommend_left_img" />
                   <Text className="recommend_left_text">您可以试着问我：</Text>
                 </View>
                 <View className="recommend_right" onClick={handleChangeBatch} style={{ cursor: 'pointer' }}>
                   <Text className="recommend_right_text">换一批</Text>
-                  <Image src="http://36.141.100.123:10013/glks/assets/home/home6.png" className="recommend_right_img" />
+                  <Image src="https://find-console.newgalaxyai.com/glks/assets/home/home6.png" className="recommend_right_img" />
                 </View>
               </View>
               <View className={`chatPage_recommend_content${recommendAnim ? ' ' + recommendAnim : ''}`} ref={recommendRef}>
@@ -1090,10 +1085,10 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                   {/* 保留功能按钮部分 */}
                   {msg.content && msg.apiStatus.textComplete && msg.apiStatus.companyComplete ? (
                     <View className="chatMsg_ai_fun">
-                      <Image src="http://36.141.100.123:10013/glks/assets/home/home10.png" className={`chatMsg_ai_fun_img ${buttonStates[msg.messageId]?.[0] ? 'button-active' : ''}`} onClick={() => handleButtonClick(msg.messageId, 0)} data-message-id={msg.messageId} data-button-index={0} />
-                      {(msg.isLike == 0 || msg.isLike == 1) && <Image src={msg.isLike == 1 ? 'http://36.141.100.123:10013/glks/assets/home/home14.png' : 'http://36.141.100.123:10013/glks/assets/home/home11.png'} className={`chatMsg_ai_fun_img ${buttonStates[msg.messageId]?.[1] ? 'button-active' : ''}`} onClick={() => handleButtonClick(msg.messageId, 1)} data-message-id={msg.messageId} data-button-index={1} />}
-                      {(msg.isLike == 0 || msg.isLike == 2) && <Image src={msg.isLike == 2 ? 'http://36.141.100.123:10013/glks/assets/home/home15.png' : 'http://36.141.100.123:10013/glks/assets/home/home12.png'} className={`chatMsg_ai_fun_img ${buttonStates[msg.messageId]?.[2] ? 'button-active' : ''}`} onClick={() => handleButtonClick(msg.messageId, 2)} data-message-id={msg.messageId} data-button-index={2} />}
-                      <Image src={!msg.isCollect ? 'http://36.141.100.123:10013/glks/assets/home/home13.png' : 'http://36.141.100.123:10013/glks/assets/home/home16.png'} className={`chatMsg_ai_fun_img ${buttonStates[msg.messageId]?.[3] ? 'button-active' : ''}`} onClick={() => handleButtonClick(msg.messageId, 3)} data-message-id={msg.messageId} data-button-index={3} />
+                      <Image src="https://find-console.newgalaxyai.com/glks/assets/home/home10.png" className={`chatMsg_ai_fun_img ${buttonStates[msg.messageId]?.[0] ? 'button-active' : ''}`} onClick={() => handleButtonClick(msg.messageId, 0)} data-message-id={msg.messageId} data-button-index={0} />
+                      {(msg.isLike == 0 || msg.isLike == 1) && <Image src={msg.isLike == 1 ? 'https://find-console.newgalaxyai.com/glks/assets/home/home14.png' : 'https://find-console.newgalaxyai.com/glks/assets/home/home11.png'} className={`chatMsg_ai_fun_img ${buttonStates[msg.messageId]?.[1] ? 'button-active' : ''}`} onClick={() => handleButtonClick(msg.messageId, 1)} data-message-id={msg.messageId} data-button-index={1} />}
+                      {(msg.isLike == 0 || msg.isLike == 2) && <Image src={msg.isLike == 2 ? 'https://find-console.newgalaxyai.com/glks/assets/home/home15.png' : 'https://find-console.newgalaxyai.com/glks/assets/home/home12.png'} className={`chatMsg_ai_fun_img ${buttonStates[msg.messageId]?.[2] ? 'button-active' : ''}`} onClick={() => handleButtonClick(msg.messageId, 2)} data-message-id={msg.messageId} data-button-index={2} />}
+                      <Image src={!msg.isCollect ? 'https://find-console.newgalaxyai.com/glks/assets/home/home13.png' : 'https://find-console.newgalaxyai.com/glks/assets/home/home16.png'} className={`chatMsg_ai_fun_img ${buttonStates[msg.messageId]?.[3] ? 'button-active' : ''}`} onClick={() => handleButtonClick(msg.messageId, 3)} data-message-id={msg.messageId} data-button-index={3} />
                     </View>
                   ) : null}
                 </View>
@@ -1127,16 +1122,16 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                 onClick={() => {
                   speechToText()
                 }}
-                src="http://36.141.100.123:10013/glks/assets/home/home7.png"
+                src="https://find-console.newgalaxyai.com/glks/assets/home/home7.png"
                 className="chatPage_fun_left1"
               />
               <View className="chatPage_fun_left2">
-                <Image src="http://36.141.100.123:10013/glks/assets/home/home8.png" className="chatPage_fun_left2Img" />
+                <Image src="https://find-console.newgalaxyai.com/glks/assets/home/home8.png" className="chatPage_fun_left2Img" />
                 <Text>深度思考</Text>
               </View> */}
             </View>
             <Image
-              src="http://36.141.100.123:10013/glks/assets/home/home9.png"
+              src="https://find-console.newgalaxyai.com/glks/assets/home/home9.png"
               onClick={() => {
                 send()
               }}

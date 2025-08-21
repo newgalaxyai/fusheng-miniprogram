@@ -83,7 +83,7 @@ function CompanyProfile() {
     const companyInfoCopy = Taro.getStorageSync('companyInfo')
     // 判断当前企业名称和之前的是否一样
     const isChanged = companyInfoCopy?.companyName !== selectedCompanyName
-    
+
     // 保存企业名称和姓名并跳转
     Taro.setStorageSync('companyInfo', {
       ...companyInfoCopy,
@@ -146,7 +146,7 @@ function CompanyProfile() {
                       width: '100%',
                       height: '100%'
                     }}
-                    src="http://36.141.100.123:10013/glks/assets/emptyImg.png"
+                    src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png"
                   />
                 }
               />

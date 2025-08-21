@@ -397,17 +397,24 @@ function AddFollowPage() {
   function Timing() {
     setFormData(prev => ({
       ...prev,
-      followUpTime: conversionTime(changeFollowUpTime)
+      followUpTime: conversionTime(changeFollowUpTime, true)
     }))
     setShowFollowUpTime(false)
   }
 
-  const conversionTime = time => {
+  const conversionTime = (time, type) => {
     const date = new Date(time)
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, '0')
     const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    const seconds = String(date.getSeconds()).padStart(2, '0')
+    if (type == true) {
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+    } else {
+      return `${year}-${month}-${day}`
+    }
   }
 
   const closeSelect = (e: any) => {
@@ -508,7 +515,7 @@ function AddFollowPage() {
             )}
             {isShowDropdownIcon ? (
               <View onClick={() => onInputClick(field)} className="field-input-disabled">
-                {field === 'followUpTime' ? (formData[field] ? conversionTime(formData[field]) : '请选择跟进时间') : formData[field] || placeholder}
+                {field === 'followUpTime' ? (formData[field] ? conversionTime(formData[field], false) : '请选择跟进时间') : formData[field] || placeholder}
               </View>
             ) : (
               <Input
@@ -619,6 +626,7 @@ function AddFollowPage() {
           icon: 'none'
         })
         Taro.navigateBack()
+        Taro.eventCenter.trigger('refresh')
       } else {
         Taro.showToast({
           title: res.data.msg || '添加失败, 请稍后重试',
@@ -662,7 +670,7 @@ function AddFollowPage() {
           <View className="upload-title">上传附件</View>
           <View className="upload-area" onClick={handleFileUpload}>
             <View className="upload-icon">
-              <Image src="http://36.141.100.123:10013/glks/assets/chat/chat4.png" className="upload-icon-image" />
+              <Image src="https://find-console.newgalaxyai.com/glks/assets/chat/chat4.png" className="upload-icon-image" />
             </View>
             <Text className="upload-text">点击上传文件</Text>
             <Text className="upload-tips">支持.png .jpg .jpeg .gif .svg .dsg</Text>

@@ -178,7 +178,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
                     <ArrowRightSmall color="#2B2B2B" size="24rpx" />
                   </View>
                   <View className="company_right_tags">
-                    <Text className="company_right_tag">{val.regStatus}</Text>
+                    {val.regStatus != 'null' && <Text className="company_right_tag">{val.regStatus || '- -'}</Text>}
                     <Text className="company_right_tag">{val?.contactInfo?.phones?.length || 0}联系方式</Text>
                     <Text className="company_right_tag">{val?.staffNum}人</Text>
                   </View>
@@ -186,7 +186,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
                     <Text className="legal-person">法人:{val.legalPerson}</Text>
                     <Text className="address">{val.handleLocation}</Text>
                     <View className="website">
-                      <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise3.png" className="website_img" />
+                      <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise3.png" className="website_img" />
                       官网
                     </View>
                   </View>

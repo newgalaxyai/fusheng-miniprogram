@@ -51,7 +51,7 @@ const ContactPopup: React.FC<ContactPopupProps> = ({ visible, onClose, contactDa
           <View className="name">- -</View>
           <View className="position">- -</View>
           <View className="security">
-            <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise12.png" className="security_img" />
+            <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise12.png" className="security_img" />
             <View className="security_dot"></View>
             <View className="security_text">未检测</View>
           </View>
@@ -61,9 +61,9 @@ const ContactPopup: React.FC<ContactPopupProps> = ({ visible, onClose, contactDa
         </View>
         {/* {(type === 'phone' && index < 3) || type === 'email' ? (
           <View className="tab_content_item_four">
-            <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise13.png" className="tab_content_item_four_img" />
-            <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise13.png" className="tab_content_item_four_img" />
-            <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise13.png" className="tab_content_item_four_img" />
+            <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise13.png" className="tab_content_item_four_img" />
+            <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise13.png" className="tab_content_item_four_img" />
+            <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise13.png" className="tab_content_item_four_img" />
           </View>
         ) : null} */}
       </View>
@@ -74,7 +74,7 @@ const ContactPopup: React.FC<ContactPopupProps> = ({ visible, onClose, contactDa
     <Popup position="bottom" style={{ maxHeight: '75%', minHeight: '75%' }} visible={visible} onClose={onClose}>
       <View className="popup_header">
         <View className="popup_header_title">联系人</View>
-        <Image onClick={onClose} src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+        <Image onClick={onClose} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
       </View>
       <Tabs value={tabValue} onChange={onTabChange}>
         {tabList.map((item, index) => (

@@ -49,40 +49,53 @@
         font-weight: 400;
         font-size: 28rpx;
         line-height: 1.6;
-        
+
         // 添加段落间距样式
         p {
           margin: 16rpx 0;
           padding: 0;
         }
-        
+
         // 列表项间距
-        ul, ol {
+        ul,
+        ol {
           margin: 16rpx 0;
           padding-left: 32rpx;
-          
+
           li {
             margin: 8rpx 0;
             line-height: 1.5;
           }
         }
-        
+
         // 标题间距
-        h1, h2, h3, h4, h5, h6 {
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
           margin: 24rpx 0 16rpx 0;
           line-height: 1.4;
         }
-        
+
         // 分隔线间距
         hr {
           margin: 32rpx 0;
           border: none;
           border-top: 1rpx solid #e0e0e0;
         }
-        
+
         // div 容器间距
         div {
           margin: 12rpx 0;
+        }
+
+        br {
+          line-height: 0.5; // 减小br标签产生的间隙
+          content: ""; // 确保br标签只产生换行，不产生额外内容
+          display: block; // 确保是块级元素
+          margin: 2rpx 0; // 设置非常小的margin
         }
       }
     }
@@ -166,4 +179,3 @@
     transform: translateY(-20rpx);
   }
 }
-

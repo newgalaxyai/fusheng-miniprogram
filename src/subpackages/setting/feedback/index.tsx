@@ -35,12 +35,12 @@ function Index() {
   const getImage = () => {
     // 计算还能选择多少张图片
     const remainingCount = Math.max(0, 6 - image.length)
-    
+
     if (remainingCount === 0) {
       Taro.showToast({ title: '最多只能上传6张图片', icon: 'none' })
       return
     }
-    
+
     Taro.chooseImage({
       count: remainingCount, // 动态设置可选择的图片数量
       sizeType: ['original', 'compressed'],
@@ -159,14 +159,14 @@ function Index() {
           <View className="feedback_image_box">
             {image.map((item: any, index: number) => (
               <View className="feedback_image_box_item">
-                <Image src="http://36.141.100.123:10013/glks/assets/setting/feedback_close.png" className="feedback_image_box_item_close" onClick={() => handleClose(index)} />
+                <Image src="https://find-console.newgalaxyai.com/glks/assets/setting/feedback_close.png" className="feedback_image_box_item_close" onClick={() => handleClose(index)} />
                 <Image src={item} className="feedback_image" />
               </View>
             ))}
           </View>
         )}
         <View className="feedback_image_box_add">
-          <Image onClick={() => getImage()} src="http://36.141.100.123:10013/glks/assets/setting/feedback_icon.png" className="feedback_icon" />
+          <Image onClick={() => getImage()} src="https://find-console.newgalaxyai.com/glks/assets/setting/feedback_icon.png" className="feedback_icon" />
           <View className="feedback_image_box_add_text">{textarea.length}/500</View>
         </View>
       </View>

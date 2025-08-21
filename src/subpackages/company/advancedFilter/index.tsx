@@ -154,8 +154,7 @@ function Index() {
     })
   }
 
-  const handleSubmit = () => {
-  }
+  const handleSubmit = () => {}
 
   // 修改日期选择函数
   const setChooseValue = (e: any) => {
@@ -200,7 +199,7 @@ function Index() {
       <Popup className="advancedPopup" position="bottom" style={{ maxHeight: '80%', minHeight: '80%' }} visible={showCustomYearInput} onClose={closeCustomYearInput}>
         <View className="popup_header">
           <View className="popup_header_title">成立年限</View>
-          <Image onClick={() => closeAdvancedPopup()} src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+          <Image onClick={() => closeAdvancedPopup()} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
         </View>
         <View style={{ height: `calc(${popUpHeight}px - 380rpx)` }}>
           <CalendarCard type="range" startDate={new Date('1900-01-01')} onChange={setChooseValue} />

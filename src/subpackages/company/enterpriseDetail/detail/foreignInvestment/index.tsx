@@ -1,13 +1,9 @@
 import React, { useState } from 'react'
-import {
-  useLoad
-} from '@tarojs/taro'
+import { useLoad } from '@tarojs/taro'
 import { View, Text, Image } from '@tarojs/components'
 import { Tabs } from '@nutui/nutui-react-taro'
 import './index.scss'
-import {
-  IOutsideInvestment
-} from '@/api/types'
+import { IOutsideInvestment } from '@/api/types'
 import { getOutsideInvestmentAPI } from '@/api/company'
 import dayjs from 'dayjs'
 
@@ -16,15 +12,18 @@ function Index() {
   const [foreignInvestment, setForeignInvestment] = useState<IOutsideInvestment[]>([])
   // const [foreignInvestmentHistory, setForeignInvestmentHistory] = useState<IOutsideInvestment | null>(null)
   // 初始化获取工商信息
-  useLoad((params) => {
+  useLoad(params => {
     const { company } = params
     const companyInfo = JSON.parse(company)
-    getOutsideInvestmentAPI({
-      gid: companyInfo.gid
-      // gid: 47183021
-    }, foreignInvestmentRes => {
-      setForeignInvestment(foreignInvestmentRes.data || [])
-    })
+    getOutsideInvestmentAPI(
+      {
+        gid: companyInfo.gid
+        // gid: 47183021
+      },
+      foreignInvestmentRes => {
+        setForeignInvestment(foreignInvestmentRes.data || [])
+      }
+    )
   })
   // -tabs 切换
   // const [tabvalue, setTabvalue] = useState<string | number>('out')
@@ -50,7 +49,7 @@ function Index() {
         </Text>
         {/* <View className="header-link">
           股权结构
-          <Image className="relationImg" src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail26.png" />
+          <Image className="relationImg" src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail26.png" />
         </View> */}
       </View>
 
@@ -58,20 +57,15 @@ function Index() {
         {foreignInvestment.map((foreign, idx) => (
           <View className="shareholder-card" key={idx}>
             <View className="card-header">
-              {
-                foreign.logo ? (
-                  <Image className="logo" src={foreign.logo} />
-                ) : (
-                  <View className={'avatar ' + (foreign.alias.length >= 4 ? 'avatar-4' : 'avatar-1')}
-                  >{foreign.alias.length >= 4 ? foreign.alias.slice(0, 4) : foreign.alias.slice(0, 2)}</View>
-                )
-              }
+              {foreign.logo ? <Image className="logo" src={foreign.logo} /> : <View className={'avatar ' + (foreign.alias.length >= 4 ? 'avatar-4' : 'avatar-1')}>{foreign.alias.length >= 4 ? foreign.alias.slice(0, 4) : foreign.alias.slice(0, 2)}</View>}
               <View className="info">
                 <View className="name-row">
                   <Text className="name">{foreign.name}</Text>
                 </View>
                 {foreign.tags.map((tag, index) => (
-                  <Text className="tag" key={index}>{tag.name}</Text>
+                  <Text className="tag" key={index}>
+                    {tag.name}
+                  </Text>
                 ))}
               </View>
             </View>

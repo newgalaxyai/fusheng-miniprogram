@@ -1,9 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text, Image } from '@tarojs/components'
-import {
-  useLoad,
-  navigateTo,
-} from '@tarojs/taro'
+import { useLoad, navigateTo } from '@tarojs/taro'
 import './index.scss'
 import { ArrowRightSmall } from '@nutui/icons-react-taro'
 import { getBusinessSelfPublicationAPI } from '@/api/company'
@@ -13,15 +10,18 @@ function Index() {
   // 工商自主公示
   const [businessPublicity, setBusinessPublicity] = useState<IBusibessPublicity[]>([])
   // 初始化获取工商自主公示
-  useLoad((params) => {
+  useLoad(params => {
     const { company } = params
     const companyInfo = JSON.parse(company)
-    getBusinessSelfPublicationAPI({
-      gid: companyInfo.gid
-      // gid: 47183021
-    }, businessPublicityRes => {
-      setBusinessPublicity(businessPublicityRes.data || [])
-    })
+    getBusinessSelfPublicationAPI(
+      {
+        gid: companyInfo.gid
+        // gid: 47183021
+      },
+      businessPublicityRes => {
+        setBusinessPublicity(businessPublicityRes.data || [])
+      }
+    )
   })
   return (
     <View className="detailPage">
@@ -31,7 +31,7 @@ function Index() {
         </Text>
         {/* <View className="header-link">
           股权结构
-          <Image className="relationImg" src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail26.png" />
+          <Image className="relationImg" src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail26.png" />
         </View> */}
       </View>
 
@@ -39,14 +39,7 @@ function Index() {
         {businessPublicity.map((business, idx) => (
           <View className="shareholder-card" key={idx}>
             <View className="card-header">
-              {
-                business.logo ? (
-                  <Image className="logo" src={business.logo} />
-                ) : (
-                  <View className={'avatar ' + (business.alias.length >= 4 ? 'avatar-4' : 'avatar-1')}
-                  >{business.alias.length >= 4 ? business.alias.slice(0, 4) : business.alias.slice(0, 2)}</View>
-                )
-              }
+              {business.logo ? <Image className="logo" src={business.logo} /> : <View className={'avatar ' + (business.alias.length >= 4 ? 'avatar-4' : 'avatar-1')}>{business.alias.length >= 4 ? business.alias.slice(0, 4) : business.alias.slice(0, 2)}</View>}
               <View className="info">
                 <View className="name-row">
                   <Text className="name">{business.name}</Text>

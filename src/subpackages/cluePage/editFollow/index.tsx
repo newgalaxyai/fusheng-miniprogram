@@ -147,7 +147,6 @@ function EditFollowPage() {
 
         // 设置文件列表 - 修复文件数据映射
         if (detail.followUpFileList && detail.followUpFileList.length > 0) {
-
           const fileList = detail.followUpFileList.map((file, index) => ({
             fileId: Date.now() + index,
             name: file.name || file.fileName || `文件_${index + 1}`,
@@ -482,7 +481,6 @@ function EditFollowPage() {
   }
 
   const onInputClick = (field: any) => {
-
     // 编辑模式下跟进时间不可修改
     if (isEditMode && field === 'followUpTime') {
       return
@@ -725,7 +723,7 @@ function EditFollowPage() {
           <View className="upload-title">上传附件</View>
           <View className="upload-area" onClick={handleFileUpload}>
             <View className="upload-icon">
-              <Image src="http://36.141.100.123:10013/glks/assets/chat/chat4.png" className="upload-icon-image" />
+              <Image src="https://find-console.newgalaxyai.com/glks/assets/chat/chat4.png" className="upload-icon-image" />
             </View>
             <Text className="upload-text">点击上传文件</Text>
             <Text className="upload-tips">支持.png .jpg .jpeg .gif .svg .dsg</Text>

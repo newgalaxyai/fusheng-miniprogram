@@ -62,7 +62,7 @@ function Index() {
       <View className="header">
         <View className="header-company">
           <View className="header-company-logo">
-            <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise11.png" className="header-company-logo-img" />
+            <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="header-company-logo-img" />
           </View>
           <View className="header-company-name">{company.name}</View>
           <ArrowRightSize6 color="#333" size={'24rpx'} />

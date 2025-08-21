@@ -244,7 +244,7 @@ function Index() {
   return (
     <ScrollView ref={scrollViewRef} scrollY scrollTop={scrollTop} scrollWithAnimation className={`detailPage ${isKeyboardActive ? 'keyboard-active' : ''}`}>
       <Button open-type="chooseAvatar" onChooseAvatar={onChooseAvatar} className="avatar">
-        <Image src={userInfo.avatar || 'http://36.141.100.123:10013/glks/assets/enterprise/enterprise11.png'} className="avatar_img" />
+        <Image src={userInfo.avatar || 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png'} className="avatar_img" />
       </Button>
       <Picker visible={isVisible} options={customCityData} value={value} onClose={() => setIsVisible(false)} onConfirm={setChooseValueCustom} />
       <View className="info_list">

@@ -166,8 +166,8 @@ function Index() {
   return (
     <View className="login_page">
       <View className="login_back"></View>
-      <Image src="http://36.141.100.123:10013/glks/assets/login/login2.png" className="login_logo" />
-      <Image src="http://36.141.100.123:10013/glks/assets/login/login1.png" className="login_text" />
+      <Image src="https://find-console.newgalaxyai.com/glks/assets/login/login2.png" className="login_logo" />
+      <Image src="https://find-console.newgalaxyai.com/glks/assets/login/login1.png" className="login_text" />
       {agreed ? (
         <NutButton className="login_btn" openType="getPhoneNumber|agreePrivacyAuthorization" onGetPhoneNumber={e => handleOneClickLogin(e)}>
           用户一键登录

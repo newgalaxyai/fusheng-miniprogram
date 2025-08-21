@@ -1,9 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text, Image } from '@tarojs/components'
-import {
-  useLoad,
-  navigateTo,
-} from '@tarojs/taro'
+import { useLoad, navigateTo } from '@tarojs/taro'
 import './index.scss'
 import { ArrowRightSmall } from '@nutui/icons-react-taro'
 import { getShareholderInfoAPI } from '@/api/company'
@@ -13,15 +10,18 @@ function Index() {
   // 股东信息
   const [shareholderInfo, setShareholderInfo] = useState<IShareholderInfo[]>([])
   // 初始化获取股东信息
-  useLoad((params) => {
+  useLoad(params => {
     const { company } = params
     const companyInfo = JSON.parse(company)
-    getShareholderInfoAPI({
-      gid: companyInfo.gid
-    }, shareholderInfoRes => {
-      // console.log('shareholderInfoRes', shareholderInfoRes);
-      setShareholderInfo(shareholderInfoRes.data?.result || [])
-    })
+    getShareholderInfoAPI(
+      {
+        gid: companyInfo.gid
+      },
+      shareholderInfoRes => {
+        // console.log('shareholderInfoRes', shareholderInfoRes);
+        setShareholderInfo(shareholderInfoRes.data?.result || [])
+      }
+    )
   })
   return (
     <View className="detailPage">
@@ -31,7 +31,7 @@ function Index() {
         </Text>
         {/* <View className="header-link">
           股权结构
-          <Image className="relationImg" src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail26.png" />
+          <Image className="relationImg" src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail26.png" />
         </View> */}
       </View>
 
@@ -39,8 +39,7 @@ function Index() {
         {shareholderInfo.map((shareholder, idx) => (
           <View className="shareholder-card" key={idx}>
             <View className="card-header">
-              <View className={'avatar ' + (shareholder.shareHolderName.length >= 4 ? 'avatar-4' : 'avatar-1')}
-              >{shareholder.shareHolderName.length >= 4 ? shareholder.shareHolderName.slice(0, 4) : shareholder.shareHolderName[0]}</View>
+              <View className={'avatar ' + (shareholder.shareHolderName.length >= 4 ? 'avatar-4' : 'avatar-1')}>{shareholder.shareHolderName.length >= 4 ? shareholder.shareHolderName.slice(0, 4) : shareholder.shareHolderName[0]}</View>
               <View className="info">
                 <View className="name-row">
                   <Text className="name">{shareholder.shareHolderName}</Text>
@@ -50,7 +49,9 @@ function Index() {
                   </View> */}
                 </View>
                 {shareholder.tags.map((tag, index) => (
-                  <Text className="tag" key={index}>{tag.profileTagNameOnPage}</Text>
+                  <Text className="tag" key={index}>
+                    {tag.profileTagNameOnPage}
+                  </Text>
                 ))}
               </View>
             </View>

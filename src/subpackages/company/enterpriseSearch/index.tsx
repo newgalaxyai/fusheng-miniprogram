@@ -827,7 +827,7 @@ function Index() {
       <Popup position="bottom" style={{ height: '50%' }} visible={isShowActionSheet} onClose={() => setIsShowActionSheet(false)}>
         <View className="popup_header">
           <View className="popup_header_title"></View>
-          <Image onClick={() => setIsShowActionSheet(false)} src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+          <Image onClick={() => setIsShowActionSheet(false)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
         </View>
         <View className="popup_content">
           <Radio.Group value={selectedId} onChange={setSelectedId} labelPosition="left" style={{ width: '100%' }}>
@@ -849,7 +849,7 @@ function Index() {
       <Popup position="bottom" style={{ height: '50%' }} visible={isShowInvalid} onClose={() => setIsShowInvalid(false)}>
         <View className="popup_header">
           <View className="popup_header_title">无效线索原因</View>
-          <Image onClick={() => setIsShowInvalid(false)} src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+          <Image onClick={() => setIsShowInvalid(false)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
         </View>
         <View className="invalid_content">{itemInfo.commentContent || '与我的业务无关'}</View>
         <View onClick={() => recover(itemInfo)} className="invalid_content_button">
@@ -876,7 +876,7 @@ function Index() {
       <Popup position="bottom" style={{ maxHeight: '95%', minHeight: '95%' }} visible={isShowAddress} onClose={() => setIsShowAddress(false)}>
         <View className="popup_header">
           <View className="popup_header_title">工厂地址</View>
-          <Image onClick={() => setIsShowAddress(false)} src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+          <Image onClick={() => setIsShowAddress(false)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
         </View>
         <View className="address_content">
           <Cell.Group>
@@ -893,7 +893,7 @@ function Index() {
           <View className="popup_header_title" style={{ fontSize: '40rpx', color: '#333333', textAlign: 'left', paddingLeft: '24rpx' }}>
             反馈-不匹配/不合适
           </View>
-          <Image onClick={() => setIsShowFeedback(false)} src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+          <Image onClick={() => setIsShowFeedback(false)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
         </View>
         <View className="feedBack_content">
           <Checkbox.Group defaultValue={['1']} value={checked} style={{ width: '100%', padding: '24rpx', boxSizing: 'border-box' }} onChange={CheckedChange}>
@@ -925,7 +925,7 @@ function Index() {
       <Popup className="region-popup" position="bottom" style={{ maxHeight: '95%', minHeight: '95%' }} visible={isShowRegion} onClose={() => setIsShowRegion(false)}>
         <View className="popup_header">
           <View className="popup_header_title">选择地区</View>
-          <Image onClick={() => setIsShowRegion(false)} src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+          <Image onClick={() => setIsShowRegion(false)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
         </View>
         <View className="region_content" style={{ height: `calc(${regionPopupHeight}px - 100rpx)`, overflow: 'hidden' }}>
           <Tabs
@@ -1000,7 +1000,7 @@ function Index() {
             <SearchBar disabled={true} placeholder="搜企业、搜索内容" value={searchValue} onChange={setSearchValue} onSearch={handleSearch} />
           </View>
           <View className="searchContent_right">
-            <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise11.png" className="searchContent_right_img" />
+            <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="searchContent_right_img" />
             <View>共有{total}条搜索结果</View>
           </View>
         </View>
@@ -1013,7 +1013,7 @@ function Index() {
           loadingText={
             <>
               <View className="loadingText">
-                <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise11.png" className="loadingImg" />
+                <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="loadingImg" />
                 <Text className="loading-char">l</Text>
                 <Text className="loading-char">o</Text>
                 <Text className="loading-char">a</Text>
@@ -1057,7 +1057,7 @@ function Index() {
                     <View className="title">{item.name}</View>
                     <View className="description">
                       <View className="certification">
-                        <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise3.png" className="certification_img" />
+                        <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise3.png" className="certification_img" />
                         <View className="certification_text">官网</View>
                       </View>
                       {item.score && <View className="match">匹配{item.score}%</View>}
@@ -1102,7 +1102,7 @@ function Index() {
                 {/* 企业联系方式 */}
                 <View className="enterpriseContent_item_contact">
                   <View className="enterpriseContent_item_contact_item">
-                    <Image onClick={() => handleAiResearchReport(item)} src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise5.png" className="enterpriseContent_item_contact_item_img" />
+                    <Image onClick={() => handleAiResearchReport(item)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise5.png" className="enterpriseContent_item_contact_item_img" />
                   </View>
                   <View
                     onClick={e => {
@@ -1111,7 +1111,7 @@ function Index() {
                     }}
                     className="enterpriseContent_item_contact_item"
                   >
-                    <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise1.png" className="enterpriseContent_item_contact_item_img" />
+                    <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise1.png" className="enterpriseContent_item_contact_item_img" />
                     电话({item.contactInfo?.phones.length || 0})
                   </View>
                   <View
@@ -1121,7 +1121,7 @@ function Index() {
                     }}
                     className="enterpriseContent_item_contact_item"
                   >
-                    <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise2.png" className="enterpriseContent_item_contact_item_img" />
+                    <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise2.png" className="enterpriseContent_item_contact_item_img" />
                     地址({item?.regLocation ? 1 : 0 || 0})
                   </View>
                 </View>
@@ -1132,14 +1132,14 @@ function Index() {
                     {/* 点赞按钮 */}
                     {(item.hasFeedback === 0 || item.hasFeedback === 1) && (
                       <View onClick={e => handleLike(e, item)} className={`enterpriseContent_item_bottom_left_good ${item.hasFeedback === 1 ? 'liked' : ''} ${showHeartbeat ? 'heartbeat' : ''}`}>
-                        <Image src={item.hasFeedback === 1 ? 'http://36.141.100.123:10013/glks/assets/enterprise/enterprise6.png' : 'http://36.141.100.123:10013/glks/assets/enterprise/enterprise8.png'} className="enterpriseContent_item_bottom_left_good_img" />
+                        <Image src={item.hasFeedback === 1 ? 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise6.png' : 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise8.png'} className="enterpriseContent_item_bottom_left_good_img" />
                         <Text className="enterpriseContent_item_bottom_left_good_text">有效</Text>
                       </View>
                     )}
                     {/* 点踩按钮 */}
                     {(item.hasFeedback === 0 || item.hasFeedback === 2) && (
                       <View onClick={e => handleDislike(e, item)} className={`enterpriseContent_item_bottom_left_bad ${item.hasFeedback === 2 ? 'disliked' : ''} ${showShake ? 'shake' : ''}`}>
-                        <Image src={item.hasFeedback === 2 ? 'http://36.141.100.123:10013/glks/assets/enterprise/enterprise7.png' : 'http://36.141.100.123:10013/glks/assets/enterprise/enterprise9.png'} className="enterpriseContent_item_bottom_left_bad_img" />
+                        <Image src={item.hasFeedback === 2 ? 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise7.png' : 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise9.png'} className="enterpriseContent_item_bottom_left_bad_img" />
                         <Text className="enterpriseContent_item_bottom_left_bad_text">无效线索</Text>
                         {item.hasFeedback === 2 && <ArrowDown color="#8E8E8E" style={{ width: '28rpx', height: '28rpx', marginLeft: '6rpx' }} />}
                       </View>

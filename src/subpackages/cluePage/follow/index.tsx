@@ -18,8 +18,6 @@ function FollowPage() {
 
   // 新增：图片预览
   const imagePreview = (index: number) => {
-    console.log(index)
-
     Taro.previewImage({
       urls: followUpDetail?.followUpFileList?.map((item: any) => item.url),
       current: index
@@ -55,7 +53,7 @@ function FollowPage() {
     let hour = time.getHours()
     let minute = time.getMinutes()
     let second = time.getSeconds()
-    return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+    return `${year}-${month}-${day}`
   }
 
   // 获取跟进详情的函数
@@ -92,7 +90,7 @@ function FollowPage() {
         <View className="follow-summary">
           <View className="user-info">
             <View className="avatar-section">
-              <Image className="avatar" src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise11.png" />
+              <Image className="avatar" src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" />
               <View className="user-details">
                 <Text className="user-name">{userInfo?.nickname}</Text>
                 <Text className="user-role">{userInfo?.position || '职位'}</Text>
@@ -108,8 +106,8 @@ function FollowPage() {
           </View>
 
           <View className="timestamp-section">
-            <Image src="http://36.141.100.123:10013/glks/assets/chat/chat1.png" className="timestamp-img" />
-            <Text className="timestamp">{parseDate(followUpDetail?.createTime) || '跟进时间'}</Text>
+            <Image src="https://find-console.newgalaxyai.com/glks/assets/chat/chat1.png" className="timestamp-img" />
+            <Text className="timestamp">{parseDate(followUpDetail?.followUpTime) || '跟进时间'}</Text>
           </View>
 
           <View className="lead-source">
@@ -134,10 +132,10 @@ function FollowPage() {
               <Text className="item-value">{followUpDetail.method || '跟进方式'}</Text>
             </View>
 
-            <View className="detail-item">
+            {/* <View className="detail-item">
               <Text className="item-label">跟进时间</Text>
               <Text className="item-value">{followUpDetail?.followUpTime}天</Text>
-            </View>
+            </View> */}
 
             <View className="detail-item">
               <Text className="item-label">跟进内容</Text>
@@ -184,11 +182,11 @@ function FollowPage() {
       {/* 底部操作按钮 */}
       <View className="action-buttons">
         <View className="edit-btn" onClick={() => navigateToEditPage()}>
-          <Image src="http://36.141.100.123:10013/glks/assets/chat/chat3.png" className="btn-icon" />
+          <Image src="https://find-console.newgalaxyai.com/glks/assets/chat/chat3.png" className="btn-icon" />
           <Text className="btn-text">编辑记录</Text>
         </View>
         <View className="delete-btn" onClick={() => deleteFollowUp()}>
-          <Image src="http://36.141.100.123:10013/glks/assets/chat/chat2.png" className="btn-icon" />
+          <Image src="https://find-console.newgalaxyai.com/glks/assets/chat/chat2.png" className="btn-icon" />
           <Text className="btn-text">删除任务</Text>
         </View>
       </View>

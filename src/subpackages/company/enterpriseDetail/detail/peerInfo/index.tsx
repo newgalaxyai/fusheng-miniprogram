@@ -166,7 +166,7 @@ function Index() {
       <Popup position="bottom" style={{ maxHeight: '95%', minHeight: '95%' }} visible={isShowAddress} onClose={() => setIsShowAddress(false)}>
         <View className="popup_header">
           <View className="popup_header_title">工厂地址</View>
-          <Image onClick={() => setIsShowAddress(false)} src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+          <Image onClick={() => setIsShowAddress(false)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
         </View>
         <View className="address_content">
           <Cell.Group>
@@ -204,7 +204,7 @@ function Index() {
                     <View className="title">{item.name}</View>
                     <View className="description">
                       <View className="certification">
-                        <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise3.png" className="certification_img" />
+                        <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise3.png" className="certification_img" />
                         <View className="certification_text">官网</View>
                       </View>
                     </View>
@@ -240,7 +240,7 @@ function Index() {
                 </View>
                 <View className="enterpriseContent_item_contact">
                   <View className="enterpriseContent_item_contact_item" onClick={() => toAiResearchReport(item)}>
-                    <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise5.png" className="enterpriseContent_item_contact_item_img" />
+                    <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise5.png" className="enterpriseContent_item_contact_item_img" />
                   </View>
                   <View
                     onClick={e => {
@@ -249,7 +249,7 @@ function Index() {
                     }}
                     className="enterpriseContent_item_contact_item"
                   >
-                    <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise1.png" className="enterpriseContent_item_contact_item_img" />
+                    <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise1.png" className="enterpriseContent_item_contact_item_img" />
                     电话({item?.contactInfo?.phones.length || 0})
                   </View>
                   <View
@@ -259,7 +259,7 @@ function Index() {
                     }}
                     className="enterpriseContent_item_contact_item"
                   >
-                    <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise2.png" className="enterpriseContent_item_contact_item_img" />
+                    <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise2.png" className="enterpriseContent_item_contact_item_img" />
                     地址({item?.regLocation ? 1 : 0})
                   </View>
                 </View>

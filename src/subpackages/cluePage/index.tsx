@@ -364,7 +364,6 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
   }
 
   const navigateToCompanyDetail = (company: any) => {
-    console.log(company)
     const companyInfo = { ...company.companyInfo, clueId: company.id }
     Taro.navigateTo({
       url: `/subpackages/company/enterpriseDetail/index?company=${JSON.stringify(companyInfo)}`
@@ -431,7 +430,6 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
 
   useEffect(() => {
     const handleEnterpriseSearchDataEdit = (data: any) => {
-      console.log(data)
       setHistorySession((prevList: any[]) => {
         return prevList.map((item: any) => {
           if (item.id == data.clueId) {
@@ -488,7 +486,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
     let hour = time.getHours().toString().padStart(2, '0')
     let minute = time.getMinutes().toString().padStart(2, '0')
     let second = time.getSeconds().toString().padStart(2, '0')
-    return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+    return `${year}-${month}-${day}`
   }
 
   // 触底加载函数
@@ -520,6 +518,18 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
     getFollowUpList(followUpPageNum + 1, true)
   }
 
+  useEffect(() => {
+    function refreshList() {
+      getFollowUpList()
+    }
+
+    Taro.eventCenter.on('refresh', refreshList)
+
+    return () => {
+      Taro.eventCenter.on('refresh', refreshList)
+    }
+  }, [])
+
   const loadMoreHistorySession = () => {
     if (historyLoading || !historyHasMore) return
     getSession(historyPageNum + 1, true)
@@ -549,7 +559,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
       <Popup position="bottom" style={{ maxHeight: '85%', minHeight: '85%' }} visible={isShowAddress} onClose={() => setIsShowAddress(false)}>
         <View className="popup_header" style={{ height: '100rpx' }}>
           <View className="popup_header_title">工厂地址</View>
-          <Image onClick={() => setIsShowAddress(false)} src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+          <Image onClick={() => setIsShowAddress(false)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
         </View>
         <View className="address_content">
           <Cell.Group>
@@ -563,7 +573,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
       {/* 排序 */}
       <Popup position="bottom" style={{ maxHeight: '85%', minHeight: '85%' }} visible={isShowFilter} onClose={() => setIsShowFilter(false)}>
         <View className="popup_header">
-          <Image onClick={() => setIsShowFilter(false)} src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+          <Image onClick={() => setIsShowFilter(false)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
           <Tabs
             value={tabFilterValue}
             onChange={(value: number) => {
@@ -687,7 +697,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
         <ScrollView scrollY className="followUp_list" onScrollToLower={loadMoreFollowUpList} lowerThreshold={50}>
           {followUpListPopup.map((item: any, index: number) => (
             <View className="clueRecord_item" onClick={() => toFollowPage(item)} key={index}>
-              <View className="clueRecord_item_left">{item?.avatar ? <Image src={item.avatar} className="avatar" /> : <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise11.png" className="avatar" />}</View>
+              <View className="clueRecord_item_left">{item?.avatar ? <Image src={item.avatar} className="avatar" /> : <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="avatar" />}</View>
               <View className="clueRecord_item_right">
                 <View className="clueRecord_item_right_top">
                   <View className="name text-ellipsis">{userInfo?.nickname || '客户名称'}</View>
@@ -698,7 +708,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                 </View>
                 <View className="item_content">{item.content || '跟进内容'}</View>
                 <View className="item_time">
-                  <Image src="http://36.141.100.123:10013/glks/assets/chat/chat1.png" className="item_time_img"></Image>
+                  <Image src="https://find-console.newgalaxyai.com/glks/assets/chat/chat1.png" className="item_time_img"></Image>
                   {parseDate(item.createTime || '跟进时间')}
                 </View>
                 <View className="item_link">
@@ -717,7 +727,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                     width: '100%',
                     height: '100%'
                   }}
-                  src="http://36.141.100.123:10013/glks/assets/emptyImg.png"
+                  src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png"
                 />
               }
             />
@@ -827,18 +837,18 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                     </View>
                     <View className="cluePage_item_contact">
                       <View className="cluePage_item_contact_item">
-                        <Image onClick={() => handleAiResearchReport(item)} src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise5.png" className="cluePage_item_contact_item_img" />
+                        <Image onClick={() => handleAiResearchReport(item)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise5.png" className="cluePage_item_contact_item_img" />
                       </View>
                       <View onClick={() => getFollowUpListPopup(item)} className="cluePage_item_contact_item">
-                        <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise15.png" className="cluePage_item_contact_item_img" />
+                        <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise15.png" className="cluePage_item_contact_item_img" />
                         跟进
                       </View>
                       <View onClick={() => openPhone(item)} className="cluePage_item_contact_item">
-                        <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise1.png" className="cluePage_item_contact_item_img" />
+                        <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise1.png" className="cluePage_item_contact_item_img" />
                         电话({item?.contactInfo?.phones?.length})
                       </View>
                       <View onClick={() => openAddress(item)} className="cluePage_item_contact_item">
-                        <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise2.png" className="cluePage_item_contact_item_img" />
+                        <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise2.png" className="cluePage_item_contact_item_img" />
                         地址({item?.regLocation ? 1 : 0})
                       </View>
                     </View>
@@ -853,7 +863,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                         width: '100%',
                         height: '100%'
                       }}
-                      src="http://36.141.100.123:10013/glks/assets/emptyImg.png"
+                      src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png"
                     />
                   }
                 />
@@ -873,14 +883,14 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
 
               <View className="filter_item" onClick={() => handleActiveIndex(0)}>
                 <View className="item_textI">
-                  <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise11.png" className="item_img" />
+                  <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="item_img" />
                   <View className="item_text">排序</View>
                 </View>
                 <TriangleDown color="#426EFF" size="16rpx" />
               </View>
               <View className="filter_item" onClick={() => handleActiveIndex(1)}>
                 <View className="item_textI">
-                  <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise11.png" className="item_img" />
+                  <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="item_img" />
                   <View className="item_text">筛选</View>
                 </View>
                 <TriangleDown color="#426EFF" size="16rpx" />
@@ -897,7 +907,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
             >
               {followUpList.map((item: any, index: number) => (
                 <View className="clueRecord_item" onClick={() => toFollowPage(item)} key={index}>
-                  <View className="clueRecord_item_left">{item?.avatar ? <Image src={item.avatar} className="avatar" /> : <Image src="http://36.141.100.123:10013/glks/assets/enterprise/enterprise11.png" className="avatar" />}</View>
+                  <View className="clueRecord_item_left">{userInfo?.avatar ? <Image src={userInfo?.avatar} className="avatar" /> : <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="avatar" />}</View>
                   <View className="clueRecord_item_right">
                     <View className="clueRecord_item_right_top">
                       <View className="name text-ellipsis">{userInfo?.nickname || '客户名称'}</View>
@@ -908,8 +918,8 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                     </View>
                     <View className="item_content">{item.content || '跟进内容'}</View>
                     <View className="item_time">
-                      <Image src="http://36.141.100.123:10013/glks/assets/chat/chat1.png" className="item_time_img"></Image>
-                      {parseDate(item.createTime || '跟进时间')}
+                      <Image src="https://find-console.newgalaxyai.com/glks/assets/chat/chat1.png" className="item_time_img"></Image>
+                      {parseDate(item.followUpTime || '跟进时间')}
                     </View>
                     <View className="item_link">
                       联系人：{item.followUpName || '跟进人'}｜{item.followUpPosition || '跟进人职位'}｜{item.followUpPhone || '跟进人手机号'}
@@ -927,7 +937,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                         width: '100%',
                         height: '100%'
                       }}
-                      src="http://36.141.100.123:10013/glks/assets/emptyImg.png"
+                      src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png"
                     />
                   }
                 />
@@ -981,7 +991,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                         <View className="info_msgs">
                           <View className="msgs_item">{item.companyInfo?.handleLocation || '- -'}</View>
                           <View className="msgs_tag">
-                            <Image src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail21.png" className="msgs_tag_img" />
+                            <Image src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail21.png" className="msgs_tag_img" />
                             <View className="msgs_tag_text">官网</View>
                           </View>
                         </View>
@@ -1017,7 +1027,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                         width: '100%',
                         height: '100%'
                       }}
-                      src="http://36.141.100.123:10013/glks/assets/emptyImg.png"
+                      src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png"
                     />
                   }
                 />

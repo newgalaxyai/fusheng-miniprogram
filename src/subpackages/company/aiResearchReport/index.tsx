@@ -3,6 +3,7 @@ import { View, Image, Text, RichText } from '@tarojs/components'
 import { generateReportAPI } from '@/api/company'
 import Taro, { useLoad } from '@tarojs/taro'
 import './index.scss'
+import { marked } from 'marked'
 
 function Index() {
   const companyInfo = Taro.getStorageSync('companyInfo')
@@ -12,74 +13,112 @@ function Index() {
   const [progress, setProgress] = useState(0)
   const [apiCompleted, setApiCompleted] = useState(false)
 
+  // 配置marked选项，适合小程序环境
+  marked.setOptions({
+    breaks: true, // 支持换行
+    gfm: false // 启用GitHub风格的Markdown
+  })
   // 简单而可靠的 Markdown 解析函数
   const parseMarkdown = (text: string): string => {
     if (!text) return ''
     try {
-      return (
-        text
-          // 处理嵌套的背景色div，移除外层div的padding
-          .replace(/<div style="background-color:#f0f8ff; padding:10px; border-radius:5px;">([\s\S]*?)<\/div>/g, '<div style="background-color:#ffffff; padding:none; border-radius:50px;">$1</div>')
-          // 处理表格（必须在其他处理之前）
-          .replace(/\|([^\n]+)\|/g, (match, content) => {
-            if (content.includes('---') || content.includes(':--')) {
-              return ''
-            }
-            const cells = content
-              .split('|')
-              .map(cell => cell.trim())
-              .filter(cell => cell)
-            const cellsHtml = cells.map(cell => `<td style="padding: 12px 16px; border: 1px solid #ddd; text-align: left; vertical-align: top; font-size: 12px; line-height: 1.4;">${cell}</td>`).join('')
-            return `<tr style="border-bottom: 1px solid #ddd;">${cellsHtml}</tr>`
-          })
-          .replace(/(<tr[^>]*>.*?<\/tr>\s*)+/g, match => {
-            return `<table style="width: 100%; border-collapse: collapse; margin: 16px 0; border: 1px solid #ddd; background: #fff;">${match}</table>`
-          })
-          // 处理特殊的列表块（包含字数、内容、样例的部分）
-          .replace(/(- \*\*字数\*\*[\s\S]*?(?=\n\n|$))/g, match => {
-            const listItems = match
-              .split('\n')
-              .filter(line => line.trim().startsWith('- '))
-              .map(line => {
-                const content = line.replace(/^- /, '')
-                return `<div style="display: flex; margin: 6px 0; align-items: flex-start;"><span style="margin-right: 8px; color: #666;">•</span><span>${content}</span></div>`
-              })
-              .join('')
+      // 首先解码HTML实体
+      let decodedText = text
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'")
+        .replace(/&nbsp;/g, ' ')
 
-            // 处理样例部分的引用内容
-            const exampleMatch = match.match(/>\s*([\s\S]*?)(?=\n\n|$)/)
-            let exampleContent = ''
-            if (exampleMatch) {
-              exampleContent = `<div style="">${exampleMatch[1].trim()}</div>`
-            }
+      // 预处理：确保换行符被正确处理
+      let processedText = decodedText
+        // 将单独的\n转换为两个\n（markdown段落分隔）
+        .replace(/([^\n])\n([^\n])/g, '$1\n\n$2')
 
-            return `<div style="background-color:#fff; padding:none; border-radius:5px;">${listItems}${exampleContent}</div>`
-          })
-          // 处理普通列表项
-          .replace(/^- (.+)$/gm, '<div style="display: flex; margin: 6px 0; align-items: flex-start;"><span style="margin-right: 8px; color: #666;">•</span><span>$1</span></div>')
-          // 处理嵌套的列表项（在HTML内容中的）
-          .replace(/\n\s*- (.+)/g, '<div style="display: flex; margin: 6px 0; align-items: flex-start; margin-left: 20px;"><span style="margin-right: 8px; color: #666;">•</span><span>$1</span></div>')
-          .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-          .replace(/(<\/table>)\s*## ([^\n]+)/g, '$1<div style="font-size: 14px; font-weight: bold; margin: 10px 0; color: #333;">$2</div>')
-          .replace(/(<\/table>)\s*### ([^\n]+)/g, '$1<div style="font-size: 16px; font-weight: bold; margin: 10px 0; color: #333;">$2</div>')
-          .replace(/(<\/div>)\s*#### ([^\n]+)/g, '$1<div style="font-size: 14px; font-weight: bold; margin: 8px 0; color: #333;">$2</div>')
-          .replace(/^\s*#### ([^\n]+)/gm, '<div style="font-size: 14px; font-weight: bold; margin: 8px 0; color: #333;">$1</div>')
-          .replace(/^\s*### ([^\n]+)/gm, '<div style="font-size: 16px; font-weight: bold; margin: 10px 0; color: #333;">$1</div>')
-          .replace(/^\s*## ([^\n]+)/gm, '<div style="font-size: 14px; font-weight: bold; margin: 10px 0; color: #333;">$1</div>')
-          .replace(/(<\/table>)\s*---\s*/g, '$1<div style="border-top: 2px solid #fff; margin: 10px 0; height: 0;"></div>')
-          .replace(/^---$/gm, '<div style="border-top: 2px solid #fff; margin: 10px 0; height: 0;"></div>')
-      )
+      // 应用自定义样式处理
+      let htmlResult = processedText
+        // 处理嵌套的背景色div，移除外层div的padding
+        .replace(/<div style="background-color:#f0f8ff; padding:10px; border-radius:5px;">[\s\S]*?<\/div>/g, '<div style="background-color:#ffffff; padding:none; border-radius:50px;">$1</div>')
+        // 处理表格（必须在其他处理之前）
+        .replace(/\|([^\n]+)\|/g, (match, content) => {
+          if (content.includes('---') || content.includes(':--')) {
+            return ''
+          }
+          const cells = content
+            .split('|')
+            .map(cell => cell.trim())
+            .filter(cell => cell)
+          const cellsHtml = cells.map(cell => `<td style="padding: 12px 16px; border: 1px solid #ddd; text-align: left; vertical-align: top; font-size: 12px; line-height: 1.4;">${cell}</td>`).join('')
+          return `<tr style="border-bottom: 1px solid #ddd;">${cellsHtml}</tr>`
+        })
+        .replace(/(<tr[^>]*>.*?<\/tr>\s*)+/g, match => {
+          return `<table style="width: 100%; border-collapse: collapse; margin: 16px 0; border: 1px solid #ddd; background: #fff;">${match}</table>`
+        })
+        // 处理特殊的列表块（包含字数、内容、样例的部分）
+        .replace(/(- \*\*字数\*\*[\s\S]*?(?=\n\n|$))/g, match => {
+          const listItems = match
+            .split('\n')
+            .filter(line => line.trim().startsWith('- '))
+            .map(line => {
+              const content = line.replace(/^- /, '')
+              return `<div style="display: flex; margin: 6px 0; align-items: flex-start;"><span style="margin-right: 8px; color: #666;">•</span><span>${content}</span></div>`
+            })
+            .join('')
+
+          // 处理样例部分的引用内容
+          const exampleMatch = match.match(/>\s*([\s\S]*?)(?=\n\n|$)/)
+          let exampleContent = ''
+          if (exampleMatch) {
+            exampleContent = `<div style="">${exampleMatch[1].trim()}</div>`
+          }
+
+          return `<div style="background-color:#fff; padding:none; border-radius:5px;">${listItems}${exampleContent}</div>`
+        })
+        // 处理普通列表项
+        .replace(/^- (.+)$/gm, '<div style="display: flex; margin: 6px 0; align-items: flex-start;"><span style="margin-right: 8px; color: #666;">•</span><span>$1</span></div>')
+        // 处理嵌套的列表项（在HTML内容中的）
+        .replace(/\n\s*- (.+)/g, '<div style="display: flex; margin: 6px 0; align-items: flex-start; margin-left: 20px;"><span style="margin-right: 8px; color: #666;">•</span><span>$1</span></div>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/(<\/table>)\s*## ([^\n]+)/g, '$1<div style="font-size: 14px; font-weight: bold; margin: 10px 0; color: #333;">$2</div>')
+        .replace(/(<\/table>)\s*### ([^\n]+)/g, '$1<div style="font-size: 16px; font-weight: bold; margin: 10px 0; color: #333;">$2</div>')
+        .replace(/(<\/div>)\s*#### ([^\n]+)/g, '$1<div style="font-size: 14px; font-weight: bold; margin: 8px 0; color: #333;">$2</div>')
+        .replace(/^\s*#### ([^\n]+)/gm, '<div style="font-size: 14px; font-weight: bold; margin: 8px 0; color: #333;">$1</div>')
+        .replace(/^\s*### ([^\n]+)/gm, '<div style="font-size: 16px; font-weight: bold; margin: 10px 0; color: #333;">$1</div>')
+        .replace(/^\s*## ([^\n]+)/gm, '<div style="font-size: 14px; font-weight: bold; margin: 10px 0; color: #333;">$1</div>')
+        .replace(/(<\/table>)\s*---\s*/g, '$1<div style="border-top: 2px solid #fff; margin: 10px 0; height: 0;"></div>')
+        .replace(/^---$/gm, '<div style="border-top: 2px solid #fff; margin: 10px 0; height: 0;"></div>')
+
+      // 关键修改：再次解码HTML实体，解决&quot;问题
+      let decodedHtmlResult = htmlResult
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'")
+        .replace(/&nbsp;/g, ' ')
+
+      // 只在段落内部的换行才转换为<br>，避免在div之间添加额外的<br>
+      const finalResult = decodedHtmlResult.replace(/([^>])\n([^<])/g, '$1<br>$2')
+
+      return finalResult
     } catch (error) {
       console.error('Markdown parsing error:', error)
-      return text.replace(/\n/g, '<br>')
+      // 错误处理时也要解码HTML实体
+      const fallbackResult = text
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'")
+        .replace(/&nbsp;/g, ' ')
+        .replace(/\n/g, '<br>')
+
+      return fallbackResult
     }
   }
-
-  // 模拟进度条逻辑
   useEffect(() => {
-    console.log(apiCompleted)
-
     if (loading) {
       let timer
       if (apiCompleted && progress < 100) {
@@ -147,6 +186,8 @@ function Index() {
         if (res.success) {
           Taro.setStorageSync('report', JSON.parse(res.data))
           setReport(JSON.parse(res.data))
+          console.log(JSON.parse(res.data))
+
           setApiCompleted(true)
         } else {
           setApiCompleted(false)
@@ -192,7 +233,7 @@ function Index() {
     return (
       <View className="aiResearchReportPage_loading">
         <View className="loading_container">
-          <Image src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail28.png" className="loading_robot" />
+          <Image src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail28.png" className="loading_robot" />
           <View className="progress_container">
             <View className="progress_bar">
               <View className="progress_fill" style={{ width: `${Math.min(progress, 100)}%` }} />
@@ -208,7 +249,7 @@ function Index() {
   return (
     <View className="aiResearchReportPage">
       <View className="aiResearchReportPage_header">
-        <Image src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail27.png" className="aiResearchReportPage_header_bg" />
+        <Image src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail27.png" className="aiResearchReportPage_header_bg" />
         <View className="aiResearchReportPage_header_title">AI研究报告</View>
       </View>
 

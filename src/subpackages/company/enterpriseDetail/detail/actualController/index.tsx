@@ -1,13 +1,9 @@
 import React, { useState } from 'react'
-import {
-  useLoad
-} from '@tarojs/taro'
+import { useLoad } from '@tarojs/taro'
 import { View, Text, Image } from '@tarojs/components'
 import { Tabs } from '@nutui/nutui-react-taro'
 import './index.scss'
-import {
-  IBeneficialList
-} from '@/api/types'
+import { IBeneficialList } from '@/api/types'
 import { getActualControllerAPI } from '@/api/company'
 import dayjs from 'dayjs'
 
@@ -17,16 +13,19 @@ function Index() {
   // 受益自然人
   const [beneficialHuman, setBeneficialHuman] = useState<IBeneficialList[]>([])
   // 初始化获取受益人
-  useLoad((params) => {
+  useLoad(params => {
     const { company } = params
     const companyInfo = JSON.parse(company)
-    getActualControllerAPI({
-      gid: companyInfo.gid
-      // gid: 47183021
-    }, actualControllerRes => {
-      setBeneficialOwner(actualControllerRes.data?.beneficialOwnerList || [])
-      setBeneficialHuman(actualControllerRes.data?.beneficialHumanList || [])
-    })
+    getActualControllerAPI(
+      {
+        gid: companyInfo.gid
+        // gid: 47183021
+      },
+      actualControllerRes => {
+        setBeneficialOwner(actualControllerRes.data?.beneficialOwnerList || [])
+        setBeneficialHuman(actualControllerRes.data?.beneficialHumanList || [])
+      }
+    )
   })
   return (
     <View className="detailPage">
@@ -36,7 +35,7 @@ function Index() {
         </Text>
         {/* <View className="header-link">
           股权结构
-          <Image className="relationImg" src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail26.png" />
+          <Image className="relationImg" src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail26.png" />
         </View> */}
       </View>
 
@@ -44,14 +43,7 @@ function Index() {
         {beneficialOwner.map((owner, idx) => (
           <View className="shareholder-card" key={idx}>
             <View className="card-header">
-              {
-                owner.humanLogo ? (
-                  <Image className="logo" src={owner.humanLogo} />
-                ) : (
-                  <View className={'avatar ' + (owner.humanName.length >= 4 ? 'avatar-4' : 'avatar-1')}
-                  >{owner.humanName[0]}</View>
-                )
-              }
+              {owner.humanLogo ? <Image className="logo" src={owner.humanLogo} /> : <View className={'avatar ' + (owner.humanName.length >= 4 ? 'avatar-4' : 'avatar-1')}>{owner.humanName[0]}</View>}
               <View className="info">
                 <View className="name-row">
                   <Text className="name">{owner.humanName}</Text>
@@ -92,7 +84,7 @@ function Index() {
         </Text>
         {/* <View className="header-link">
           股权结构
-          <Image className="relationImg" src="http://36.141.100.123:10013/glks/assets/corpDetail/corpDetail26.png" />
+          <Image className="relationImg" src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail26.png" />
         </View> */}
       </View>
 
@@ -100,14 +92,7 @@ function Index() {
         {beneficialHuman.map((owner, idx) => (
           <View className="shareholder-card" key={idx}>
             <View className="card-header">
-              {
-                owner.humanLogo ? (
-                  <Image className="logo" src={owner.humanLogo} />
-                ) : (
-                  <View className={'avatar ' + (owner.humanName.length >= 4 ? 'avatar-4' : 'avatar-1')}
-                  >{owner.humanName[0]}</View>
-                )
-              }
+              {owner.humanLogo ? <Image className="logo" src={owner.humanLogo} /> : <View className={'avatar ' + (owner.humanName.length >= 4 ? 'avatar-4' : 'avatar-1')}>{owner.humanName[0]}</View>}
               <View className="info">
                 <View className="name-row">
                   <Text className="name">{owner.humanName}</Text>

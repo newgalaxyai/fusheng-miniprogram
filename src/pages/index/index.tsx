@@ -223,8 +223,8 @@ function Index() {
   return (
     <View className="homePage">
       <View className="homePage_content" style={{ width: '100%', height: totalHeight, paddingTop: capsuleInfo.statusBarHeight }}>
-        <Image src="http://36.141.100.123:10013/glks/assets/home/home1.png" className="homePage_history_img" onClick={goHistoryFun} />
-        <Image src="http://36.141.100.123:10013/glks/assets/home/home2.png" className="homePage_new_img" onClick={goNew} />
+        <Image src="https://find-console.newgalaxyai.com/glks/assets/home/home1.png" className="homePage_history_img" onClick={goHistoryFun} />
+        <Image src="https://find-console.newgalaxyai.com/glks/assets/home/home2.png" className="homePage_new_img" onClick={goNew} />
         <View className="homePage_title">
           <View className={`homePage_text tab-item-0${activeIndex === 0 ? ' homePage_text_active' : ''}`} onClick={() => handleActiveIndex(0)}>
             AI获客
@@ -233,7 +233,7 @@ function Index() {
             线索池
           </View>
           <Image
-            src="http://36.141.100.123:10013/glks/assets/home/home3.png"
+            src="https://find-console.newgalaxyai.com/glks/assets/home/home3.png"
             className="homePage_text_img"
             style={{
               position: 'absolute',
@@ -245,7 +245,7 @@ function Index() {
       <Popup visible={showSetting} position="left" style={{ width: '84%', height: '100%' }} onClose={() => setShowSetting(false)}>
         <View className="setting_content">
           <View className="setting_content_title" onClick={() => Taro.navigateTo({ url: '/subpackages/setting/index' })}>
-            <Image src={userInfo?.avatar || 'http://36.141.100.123:10013/glks/assets/enterprise/enterprise11.png'} className="title_img" />
+            <Image src={userInfo?.avatar || 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png'} className="title_img" />
             <View className="title_info">
               <View className="title_info_name">{userInfo?.nickname}</View>
               <View className="title_info_phone">{userInfo?.mobile}</View>
@@ -301,7 +301,7 @@ function Index() {
                             width: '100%',
                             height: '100%'
                           }}
-                          src="http://36.141.100.123:10013/glks/assets/emptyImg.png"
+                          src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png"
                         />
                       }
                     />
@@ -369,7 +369,7 @@ function Index() {
                             width: '100%',
                             height: '100%'
                           }}
-                          src="http://36.141.100.123:10013/glks/assets/emptyImg.png"
+                          src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png"
                         />
                       }
                     />
@@ -383,7 +383,7 @@ function Index() {
       <Dialog visible={companyShow} footer={null}>
         <View className="dialog_box">
           <View className="dialog_title">企业信息完善</View>
-          <Image src="http://36.141.100.123:10013/glks/assets/chat/chat5.png" className="dialog_img" />
+          <Image src="https://find-console.newgalaxyai.com/glks/assets/chat/chat5.png" className="dialog_img" />
           <View className="dialog_content">发现您还未完善企业核心信息，补充后AI可挖掘更多优质线索</View>
           <View className="dialog_footer">
             <View className="dialog_footer_btn" onClick={companyCancel}>
