@@ -407,6 +407,7 @@ function Index() {
 
   // 处理搜索
   const handleSearch = e => {
+    setSearchValue(e)
     if (!e.trim()) {
       // 如果搜索值为空，显示所有数据
       setCustomList(originalCustomList.length > 0 ? originalCustomList : customList)
@@ -423,7 +424,7 @@ function Index() {
       // 搜索企业名称
       const nameMatch = item.name && item.name.toLowerCase().includes(e.toLowerCase())
       // 搜索企业简介/描述
-      const descMatch = item.description && item.description.toLowerCase().includes(e.toLowerCase())
+      const descMatch = item.businessScope && item.businessScope.toLowerCase().includes(e.toLowerCase())
       // 搜索企业标签
       const tagsMatch = item.tags && Array.isArray(item.tags) && item.tags.some(tag => tag.toLowerCase().includes(e.toLowerCase()))
       // 搜索法人名称
