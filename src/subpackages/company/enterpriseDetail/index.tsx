@@ -123,7 +123,8 @@ function Index() {
     similarCompanies: [],
     enterpriseResponses: [],
     companyHotResultResponse: [],
-    newsList: []
+    newsList: [],
+    newsListTotal: 0
   })
   // ==================== 弹窗显示状态 ====================
   const [isShowFeedback, setIsShowFeedback] = useState(false) // 反馈弹窗
@@ -539,7 +540,7 @@ function Index() {
       if (item.success) {
         getCompanyWebNewsListApi({ gid: res.gid, pageNum: 1, pageSize: 3 }, val => {
           if (val.success) {
-            setCompanyDetail({ ...item.data, newsList: val.data.list || [] })
+            setCompanyDetail({ ...item.data, newsList: val.data.list || [], newsListTotal: val.data.total })
           }
         })
         Taro.hideLoading()
@@ -875,7 +876,7 @@ function Index() {
             <View className="enterprise_dynamic_content_one">{companyDetail.newsList?.[0]?.rtm ? formatTimestamp(companyDetail.newsList[0].rtm) : '--'}</View>
             <View className="enterprise_dynamic_content_two">{companyDetail.newsList?.[0]?.title || '--'}</View>
             <View className="enterprise_dynamic_content_three">
-              该企业存在 <Text style={{ color: '#629EE7' }}>{companyDetail.newsList?.length || 0}条</Text> 相关动态{' '}
+              该企业存在 <Text style={{ color: '#629EE7' }}>{companyDetail.newsListTotal || 0}条</Text> 相关动态{' '}
               <Text style={{ color: '#1B5BFF' }} onClick={toAllDynamic}>
                 查看全部
               </Text>

@@ -18,6 +18,7 @@ function Index() {
     breaks: true, // 支持换行
     gfm: false // 启用GitHub风格的Markdown
   })
+  
   // 简单而可靠的 Markdown 解析函数
   const parseMarkdown = (text: string): string => {
     if (!text) return ''
@@ -40,20 +41,33 @@ function Index() {
       let htmlResult = processedText
         // 处理嵌套的背景色div，移除外层div的padding
         .replace(/<div style="background-color:#f0f8ff; padding:10px; border-radius:5px;">[\s\S]*?<\/div>/g, '<div style="background-color:#ffffff; padding:none; border-radius:50px;">$1</div>')
-        // 处理表格（必须在其他处理之前）
-        .replace(/\|([^\n]+)\|/g, (match, content) => {
-          if (content.includes('---') || content.includes(':--')) {
-            return ''
-          }
-          const cells = content
+        // 使用“块级表格解析”：匹配“表头 | 分隔线 | 多行数据”
+        .replace(/(?:^|\n)\s*\|(.+?)\|\s*\n\s*\|([-\s:|]+)\|\s*\n((?:\s*\|.*\|\s*\n?)*)/g, (match, headerLine, separatorLine, bodyLines) => {
+          const normalize = (line: string) => line.replace(/^\s*\|\s*|\s*\|\s*$/g, '')
+          const headers = normalize(headerLine)
             .split('|')
-            .map(cell => cell.trim())
-            .filter(cell => cell)
-          const cellsHtml = cells.map(cell => `<td style="padding: 12px 16px; border: 1px solid #ddd; text-align: left; vertical-align: top; font-size: 12px; line-height: 1.4;">${cell}</td>`).join('')
-          return `<tr style="border-bottom: 1px solid #ddd;">${cellsHtml}</tr>`
-        })
-        .replace(/(<tr[^>]*>.*?<\/tr>\s*)+/g, match => {
-          return `<table style="width: 100%; border-collapse: collapse; margin: 16px 0; border: 1px solid #ddd; background: #fff;">${match}</table>`
+            .map(c => c.trim())
+            .filter(Boolean)
+      
+          // 可根据分隔线的 :--- :---: ---: 判定对齐方式，这里简单左对齐
+          const thStyle = 'padding:12px 16px;border:1px solid #ddd;background:#f7f7f7;font-weight:600;text-align:left;vertical-align:top;font-size:12px;line-height:1.4;'
+          const tdStyle = 'padding:12px 16px;border:1px solid #ddd;text-align:left;vertical-align:top;font-size:12px;line-height:1.4;'
+      
+          const thead = `<thead><tr>${headers.map(h => `<th style="${thStyle}">${h}</th>`).join('')}</tr></thead>`
+      
+          const rows = bodyLines
+            .trim()
+            .split('\n')
+            .filter(line => /\|/.test(line.trim()))
+            .map(line => {
+              const cells = normalize(line)
+                .split('|')
+                .map(c => c.trim())
+              return `<tr>${cells.map(c => `<td style="${tdStyle}">${c}</td>`).join('')}</tr>`
+            })
+            .join('')
+      
+          return `<table style="width:100%;border-collapse:collapse;margin:16px 0;border:1px solid #ddd;background:#fff;">${thead}<tbody>${rows}</tbody></table>`
         })
         // 处理特殊的列表块（包含字数、内容、样例的部分）
         .replace(/(- \*\*字数\*\*[\s\S]*?(?=\n\n|$))/g, match => {
@@ -95,7 +109,7 @@ function Index() {
         .replace(/&amp;/g, '&')
         .replace(/&lt;/g, '<')
         .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
+         .replace(/&quot;/g, '"')
         .replace(/&#039;/g, "'")
         .replace(/&nbsp;/g, ' ')
 
@@ -118,6 +132,7 @@ function Index() {
       return fallbackResult
     }
   }
+
   useEffect(() => {
     if (loading) {
       let timer

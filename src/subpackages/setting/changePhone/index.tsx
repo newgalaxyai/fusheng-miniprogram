@@ -25,6 +25,10 @@ function Index() {
 
   // 发送验证码
   const handleSendCode = () => {
+    if (!phone) {
+      Taro.showToast({ title: '请输入手机号', icon: 'none' })
+      return
+    }
     if (countdown > 0) return
     sendSmsCodeAPI({ mobile: phone, scene: 2 }, res => {
       if (res.success) {
@@ -47,6 +51,10 @@ function Index() {
 
   // 发送验证码
   const handleNewSendCode = () => {
+    if (!newPhone) {
+      Taro.showToast({ title: '请输入新手机号', icon: 'none' })
+      return
+    }
     if (newCountdown > 0) return
     sendSmsCodeAPI({ mobile: newPhone, scene: 2 }, res => {
       if (res.success) {
@@ -205,7 +213,7 @@ function Index() {
             <View className="changePhone-modal-header">
               <Text className="changePhone-modal-title">如果您的手机号无法接收验证码</Text>
               <View className="changePhone-modal-close" onClick={handleModalClose}>
-                <CheckClose color='#333' size="30rpx" />
+                <CheckClose color="#333" size="30rpx" />
               </View>
             </View>
             <View style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

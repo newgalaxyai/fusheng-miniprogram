@@ -36,7 +36,7 @@ function EditFollowPage() {
     contactId: '',
     type: '',
     method: '',
-    followUpTime: new Date().toISOString().split('T')[0],
+    followUpTime: '',
     content: '',
     followUpFileList: [] as FileItem[]
   })
@@ -47,6 +47,18 @@ function EditFollowPage() {
   const [showFollowUpTime, setShowFollowUpTime] = useState(false)
   const [loading, setLoading] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false) // 新增：编辑模式标识
+
+  function parseDate(createTime: any): React.ReactNode {
+    let time = new Date(createTime)
+    // 转为2025-01-01 12:00:00
+    let year = time.getFullYear()
+    let month = (time.getMonth() + 1).toString().padStart(2, '0')
+    let day = time.getDate().toString().padStart(2, '0')
+    let hour = time.getHours().toString().padStart(2, '0')
+    let minute = time.getMinutes().toString().padStart(2, '0')
+    let second = time.getSeconds().toString().padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
 
   // 跟进类型选项
   const [followUpTypeOptions, setFollowUpTypeOptions] = useState([
@@ -121,7 +133,7 @@ function EditFollowPage() {
           associateLeadContact: dropdownData.associateLeadContact.find(item => item.id === detail.contactId)?.name || '',
           type: detail.type || '',
           method: detail.method || '',
-          followUpTime: detail.followUpTime ? (detail.followUpTime.includes('T') ? detail.followUpTime.split('T')[0] : detail.followUpTime.split(' ')[0]) : new Date().toISOString().split('T')[0],
+          followUpTime: detail.followUpTime,
           content: detail.content || ''
         }))
 
@@ -555,7 +567,6 @@ function EditFollowPage() {
     setShowFollowUpMethod(false)
   }
 
-  // 修改renderFormField函数，支持只读模式
   const renderFormField = (label: string, field: string, placeholder: string, required: boolean = false, hasSearch: boolean = false, hasDropdown: boolean = true, hasRightIcon: boolean = false, isShowDropdownIcon: boolean = true, layoutType: 'vertical' | 'horizontal' = 'vertical', readonly: boolean = false) => {
     const isDropdownField = field === 'associateLead' || field === 'associateLeadContact'
     const filteredOptions = isDropdownField ? getFilteredOptions(field) : []
@@ -576,7 +587,7 @@ function EditFollowPage() {
             )}
             {isShowDropdownIcon ? (
               <View onClick={isReadonly ? undefined : () => onInputClick(field)} className={`field-input-disabled ${isReadonly ? 'readonly' : ''}`}>
-                {formData[field] ? formData[field] : placeholder}
+                {formData[field] ? (field === 'followUpTime' ? parseDate(formData[field]) : formData[field]) : placeholder}
               </View>
             ) : (
               <Input className={`field-input ${isReadonly ? 'readonly' : ''}`} placeholder={placeholder} value={isDropdownField ? formData[field] || searchKeyword[field] : formData[field]} onInput={isReadonly ? undefined : e => (isDropdownField ? handleSearchInput(field, e.detail.value) : handleInputChange(field, e.detail.value))} disabled={isReadonly} />

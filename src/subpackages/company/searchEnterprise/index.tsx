@@ -32,6 +32,13 @@ function Index() {
   // ==================== 列表数据状态 ====================
   const [customHasMore, setCustomHasMore] = useState(true) // 是否还有更多数据
   const [customList, setCustomList] = useState<any[]>([]) // 企业列表数据
+  // 记录最后一次非空的列表，避免卸载时把空列表传回去
+  const lastNonEmptyListRef = useRef<any[]>([])
+  useEffect(() => {
+    if (customList.length > 0) {
+      lastNonEmptyListRef.current = customList
+    }
+  }, [customList])
   const [originalCustomList, setOriginalCustomList] = useState<any[]>([]) // 保存原始排序的企业列表数据
   const [phoneInfo, setPhoneInfo] = useState<any[]>([]) // 手机号
   const [fixedLines, setFixedLines] = useState<any[]>([]) // 固话
@@ -187,9 +194,12 @@ function Index() {
   }, [])
 
   Taro.useUnload(() => {
-    Taro.eventCenter.trigger('searchPageEdit', {
-      companyList: customList
-    })
+    const listToReturn = customList.length > 0 ? customList : lastNonEmptyListRef.current
+    if (listToReturn && listToReturn.length > 0) {
+      Taro.eventCenter.trigger('searchPageEdit', {
+        companyList: listToReturn
+      })
+    }
   })
 
   // 监听企业详情页面卸载事件
@@ -406,33 +416,35 @@ function Index() {
   }
 
   // 处理搜索
-  const handleSearch = e => {
+  const handleSearch = (e: string) => {
+    const keyword = e.trim()
     setSearchValue(e)
-    if (!e.trim()) {
+
+    if (!keyword) {
       // 如果搜索值为空，显示所有数据
       setCustomList(originalCustomList.length > 0 ? originalCustomList : customList)
       return
     }
 
-    // 保存原始数据（如果尚未保存）
-    if (originalCustomList.length === 0) {
+    // 决定用于筛选的数据源：优先使用 originalCustomList，否则回退到当前 customList
+    const sourceList = originalCustomList.length > 0 ? originalCustomList : customList
+
+    // 首次搜索时缓存一份原始数据，供后续清空搜索恢复
+    if (originalCustomList.length === 0 && customList.length > 0) {
       setOriginalCustomList([...customList])
     }
 
-    // 对企业列表进行模糊筛选
-    const filteredList = originalCustomList.filter(item => {
-      // 搜索企业名称
-      const nameMatch = item.name && item.name.toLowerCase().includes(e.toLowerCase())
-      // 搜索企业简介/描述
-      const descMatch = item.businessScope && item.businessScope.toLowerCase().includes(e.toLowerCase())
-      // 搜索企业标签
-      const tagsMatch = item.tags && Array.isArray(item.tags) && item.tags.some(tag => tag.toLowerCase().includes(e.toLowerCase()))
-      // 搜索法人名称
-      const legalPersonMatch = item.legalPerson && item.legalPerson.toLowerCase().includes(e.toLowerCase())
-      // 搜索地址
-      const addressMatch = item.regLocation && item.regLocation.toLowerCase().includes(e.toLowerCase())
+    const lower = keyword.toLowerCase()
 
-      // 任一字段匹配即返回true
+    // 对企业列表进行模糊筛选（基于 sourceList，避免首次为空）
+    const filteredList = sourceList.filter((item: any) => {
+      const nameMatch = (item.name || '').toLowerCase().includes(lower)
+      const descMatch = (item.businessScope || '').toLowerCase().includes(lower)
+      const tagsArr = Array.isArray(item.tags) ? item.tags : []
+      const tagsMatch = tagsArr.some((tag: any) => String(tag).toLowerCase().includes(lower))
+      const legalPersonMatch = (item.legalPerson || '').toLowerCase().includes(lower)
+      const addressMatch = (item.regLocation || '').toLowerCase().includes(lower)
+
       return nameMatch || descMatch || tagsMatch || legalPersonMatch || addressMatch
     })
 

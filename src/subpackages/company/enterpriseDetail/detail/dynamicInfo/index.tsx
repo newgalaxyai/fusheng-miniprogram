@@ -63,7 +63,7 @@ function Index() {
       data: newsInfo.uri,
       success: () => {
         Taro.showToast({
-          title: '网址以复制，请去浏览器打开',
+          title: '网址已复制，请去浏览器打开',
           icon: 'none',
           duration: 2000
         })
