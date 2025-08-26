@@ -1,8 +1,8 @@
 export const TIME_OUT = 1200000
 
 // export const BASE_URL = 'http://192.168.110.20:10017'
-export const BASE_URL = 'http://192.168.110.24:10017'
-// export const BASE_URL = 'https://find-console.newgalaxyai.com'
+// export const BASE_URL = 'http://192.168.110.24:10017'
+export const BASE_URL = 'https://find-console.newgalaxyai.com'
 // export const BASE_URL = 'https://xiaohengquan.com/'
 
 // 上传文件

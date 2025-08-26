@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react'
+import React, { useEffect, useRef, useState, forwardRef, useCallback, useImperativeHandle } from 'react'
 import { View, Image, Input, Text, ScrollView, Textarea } from '@tarojs/components'
 import Taro, { useDidShow, useDidHide } from '@tarojs/taro'
 import './index.scss'
@@ -112,17 +112,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
       getAiSession()
     }
 
-    // 3. 事件监听器注册
-    const handleSend = res => {
-      if (res) {
-        setTimeout(() => {
-          if (aiSessionIdRef.current) {
-            continueWithSessionId(aiSessionIdRef.current, res)
-          }
-        }, 300)
-      }
-    }
-
     const handleGetChatItem = res => {
       setAiSessionId(res.id)
       setConversationId(res.conversationId)
@@ -200,14 +189,69 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
       Taro.hideLoading()
     }
 
-    Taro.eventCenter.on('send', handleSend)
     Taro.eventCenter.on('getChatItem', handleGetChatItem)
 
     return () => {
       Taro.eventCenter.off('addMsg')
-      Taro.eventCenter.off('send', handleSend)
       Taro.eventCenter.off('getChatItem', handleGetChatItem)
     }
+  }, [])
+
+  const isProcessingRef = useRef(false)
+  const isSessionProcessingRef = useRef(false) // 新增：防止 continueWithSessionId 重复执行
+  const isEventRegistered = useRef(false)
+
+  const handleSend = useCallback(
+    (res: string) => {
+      if (res && !isProcessingRef.current) {
+        isProcessingRef.current = true
+
+        setTimeout(() => {
+          if (aiSessionIdRef.current) {
+            continueWithSessionId(aiSessionIdRef.current, res)
+          } else {
+          }
+
+          // 延迟重置标志
+          setTimeout(() => {
+            isProcessingRef.current = false
+          }, 1000)
+        }, 300)
+      }
+    },
+    [] // 移除不必要的依赖
+  )
+
+  useEffect(() => {
+    // 如果已经注册过，直接返回
+    if (isEventRegistered.current) {
+      return
+    }
+
+    console.log('注册send事件监听')
+    Taro.eventCenter.on('send', handleSend)
+    isEventRegistered.current = true
+
+    // 监听注销事件
+    const handleUnregister = () => {
+      console.log('收到注销指令，清理send事件监听')
+      Taro.eventCenter.off('send', handleSend)
+      isEventRegistered.current = false
+    }
+    
+    Taro.eventCenter.on('unregisterSendEvent', handleUnregister)
+
+    return () => {
+      console.log('清理send事件监听')
+      Taro.eventCenter.off('send', handleSend)
+      Taro.eventCenter.off('unregisterSendEvent', handleUnregister)
+      isEventRegistered.current = false
+    }
+  }, [handleSend])
+
+  // 额外添加一个监听来追踪组件更新
+  useEffect(() => {
+    console.log('组件重新渲染，时间:', new Date().toISOString())
   }, [])
 
   // 暴露方法给父组件
@@ -610,10 +654,19 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
 
   // 提取公共逻辑到单独函数
   const continueWithSessionId = (sessionId: string, text: string) => {
+    // 防止重复执行
+    if (isSessionProcessingRef.current) {
+      console.log('continueWithSessionId 正在处理中，跳过重复调用')
+      return
+    }
+
     if (!Taro.getStorageSync('companyInfo')) {
       Taro.eventCenter.trigger('companyShow', true)
     }
     if (!text.trim() || isStreaming) return
+
+    // 设置处理标志
+    isSessionProcessingRef.current = true
 
     setQuestionTime(formatTime(new Date())) // 用户发送消息的时间
 
@@ -651,6 +704,13 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
 
     if (companyInfo?.customInput) {
       companyInfo.expansionDomainKeywordsSelected = [...companyInfo.expansionDomainKeywordsSelected, companyInfo.customInput]
+    }
+
+    // 重置处理标志的函数
+    const resetProcessingFlag = () => {
+      setTimeout(() => {
+        isSessionProcessingRef.current = false
+      }, 2000) // 2秒后允许下次执行
     }
 
     const doAll = () => {
@@ -771,6 +831,8 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                     return updatedMessages
                   })
                 }
+                // 重置处理标志
+                resetProcessingFlag()
               })
               // 直接调用companyStageAPI
               companyStageAPI(parameter.data, res => {
@@ -861,6 +923,8 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                     })
                   }
                 }
+                // 重置处理标志
+                resetProcessingFlag()
               })
             } else {
               setIsStreaming(false)
@@ -877,10 +941,15 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                 })
                 return updatedMessages
               })
+              // 重置处理标志
+              resetProcessingFlag()
             }
           }
         )
-      } catch (error) {}
+      } catch (error) {
+        // 重置处理标志
+        resetProcessingFlag()
+      }
     }
     doAll()
     setInput('')

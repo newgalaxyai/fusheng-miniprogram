@@ -44,6 +44,12 @@ function Index() {
     setActiveIndex(idx)
   }
 
+  const goSetting = () => {
+    // 触发注销 send 事件监听
+    Taro.eventCenter.trigger('unregisterSendEvent')
+    Taro.navigateTo({ url: '/subpackages/setting/index' })
+  }
+
   // 添加ref来调用子组件方法
   const aiChatRef = useRef<any>(null)
 
@@ -88,11 +94,11 @@ function Index() {
   }
 
   useLoad((options: any) => {
-    if (options.text) {
-      nextTick(() => {
+    nextTick(() => {
+      if (options.text) {
         Taro.eventCenter.trigger('send', options.text)
-      })
-    }
+      }
+    })
   })
 
   useEffect(() => {
@@ -244,7 +250,7 @@ function Index() {
       </View>
       <Popup visible={showSetting} position="left" style={{ width: '84%', height: '100%' }} onClose={() => setShowSetting(false)}>
         <View className="setting_content">
-          <View className="setting_content_title" onClick={() => Taro.navigateTo({ url: '/subpackages/setting/index' })}>
+          <View className="setting_content_title" onClick={() => goSetting()}>
             <Image src={userInfo?.avatar || 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png'} className="title_img" />
             <View className="title_info">
               <View className="title_info_name">{userInfo?.nickname}</View>
