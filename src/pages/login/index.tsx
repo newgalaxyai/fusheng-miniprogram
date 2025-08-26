@@ -26,9 +26,9 @@ function Index() {
 
   const handleAgreementClick = (type: 'user' | 'privacy') => {
     if (type === 'user') {
-      Taro.navigateTo({ url: 'subpackages/setting/userAgreement/index' })
+      Taro.navigateTo({ url: '/subpackages/setting/userAgreement/index' })
     } else {
-      Taro.navigateTo({ url: 'subpackages/setting/privacyPolicy/index' })
+      Taro.navigateTo({ url: '/subpackages/setting/privacyPolicy/index' })
     }
   }
 

@@ -219,12 +219,14 @@ function Index() {
   }
 
   Taro.useUnload(() => {
+    console.log('useUnload')
     Taro.eventCenter.trigger('enterpriseDetailUnload', company)
+    Taro.eventCenter.trigger('enterpriseDetailUnloadAi', company)
   })
 
-  useEffect(() => {
-    console.log(companyDetail, 'companyDetail========')
-  }, [companyDetail])
+  Taro.useDidHide(() => {
+    console.log('useDidHide')
+  })
 
   // 处理点踩点击
   const handleDislike = (e: any) => {

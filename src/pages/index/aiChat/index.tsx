@@ -238,7 +238,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
       Taro.eventCenter.off('send', handleSend)
       isEventRegistered.current = false
     }
-    
+
     Taro.eventCenter.on('unregisterSendEvent', handleUnregister)
 
     return () => {
@@ -755,7 +755,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                   let responseText = ''
                   if (res.data.introduction) {
                     // 解码HTML实体，处理引号编码问题
-                    responseText = `${res.data.introduction || ''}${res.data.analysisContent || ''}`
+                    responseText = `${res.data.introduction || ''}<br>${res.data.analysisContent || ''}`
                     streamAIReply(responseText, aiMessageId, userMessageId)
                     setMessages(msgs => {
                       return msgs.map(msg => {
@@ -1148,10 +1148,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                 </Text>
               ) : (
                 <View className="chatMsg_ai">
-                  {/* 使用AiMessageComponent替换原有的AI消息显示逻辑 */}
                   <AiMessageComponent msg={msg} />
-
-                  {/* 保留功能按钮部分 */}
                   {msg.content && msg.apiStatus.textComplete && msg.apiStatus.companyComplete ? (
                     <View className="chatMsg_ai_fun">
                       <Image src="https://find-console.newgalaxyai.com/glks/assets/home/home10.png" className={`chatMsg_ai_fun_img ${buttonStates[msg.messageId]?.[0] ? 'button-active' : ''}`} onClick={() => handleButtonClick(msg.messageId, 0)} data-message-id={msg.messageId} data-button-index={0} />

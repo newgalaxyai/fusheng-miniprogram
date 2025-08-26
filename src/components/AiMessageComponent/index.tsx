@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react'
-import { View, Image, Text } from '@tarojs/components'
+import React, { useEffect, useState } from 'react'
+import { View, Image, Text, RichText } from '@tarojs/components'
 import { ArrowRight, ArrowRightSmall } from '@nutui/icons-react-taro'
 import { marked } from 'marked'
 import Taro from '@tarojs/taro'
@@ -106,6 +106,7 @@ const parseMarkdown = (text: string): string => {
 
     // 只在段落内部的换行才转换为<br>，避免在div之间添加额外的<br>
     const finalResult = decodedHtmlResult.replace(/([^>])\n([^<])/g, '$1<br>$2')
+    console.log(finalResult)
 
     return finalResult
   } catch (error) {
@@ -183,12 +184,12 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
         })
       }
     }
-    Taro.eventCenter.on('enterpriseDetailUnload', handleEnterpriseDetailUnload)
+    Taro.eventCenter.on('enterpriseDetailUnloadAi', handleEnterpriseDetailUnload)
 
     return () => {
-      Taro.eventCenter.off('enterpriseDetailUnload', handleEnterpriseDetailUnload)
+      Taro.eventCenter.off('enterpriseDetailUnloadAi', handleEnterpriseDetailUnload)
     }
-  }, [])
+  }, [msg])
 
   useEffect(() => {
     const handleEnterpriseSearchDataEdit = (data: any) => {
@@ -205,7 +206,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
 
   return (
     <View>
-      {msg.content ? <View className="chatMsg_ai_text" dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.content) }}></View> : null}
+      {msg.content ? <RichText className="chatMsg_ai_text" nodes={parseMarkdown(msg.content)} /> : null}
       {msg.role === 'ai' && msg.apiStatus.textComplete && msg.companyList && msg.companyList.length > 0
         ? msg.companyList.slice(0, msg.splitNum == 0 || msg.splitNum == null ? 10 : msg.splitNum).map((val, valIdx) => (
             <View key={valIdx}>
