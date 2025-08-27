@@ -196,6 +196,7 @@ function Index() {
           </View>
         </View>
       </View>
+      <View className="login_bottom_text1" >仅在企业内部使用</View>
       <View className="login_bottom_text">若您没有问答账户，登录后会自动创建注册</View>
     </View>
   )

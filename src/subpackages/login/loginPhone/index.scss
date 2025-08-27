@@ -147,7 +147,7 @@
     .login_bottom {
         width: 90vw;
         position: absolute;
-        bottom: 144rpx;
+        bottom: 180rpx;
         left: 50%;
         transform: translateX(-50%);
 
@@ -197,6 +197,21 @@
     }
 
     .login_bottom_text {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        bottom: 100rpx;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: PingFang SC, PingFang SC;
+        font-weight: 500;
+        font-size: 22rpx;
+        color: #D2D2D2;
+    }
+
+    .login_bottom_text1 {
         width: 100%;
         display: flex;
         justify-content: center;

@@ -54,7 +54,11 @@ function Index() {
   }, [])
 
   const handleAgreementClick = (type: 'user' | 'privacy') => {
-    // 处理协议点击事件
+    if (type === 'user') {
+      Taro.navigateTo({ url: '/subpackages/setting/userAgreement/index' })
+    } else {
+      Taro.navigateTo({ url: '/subpackages/setting/privacyPolicy/index' })
+    }
   }
 
   const sendSmsCode = async () => {
@@ -138,6 +142,7 @@ function Index() {
           </View>
         </View>
       </View>
+      <View className="login_bottom_text1">仅在企业内部使用</View>
       <View className="login_bottom_text">若您没有问答账户，登录后会自动创建注册</View>
     </View>
   )
