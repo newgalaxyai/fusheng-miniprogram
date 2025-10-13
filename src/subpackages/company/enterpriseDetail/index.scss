@@ -251,6 +251,50 @@
       }
     }
 
+    .enterpriseContent_analyze {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-gap: 24rpx;
+      margin-top: 32rpx;
+
+      .enterpriseContent_report {
+        width: 100%;
+        height: 86rpx;
+        color: #ffffff;
+        font-size: 24rpx;
+        background: #E3F0FF;
+        border-radius: 16rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .enterpriseContent_branch {
+        width: 100%;
+        height: 86rpx;
+        color: #1B5BFF;
+        font-size: 24rpx;
+        background: #E3F0FF;
+        border-radius: 16rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .enterpriseContent_contact {
+        width: 100%;
+        height: 86rpx;
+        color: #1B5BFF;
+        font-size: 24rpx;
+        background: #E3F0FF;
+        border-radius: 16rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
     .enterpriseContent_Img {
       width: 100%;
       height: 90rpx;

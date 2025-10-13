@@ -136,7 +136,7 @@ const ChatTechLoadingAnimation = () => {
       <View className="tech-loading-text">AI正在思考中...</View>
     </View>
   )
-}
+} 
 
 interface AiMessageComponentProps {
   msg: {
@@ -151,7 +151,39 @@ interface AiMessageComponentProps {
   }
 }
 
-const navigateToCompanyDetail = (company: any) => {
+const toBranch = (val: any, e?: any) => {
+  // 阻止事件冒泡
+  if (e) {
+    e.stopPropagation()
+    e.preventDefault()
+  }
+  // let res = { gid: e?.gid, name: e.name, logo: e.logo }
+  // Taro.navigateTo({
+  //   url: `/subpackages/company/enterpriseDetail/detail/dynamicInfo/index?item=${JSON.stringify(res)}`
+  // })
+}
+
+const toDynamic = (val: any, e?: any) => {
+  console.log(val)
+
+  // 阻止事件冒泡
+  if (e) {
+    e.stopPropagation()
+    e.preventDefault()
+  }
+  let res = { gid: val?.gid, name: val.name, logo: val.logo }
+  Taro.navigateTo({
+    url: `/subpackages/company/enterpriseDetail/detail/dynamicInfo/index?item=${JSON.stringify(res)}`
+  })
+}
+
+const navigateToCompanyDetail = (company: any, e?: any) => {
+  // 阻止事件冒泡
+  if (e) {
+    e.stopPropagation()
+    e.preventDefault()
+  }
+
   Taro.navigateTo({
     url: `/subpackages/company/enterpriseDetail/index?company=${JSON.stringify(company)}`
   })
@@ -163,7 +195,6 @@ const navigateToCompanyList = (msg: any) => {
     // 页面跳转成功后，延迟触发事件
     setTimeout(() => {
       console.log('企业搜索数据', msg.companyList)
-
       Taro.eventCenter.trigger('enterpriseSearchData', {
         companyList: msg.companyList,
         total: msg.total,
@@ -236,7 +267,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
                     <Text className="company_right_top_text">{val.name}</Text>
                     <ArrowRightSmall color="#2B2B2B" size="24rpx" />
                   </View>
-                  <View className="company_right_tags">
+                  {/* <View className="company_right_tags">
                     {val.regStatus != 'null' && <Text className="company_right_tag">{val.regStatus || '- -'}</Text>}
                     <Text className="company_right_tag">{val?.contactInfo?.phones?.length || 0}联系方式</Text>
                     <Text className="company_right_tag">{val?.staffNum}人</Text>
@@ -251,10 +282,16 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
                   </View>
                   <View className="company_right_date">
                     <Text className="company_right_date_text">{val.establishTime}</Text>
-                  </View>
+                  </View> */}
                   <View className="company_right_tabs">
-                    <Text className="company_right_tab">最匹配</Text>
-                    <Text className="company_right_tab">最新</Text>
+                    <View className="company_right_tab" onClick={e => toBranch(val, e)}>
+                      <View style={{ marginRight: 4 }}>总部及分支机构</View>
+                      <ArrowRightSmall color="#ffffff" size="24rpx" />
+                    </View>
+                    <View className="company_right_tab" onClick={e => toDynamic(val, e)}>
+                      <View style={{ marginRight: 4 }}>近期动态</View>
+                      <ArrowRightSmall color="#ffffff" size="24rpx" />
+                    </View>
                   </View>
                 </View>
               </View>

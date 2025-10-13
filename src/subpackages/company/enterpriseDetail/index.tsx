@@ -724,7 +724,13 @@ function Index() {
           </View>
         </View>
 
-        <Image onClick={() => toAiResearchReport()} src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail18.png" className="enterpriseContent_Img" />
+        <View className="enterpriseContent_analyze">
+          <View className="enterpriseContent_report">企业分析报告</View>
+          <View className="enterpriseContent_branch">分支机构</View>
+          <View className="enterpriseContent_contact">联系方式</View>
+        </View>
+
+        {/* <Image onClick={() => toAiResearchReport()} src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail18.png" className="enterpriseContent_Img" /> */}
       </View>
 
       {/* 智能分析结果 */}
