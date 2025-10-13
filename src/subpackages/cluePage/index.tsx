@@ -486,9 +486,8 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
     let hour = time.getHours().toString().padStart(2, '0')
     let minute = time.getMinutes().toString().padStart(2, '0')
     let second = time.getSeconds().toString().padStart(2, '0')
-    return `${year}-${month}-${day}`
+    return `${year}-${month}-${day} ${hour}:${minute}:${second}`
   }
-
   // 触底加载函数
   const loadMoreClueList = () => {
     if (clueLoading || !clueHasMore) return

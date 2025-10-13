@@ -456,6 +456,11 @@
                 padding: 14rpx 16rpx;
                 box-sizing: border-box;
                 margin-top: 16rpx;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
             }
 
             .item_time {

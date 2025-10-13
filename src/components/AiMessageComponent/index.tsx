@@ -162,6 +162,8 @@ const navigateToCompanyList = (msg: any) => {
   Taro.navigateTo({ url: `/subpackages/company/enterpriseSearch/index?messageId=${msg.messageId}` }).then(() => {
     // 页面跳转成功后，延迟触发事件
     setTimeout(() => {
+      console.log('企业搜索数据', msg.companyList)
+
       Taro.eventCenter.trigger('enterpriseSearchData', {
         companyList: msg.companyList,
         total: msg.total,

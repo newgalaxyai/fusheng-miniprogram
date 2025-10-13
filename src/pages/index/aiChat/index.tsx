@@ -746,6 +746,113 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
             if (parameter.success && parameter.data) {
               textStageAPI({ ...parameter.data, conversationId: conversationId || '' }, res => {
                 if (res.success && res.data) {
+                  if (res.data.isRecommend) {
+                    setMessages(msgs => {
+                      const updatedMessages = msgs.map(msg => {
+                        if (msg.messageId === aiMessageId && msg.role === 'ai') {
+                          return {
+                            ...msg,
+                            apiStatus: { ...msg.apiStatus, companyComplete: false }
+                          }
+                        }
+                        return msg
+                      })
+                      // 在状态更新完成后，使用更新后的数据调用监听器
+                      listenerInterface('text', aiMessageId, userMessageId, true, updatedMessages)
+                      return updatedMessages
+                    })
+                    companyStageAPI({ ...parameter.data, isRecommend: res.data.isRecommend }, res => {
+                      if (res.success && res.data) {
+                        setMessages(msgs => {
+                          const updatedMessages = msgs.map(msg => {
+                            // 只更新匹配的消息
+                            if (msg.messageId === aiMessageId && msg.role === 'ai') {
+                              // 处理企业信息
+                              const processedCompanyList = res.data.companyInfoResponseList.map((item: any) => {
+                                // 确保 contactInfo 存在且有正确的结构
+                                if (!item.contactInfo) {
+                                  item.contactInfo = { phones: [] }
+                                }
+                                if (!Array.isArray(item.contactInfo.phones)) {
+                                  item.contactInfo.phones = []
+                                }
+
+                                // 确保 tags 是数组
+                                if (!Array.isArray(item.tags)) {
+                                  item.tags = []
+                                }
+
+                                let locationStr = item.province || item.address || item.location || '未知省份'
+                                if (locationStr.includes('省')) {
+                                  item.handleLocation = locationStr.split('省')[0] + '省'
+                                } else if (locationStr.includes('自治区')) {
+                                  item.handleLocation = locationStr.split('自治区')[0] + '自治区'
+                                } else if (locationStr.includes('市')) {
+                                  const directMunicipalities = ['北京', '上海', '天津', '重庆']
+                                  const found = directMunicipalities.find(city => locationStr.includes(city))
+                                  item.handleLocation = found ? found + '市' : locationStr.split('市')[0] + '市'
+                                } else {
+                                  item.handleLocation = '未知省份'
+                                }
+
+                                if (item.legalPerson) {
+                                  item.legalPerson = item.legalPerson.replace(/\s*\([^)]*\)\s*/g, '').trim() || '- -'
+                                } else {
+                                  item.legalPerson = '- -'
+                                }
+                                return item
+                              })
+
+                              return {
+                                ...msg,
+                                companyList: processedCompanyList,
+                                total: res.data.total,
+                                splitNum: res.data.splitNum,
+                                apiStatus: {
+                                  ...msg.apiStatus,
+                                  companyComplete: true
+                                }
+                              }
+                            }
+                            return msg
+                          })
+
+                          // 在状态更新完成后，使用更新后的数据调用监听器
+                          listenerInterface('company', aiMessageId, userMessageId, true, updatedMessages)
+                          return updatedMessages
+                        })
+                      } else {
+                        // 错误处理
+                        setMessages(msgs => {
+                          const updatedMessages = msgs.map(msg => {
+                            if (msg.messageId === aiMessageId && msg.role === 'ai') {
+                              return {
+                                ...msg,
+                                apiStatus: {
+                                  ...msg.apiStatus,
+                                  companyComplete: true
+                                }
+                              }
+                            }
+                            return msg
+                          })
+
+                          // 在状态更新完成后，使用更新后的数据调用监听器
+                          listenerInterface('company', aiMessageId, userMessageId, true, updatedMessages)
+                          return updatedMessages
+                        })
+
+                        if (res.data !== null) {
+                          Taro.showToast({
+                            title: '公司信息获取失败',
+                            icon: 'none'
+                          })
+                        }
+                      }
+                      // 重置处理标志
+                      resetProcessingFlag()
+                    })
+                  }
                   setConversationId(res.data.conversationId)
                   aiSessionUpdateAPI({ userId: userInfo?.id, id: sessionId, title: text, conversationId: res.data.conversationId }, res => {
                     if (res.success) {
@@ -835,7 +942,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                 resetProcessingFlag()
               })
               // 直接调用companyStageAPI
-              companyStageAPI(parameter.data, res => {
+              companyStageAPI({ ...parameter.data, isRecommend: false }, res => {
                 if (res.success && res.data) {
                   setMessages(msgs => {
                     const updatedMessages = msgs.map(msg => {

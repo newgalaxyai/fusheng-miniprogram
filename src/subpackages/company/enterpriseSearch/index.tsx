@@ -177,6 +177,7 @@ function Index() {
   // 添加事件监听来接收复杂数据
   useEffect(() => {
     const handleEnterpriseSearchData = (res: any) => {
+      console.log('企业搜索数据', res)
       setCustomList(formatInfo(res).companyList)
       setTotal(res.total)
       setMessageId(res.messageId)

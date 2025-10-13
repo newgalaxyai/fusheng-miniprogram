@@ -48,12 +48,12 @@ function FollowPage() {
     let time = new Date(createTime)
     // 转为2025-01-01 12:00:00
     let year = time.getFullYear()
-    let month = time.getMonth() + 1
-    let day = time.getDate()
-    let hour = time.getHours()
-    let minute = time.getMinutes()
-    let second = time.getSeconds()
-    return `${year}-${month}-${day}`
+    let month = (time.getMonth() + 1).toString().padStart(2, '0')
+    let day = time.getDate().toString().padStart(2, '0')
+    let hour = time.getHours().toString().padStart(2, '0')
+    let minute = time.getMinutes().toString().padStart(2, '0')
+    let second = time.getSeconds().toString().padStart(2, '0')
+    return `${year}-${month}-${day} ${hour}:${minute}:${second}`
   }
 
   // 获取跟进详情的函数
