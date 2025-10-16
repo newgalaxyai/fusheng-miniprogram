@@ -50,14 +50,6 @@ const ContactPopup: React.FC<ContactPopupProps> = ({ visible, onClose, contactDa
         <View className="tab_content_item_two">
           <View className="name">- -</View>
           <View className="position">- -</View>
-          <View className="security">
-            <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise12.png" className="security_img" />
-            <View className="security_dot"></View>
-            <View className="security_text">未检测</View>
-          </View>
-        </View>
-        <View className="tab_content_item_three">
-          <Text style={{ color: '#333333' }}>来自：</Text> - -
         </View>
         {/* {(type === 'phone' && index < 3) || type === 'email' ? (
           <View className="tab_content_item_four">

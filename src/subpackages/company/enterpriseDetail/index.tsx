@@ -697,11 +697,11 @@ function Index() {
             <View className="phone_text" onClick={() => Taro.makePhoneCall({ phoneNumber: phoneInfo[0] })}>
               {phoneInfo[0]}
             </View>
-            <View className="phone_more" onClick={() => setIsShowPhone(true)}>
+            {/* <View className="phone_more" onClick={() => setIsShowPhone(true)}>
               全部{allContactInformation}
-            </View>
+            </View> */}
           </View>
-          <View className="phone_right">
+          {/* <View className="phone_right">
             <View className="phone_right_item" onClick={() => openWebsite(company.websites)}>
               <Image src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail21.png" className="phone_right_img" />
               <View className="phone_right_text">官网</View>
@@ -714,7 +714,7 @@ function Index() {
               <Image src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail23.png" className="phone_right_img" />
               <View className="phone_right_text">产品应用</View>
             </View>
-          </View>
+          </View> */}
         </View>
 
         <View className="enterpriseContent_item_product_phone">
@@ -727,7 +727,7 @@ function Index() {
         <View className="enterpriseContent_analyze">
           <View className="enterpriseContent_report">企业分析报告</View>
           <View className="enterpriseContent_branch">分支机构</View>
-          <View className="enterpriseContent_contact">联系方式</View>
+          <View className="enterpriseContent_contact"  onClick={() => setIsShowPhone(true)}>联系方式</View>
         </View>
 
         {/* <Image onClick={() => toAiResearchReport()} src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail18.png" className="enterpriseContent_Img" /> */}
