@@ -94,6 +94,33 @@ function AddFollowPage() {
     }))
   }
 
+  // 接收路由参数
+  useEffect(() => {
+    const instance = Taro.getCurrentInstance()
+    const params = instance.router?.params
+    
+    if (params) {
+      const { leadId, associateLead } = params
+      
+      // 如果有传入的参数，更新表单数据
+      if (leadId || associateLead) {
+        setFormData(prev => ({
+          ...prev,
+          leadId: leadId || '',
+          associateLead: associateLead ? decodeURIComponent(associateLead) : ''
+        }))
+        
+        // 如果有 associateLead 参数，同时更新搜索关键词以便显示
+        if (associateLead) {
+          setSearchKeyword(prev => ({
+            ...prev,
+            associateLead: decodeURIComponent(associateLead)
+          }))
+        }
+      }
+    }
+  }, [])
+
   useEffect(() => {
     clueListSelectAPI({ userId: userInfo?.id }, res => {
       if (res.success && res.data) {

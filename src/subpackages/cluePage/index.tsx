@@ -468,14 +468,14 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
 
   function addFollow(item: any) {
     console.log(item)
-    // if (clueList && clueList.length > 0) {
-    //   Taro.navigateTo({ url: '/subpackages/cluePage/addFollow/index' })
-    // } else {
-    //   Taro.showToast({
-    //     title: '请先添加线索',
-    //     icon: 'none'
-    //   })
-    // }
+    if (clueList && clueList.length > 0) {
+      Taro.navigateTo({ url: `/subpackages/cluePage/addFollow/index?leadId=${item.id}&associateLead=${item.name}` })
+    } else {
+      Taro.showToast({
+        title: '请先添加线索',
+        icon: 'none'
+      })
+    }
   }
 
   function parseDate(createTime: any): React.ReactNode {
@@ -755,9 +755,9 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                 <Search color="#AAAAAA" size="36rpx" />
               </View>
               <Input className="cluePage_input" placeholder="搜索内容" style={{ width: '70%' }} value={searchValueClueList} onChange={e => setSearchValueClueList(e)} onBlur={handleSearchClueList} clearable={true} />
-              {/* <Button className="cluePage_search_btn" onClick={() => addFollow({ name: 1 })}>
+              <Button className="cluePage_search_btn" onClick={() => addFollow({ name: 1 })}>
                 写跟进
-              </Button> */}
+              </Button>
             </View>
             <ScrollView
               scrollY
