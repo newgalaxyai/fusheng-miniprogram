@@ -91,6 +91,10 @@
         .cluePage_input_box {
             width: 100%;
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20rpx;
 
             .cluePage_input_icon {
                 position: absolute;
@@ -111,6 +115,14 @@
                 font-size: 28rpx;
                 color: #333333;
                 margin: 10rpx 0;
+            }
+
+            .cluePage_search_btn {
+                border-radius: 12rpx;
+                background-color: #1B5BFF;
+                color: #ffffff;
+                border: none;
+                box-shadow: none;
             }
         }
 
@@ -662,9 +674,10 @@
             display: grid;
             grid-template-columns: repeat(4, auto);
             align-items: center;
+            gap: 20rpx;
             margin-top: 12rpx;
             height: 84rpx;
-            background: #F0F7FF;
+            // background: #F0F7FF;
             border-radius: 20rpx;
 
             .cluePage_item_contact_item {
@@ -677,13 +690,9 @@
                 font-weight: 500;
                 font-size: 24rpx;
                 color: #3E8DF6;
-                border-left: 2rpx solid #8DC8FF;
-
-                .cluePage_item_contact_item_img {
-                    width: 32rpx;
-                    height: 32rpx;
-                    margin-right: 6rpx;
-                }
+                background-color: #F0F7FF;
+                padding: 12rpx;
+                border-radius: 20rpx;
 
                 &:first-child {
                     border-left: none;
@@ -694,6 +703,21 @@
                         height: 44rpx;
                     }
                 }
+            }
+
+            .cluePage_item_contact_item_ {
+                padding: 0 24rpx;
+                height: 36rpx;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: PingFang SC, PingFang SC;
+                font-weight: 500;
+                font-size: 24rpx;
+                color: #ffffff;
+                background-color: #1B5BFF;
+                padding: 12rpx;
+                border-radius: 20rpx;
             }
         }
     }

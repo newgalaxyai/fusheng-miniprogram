@@ -7,7 +7,7 @@
     "urlCheck": true,
     "es6": true,
     "enhance": true,
-    "compileHotReLoad": false,
+    "compileHotReLoad": true,
     "postcss": true,
     "minified": true,
     "compileWorklet": true,
