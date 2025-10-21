@@ -772,7 +772,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
               {clueList &&
                 clueList.length > 0 &&
                 clueList.map((item, index) => (
-                  <View className="cluePage_item" key={index}>
+                  <View className="cluePage_item" onClick={() => getFollowUpListPopup(item)} key={index}>
                     <View className="cluePage_item_top">
                       {item.logo ? (
                         // 判断是否为图片链接（包含http或https）

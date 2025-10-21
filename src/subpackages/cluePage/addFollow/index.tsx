@@ -97,11 +97,11 @@ function AddFollowPage() {
   // 接收路由参数
   useEffect(() => {
     const instance = Taro.getCurrentInstance()
-    const params = instance.router?.params
-    
-    if (params) {
+    const params: any = instance.router?.params
+
+    if (params && params?.associateLead != '1') {
       const { leadId, associateLead } = params
-      
+
       // 如果有传入的参数，更新表单数据
       if (leadId || associateLead) {
         setFormData(prev => ({
@@ -109,7 +109,7 @@ function AddFollowPage() {
           leadId: leadId || '',
           associateLead: associateLead ? decodeURIComponent(associateLead) : ''
         }))
-        
+
         // 如果有 associateLead 参数，同时更新搜索关键词以便显示
         if (associateLead) {
           setSearchKeyword(prev => ({

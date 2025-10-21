@@ -136,7 +136,7 @@ const ChatTechLoadingAnimation = () => {
       <View className="tech-loading-text">AI正在思考中...</View>
     </View>
   )
-} 
+}
 
 interface AiMessageComponentProps {
   msg: {
@@ -157,15 +157,12 @@ const toBranch = (val: any, e?: any) => {
     e.stopPropagation()
     e.preventDefault()
   }
-  // let res = { gid: e?.gid, name: e.name, logo: e.logo }
-  // Taro.navigateTo({
-  //   url: `/subpackages/company/enterpriseDetail/detail/dynamicInfo/index?item=${JSON.stringify(res)}`
-  // })
+  Taro.navigateTo({
+    url: `/subpackages/company/enterpriseDetail/detail/branch/index?item=${JSON.stringify(val)}`
+  })
 }
 
 const toDynamic = (val: any, e?: any) => {
-  console.log(val)
-
   // 阻止事件冒泡
   if (e) {
     e.stopPropagation()

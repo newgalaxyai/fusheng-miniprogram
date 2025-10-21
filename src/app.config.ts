@@ -23,6 +23,7 @@ export default defineAppConfig({
         'aiResearchReport/index',
         'enterpriseDetail/index',
         'enterpriseDetail/detail/businessInfo/index',
+        'enterpriseDetail/detail/branch/index',
         'enterpriseDetail/detail/shareholderInfo/index',
         'enterpriseDetail/detail/personnelInfo/index',
         'enterpriseDetail/detail/corePersonnel/index',
