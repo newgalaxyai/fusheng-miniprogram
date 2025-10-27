@@ -425,6 +425,24 @@
                 align-items: center;
                 position: relative;
 
+
+                .item_time {
+                    font-family: PingFang SC, PingFang SC;
+                    font-weight: 400;
+                    font-size: 24rpx;
+                    color: #000000;
+                    display: flex;
+                    align-items: center;
+                    margin-top: 8rpx;
+
+                    .item_time_img {
+                        width: 24rpx;
+                        height: 24rpx;
+                        margin-right: 8rpx;
+                        flex-shrink: 0;
+                    }
+                }
+
                 .name {
                     min-width: 180rpx;
                     max-width: 180rpx;

@@ -106,7 +106,8 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
     }
   }
 
-  function getFollowUpListPopup(item: any) {
+  function getFollowUpListPopup(e: any, item: any) {
+    e.stopPropagation()
     setSelectedItem(item)
     setIsShowFollowUp(true)
     clueFollowUpPageAPI({ pageNum: 1, pageSize: 20, userId: userInfo?.id, leadId: item.id }, res => {
@@ -466,8 +467,8 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
     getFollowUpList()
   }
 
-  function addFollow(item: any) {
-    console.log(item)
+  function addFollow(e: any, item: any) {
+    e.stopPropagation()
     if (clueList && clueList.length > 0) {
       Taro.navigateTo({ url: `/subpackages/cluePage/addFollow/index?leadId=${item.id}&associateLead=${item.name}` })
     } else {
@@ -700,21 +701,17 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
               <View className="clueRecord_item_left">{item?.avatar ? <Image src={item.avatar} className="avatar" /> : <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="avatar" />}</View>
               <View className="clueRecord_item_right">
                 <View className="clueRecord_item_right_top">
-                  <View className="name text-ellipsis">{userInfo?.nickname || '客户名称'}</View>
-                  <View className="position text-ellipsis">{userInfo?.position || '客户职位'}</View>
-                  <View className="status text-ellipsis">
-                    {item.type || '跟进类型'}（{item.method || '跟进方式'})
+                  <View className="item_time">
+                    <Image src="https://find-console.newgalaxyai.com/glks/assets/chat/chat1.png" className="item_time_img"></Image>
+                    {parseDate(item.createTime || '跟进时间')}
                   </View>
-                </View>
-                <View className="item_content">{item.content || '跟进内容'}</View>
-                <View className="item_time">
-                  <Image src="https://find-console.newgalaxyai.com/glks/assets/chat/chat1.png" className="item_time_img"></Image>
-                  {parseDate(item.createTime || '跟进时间')}
+                  <View className="status text-ellipsis">{item.nickname || '跟进人'}</View>
                 </View>
                 <View className="item_link">
-                  联系人：{item.followUpName || '跟进人'}｜{item.followUpPosition || '跟进人职位'}｜{item.followUpPhone || '跟进人手机号'}
+                  跟进方式：{item.method || '跟进方式'}｜{item.followUpName || '客户名称'}({item.followUpPosition || '客户职位'})｜{item.followUpPhone || '客户手机号'}
                 </View>
-                <View className="item_from">来自线索：{item.followUpCompany || '客户所属公司'}</View>
+                <View className="item_content">{item.content || '跟进内容'}</View>
+                {/* <View className="item_from">来自线索：{item.followUpCompany || '客户所属公司'}</View> */}
               </View>
             </View>
           ))}
@@ -755,7 +752,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                 <Search color="#AAAAAA" size="36rpx" />
               </View>
               <Input className="cluePage_input" placeholder="搜索内容" style={{ width: '70%' }} value={searchValueClueList} onChange={e => setSearchValueClueList(e)} onBlur={handleSearchClueList} clearable={true} />
-              <Button className="cluePage_search_btn" onClick={() => addFollow({ name: 1 })}>
+              <Button className="cluePage_search_btn" onClick={e => addFollow(e, { name: 1 })}>
                 写跟进
               </Button>
             </View>
@@ -772,7 +769,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
               {clueList &&
                 clueList.length > 0 &&
                 clueList.map((item, index) => (
-                  <View className="cluePage_item" onClick={() => getFollowUpListPopup(item)} key={index}>
+                  <View className="cluePage_item" onClick={e => getFollowUpListPopup(e, item)} key={index}>
                     <View className="cluePage_item_top">
                       {item.logo ? (
                         // 判断是否为图片链接（包含http或https）
@@ -848,7 +845,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                       <View onClick={() => openPhone(item)} className="cluePage_item_contact_item">
                         联系方式
                       </View>
-                      <View onClick={() => addFollow(item)} className="cluePage_item_contact_item_">
+                      <View onClick={e => addFollow(e, item)} className="cluePage_item_contact_item_">
                         跟进
                       </View>
                     </View>
@@ -878,7 +875,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                 <Search color="#AAAAAA" size="36rpx" />
               </View>
               <Input className="cluePage_input" placeholder="搜索内容" style={{ width: '100%' }} value={searchValueFollowRecord} onChange={e => setSearchValueFollowRecord(e)} onBlur={handleSearchFollowRecord} clearable={true} />
-              <Button className="cluePage_search_btn" onClick={() => addFollow({ name: 1 })}>
+              <Button className="cluePage_search_btn" onClick={e => addFollow(e, { name: 1 })}>
                 写跟进
               </Button>
             </View>
@@ -984,7 +981,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                     <View onClick={() => openPhone(item)} className="cluePage_item_contact_item">
                       联系方式
                     </View>
-                    <View onClick={() => addFollow(item)} className="cluePage_item_contact_item_">
+                    <View onClick={e => addFollow(e, item)} className="cluePage_item_contact_item_">
                       跟进
                     </View>
                   </View>
