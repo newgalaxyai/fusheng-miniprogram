@@ -108,12 +108,9 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
 
   function getFollowUpListPopup(e: any, item: any) {
     e.stopPropagation()
-    setSelectedItem(item)
-    setIsShowFollowUp(true)
-    clueFollowUpPageAPI({ pageNum: 1, pageSize: 20, userId: userInfo?.id, leadId: item.id }, res => {
-      if (res.success && res.data) {
-        setFollowUpListPopup(res.data.list)
-      }
+    // 跳转到新的跟进记录列表页面
+    Taro.navigateTo({
+      url: `/subpackages/cluePage/followList/index?leadId=${item.id}&leadName=${encodeURIComponent(item.name || '')}`
     })
   }
 
@@ -693,44 +690,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
         </View>
       </Popup>
 
-      {/* 跟进列表 */}
-      <Popup position="bottom" title={`${parseSafeHTML(selectedItem?.name) || ''} - 跟进记录`} style={{ maxHeight: '85%', minHeight: '85%' }} visible={isShowFollowUp} onClose={() => setIsShowFollowUp(false)}>
-        <ScrollView scrollY className="followUp_list" onScrollToLower={loadMoreFollowUpList} lowerThreshold={50}>
-          {followUpListPopup.map((item: any, index: number) => (
-            <View className="clueRecord_item" onClick={() => toFollowPage(item)} key={index}>
-              <View className="clueRecord_item_left">{item?.avatar ? <Image src={item.avatar} className="avatar" /> : <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="avatar" />}</View>
-              <View className="clueRecord_item_right">
-                <View className="clueRecord_item_right_top">
-                  <View className="item_time">
-                    <Image src="https://find-console.newgalaxyai.com/glks/assets/chat/chat1.png" className="item_time_img"></Image>
-                    {parseDate(item.createTime || '跟进时间')}
-                  </View>
-                  <View className="status text-ellipsis">{item.nickname || '跟进人'}</View>
-                </View>
-                <View className="item_link">
-                  跟进方式：{item.method || '跟进方式'}｜{item.followUpName || '客户名称'}({item.followUpPosition || '客户职位'})｜{item.followUpPhone || '客户手机号'}
-                </View>
-                <View className="item_content">{item.content || '跟进内容'}</View>
-                {/* <View className="item_from">来自线索：{item.followUpCompany || '客户所属公司'}</View> */}
-              </View>
-            </View>
-          ))}
-          {(!followUpListPopup || followUpListPopup.length === 0) && (
-            <Empty
-              description="暂无跟进"
-              image={
-                <Image
-                  style={{
-                    width: '100%',
-                    height: '100%'
-                  }}
-                  src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png"
-                />
-              }
-            />
-          )}
-        </ScrollView>
-      </Popup>
+
 
       <Calendar visible={isVisible} type="range" onClose={() => setIsVisible(false)} onConfirm={handleCalendarConfirm} />
 

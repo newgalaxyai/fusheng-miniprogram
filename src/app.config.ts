@@ -9,7 +9,7 @@ export default defineAppConfig({
     {
       root: 'subpackages/cluePage',
       name: 'clue',
-      pages: ['follow/index', 'editFollow/index', 'addFollow/index']
+      pages: ['follow/index', 'editFollow/index', 'addFollow/index', 'followList/index']
     },
     {
       root: 'subpackages/setting',
