@@ -1,13 +1,13 @@
-import { taroPost, taroGet, taroPut, taroDelete } from '@/service'
+import { taroRequest, taroPost, taroGet, taroPut, taroDelete } from '@/service'
 import { clueListURL, clueCreateURL, clueDeleteURL, clueFollowUpDeleteURL, clueFollowUpCreateURL, clueFollowUpPageURL, clueFollowUpUpdateURL, uploadFileURL, clueFollowUpHistoryURL, clueFollowUpDetailURL, clueCreateSelectURL } from '@/service/config'
-import type { IResponse } from '../types'
+import type { IAPIResponse, IClue, IGetClueListRequest, IPaginationResponse, IResponse } from '../types'
 
 // 获得线索列表
-export const clueListAPI = (data: any, callback: (res: IResponse<any>) => void) => {
+export const clueListAPI = (data: IGetClueListRequest, callback: (res: IResponse<IPaginationResponse<IClue>>) => void) => {
   taroGet({
     url: clueListURL,
     data,
-    success: (res: any) => {
+    success: (res: IResponse<IPaginationResponse<IClue>>) => {
       callback({
         success: true,
         data: res.data
@@ -29,6 +29,15 @@ export const clueListAPI = (data: any, callback: (res: IResponse<any>) => void) 
       }
     }
   }).catch(() => {})
+}
+
+// 获得线索列表（异步）
+export const getClueListAsyncApi = async (data: IGetClueListRequest): Promise<IAPIResponse<IPaginationResponse<IClue>>> => {
+  const response = await taroRequest.getAsync<IAPIResponse<IPaginationResponse<IClue>>>({
+    url: clueListURL,
+    data
+  })
+  return response
 }
 
 // 获得线索下拉

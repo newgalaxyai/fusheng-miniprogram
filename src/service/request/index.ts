@@ -329,51 +329,71 @@ class TaroRequest {
   }
 
   // Promise风格的方法
-  // async requestAsync<T = any>(config: TaroRequestConfig): Promise<T> {
-  //   const mergedConfig: TaroRequestConfig = {
-  //     ...this.baseConfig,
-  //     ...config,
-  //     header: {
-  //       ...this.baseConfig.header,
-  //       ...config.header
-  //     }
-  //   }
+  async requestAsync<T = any>(config: TaroRequestConfig): Promise<T> {
+    const mergedConfig: TaroRequestConfig = {
+      ...this.baseConfig,
+      ...config,
+      header: {
+        ...this.baseConfig.header,
+        ...config.header
+      }
+    }
 
-  //   if (this.baseConfig.url && !config.url?.startsWith('http')) {
-  //     mergedConfig.url = this.baseConfig.url + (config.url || '')
-  //   }
+    if (this.baseConfig.url && !config.url?.startsWith('http')) {
+      mergedConfig.url = this.baseConfig.url + (config.url || '')
+    }
 
-  //   try {
-  //     const processedConfig = this.executeRequestInterceptors(mergedConfig)
+    try {
+      const processedConfig = this.executeRequestInterceptors(mergedConfig)
 
-  //     const res = await new Promise<T>((resolve, reject) => {
-  //       Taro.request({
-  //         ...processedConfig,
-  //         success: (res) => {
-  //           resolve(res as T)
-  //         },
-  //         fail: (err) => {
-  //           reject(err)
-  //         }
-  //       })
-  //     })
+      const res = await new Promise<any>((resolve, reject) => {
+        Taro.request({
+          ...processedConfig,
+          success: res => {
+            ;(res as any).config = mergedConfig
+            resolve(res)
+          },
+          fail: err => {
+            reject(err)
+          }
+        })
+      })
 
-  //     const processedRes = this.executeResponseInterceptors(res, mergedConfig, true)
-  //     return processedRes
+      try {
+        const processedRes = this.executeResponseInterceptors(res, mergedConfig, true)
+        if (processedRes && typeof processedRes.then === 'function') {
+          return await processedRes
+        }
+        return processedRes
+      } catch (error) {
+        this.executeResponseInterceptors(error, mergedConfig, false)
+        throw error
+      }
+    } catch (error) {
+      const processedError = this.executeResponseInterceptors(error, mergedConfig, false)
+      throw processedError
+    }
+  }
 
-  //   } catch (error) {
-  //     this.executeResponseInterceptors(error, mergedConfig, false)
-  //     throw error
-  //   }
-  // }
+  getAsync<T = any>(config: Omit<TaroRequestConfig, 'method'>): Promise<T> {
+    return this.requestAsync({ ...config, method: 'GET' })
+  }
 
-  // getAsync<T = any>(config: Omit<TaroRequestConfig, 'method'>): Promise<T> {
-  //   return this.requestAsync({ ...config, method: 'GET' })
-  // }
+  postAsync<T = any>(config: Omit<TaroRequestConfig, 'method'>): Promise<T> {
+    return this.requestAsync({ ...config, method: 'POST' })
+  }
 
-  // postAsync<T = any>(config: Omit<TaroRequestConfig, 'method'>): Promise<T> {
-  //   return this.requestAsync({ ...config, method: 'POST' })
-  // }
+  putAsync<T = any>(config: Omit<TaroRequestConfig, 'method'>): Promise<T> {
+    return this.requestAsync({ ...config, method: 'PUT' })
+  }
+
+  deleteAsync<T = any>(config: Omit<TaroRequestConfig, 'method'>): Promise<T> {
+    return this.requestAsync({ ...config, method: 'DELETE' })
+  }
+
+  patchAsync<T = any>(config: Omit<TaroRequestConfig, 'method'>): Promise<T> {
+    return this.requestAsync({ ...config, method: 'PATCH' })
+  }
 }
 
 export default TaroRequest

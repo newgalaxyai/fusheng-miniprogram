@@ -38,9 +38,9 @@ function Index() {
   // 将单个展开状态改为对象，用于管理每个收藏项的展开状态
   const [expandedItems, setExpandedItems] = useState<{ [key: number]: boolean }>({})
   const handleActiveIndex = (idx: any) => {
-    if (idx == 1) {
-      cluePageRef.current?.getClueList()
-    }
+    // if (idx == 1) {
+    //   cluePageRef.current?.getClueList()
+    // }
     setActiveIndex(idx)
   }
 
@@ -405,9 +405,10 @@ function Index() {
         <AiChat ref={aiChatRef} height={totalHeight} />
       </View>
 
-      <View style={{ display: activeIndex === 1 ? 'block' : 'none' }}>
+      {/* <View style={{ display: activeIndex === 1 ? 'block' : 'none' }}>
         <CluePage ref={cluePageRef} height={totalHeight} />
-      </View>
+      </View> */}
+      {activeIndex === 1 && <CluePage ref={cluePageRef} height={totalHeight} />}
     </View>
   )
 }

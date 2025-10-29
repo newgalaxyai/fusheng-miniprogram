@@ -1,19 +1,96 @@
 import React, { useState, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { View, Text, Image, ScrollView } from '@tarojs/components'
-import { Cell, Popup, Tabs, Input, Calendar, Drag, Empty, Button } from '@nutui/nutui-react-taro'
+import { Cell, Popup, Tabs, Input, Calendar, Drag, Empty, Button, InfiniteLoading } from '@nutui/nutui-react-taro'
 import './index.scss'
 import { SearchBar } from '@nutui/nutui-react-taro'
-import { ArrowRight, Checked, Search } from '@nutui/icons-react-taro'
-import Taro, { useDidShow, useLoad } from '@tarojs/taro' // 添加useDidShow导入
-import { clueListAPI, clueDeleteAPI, clueFollowUpPageAPI, clueFollowUpHistoryAPI } from '@/api/clue'
+import { ArrowRight, Checked, Loading, Search } from '@nutui/icons-react-taro'
+import Taro, { useDidShow, useLoad, showToast, hideToast } from '@tarojs/taro' // 添加useDidShow导入
+import { clueListAPI, clueDeleteAPI, clueFollowUpPageAPI, clueFollowUpHistoryAPI, getClueListAsyncApi } from '@/api/clue'
 import { useSelector } from 'react-redux'
-import useDebounce from '@/hooks/useDebounce'
+import { useDebounceValue } from '@/hooks/useDebounce'
 import { aiSessionListAPI } from '@/api/chatMsg'
 import ContactPopup from '@/components/ContactPopup'
+import { IClue, IGetClueListRequest } from '@/api/types'
+import { filterHTMLString } from '@/utils/filterString'
 
 const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => void }, { height: number }>(({ height }, ref) => {
   const userInfo = useSelector((state: any) => state.login.userInfo)
-  const [tabvalue, setTabvalue] = useState(0)
+  // 顶部线索tab
+  // 线索列表数据
+  const [clueList, setClueList] = useState<IClue[]>([])
+  // 线索列表是否还有更多数据
+  const [clueHasMore, setClueHasMore] = useState<boolean>(false)
+  // 加载更多cursor
+  const [loadMoreCluePageListCursor, setLoadMoreCluePageListCursor] = useState(1)
+  // 加载更多线索列表
+  async function loadMoreCluePageList() {
+    const res = await getClueListAsyncApi({
+      ...clueFilterForm,
+      pageNo: loadMoreCluePageListCursor + 1,
+      pageSize: 10,
+      userId: userInfo.id
+    })
+    if (res.code === 0) {
+      setClueList(val => [...val, ...res.data!.list])
+      setClueHasMore(res.data!.list.length === 10) // 判断是否还有更多数据
+      setLoadMoreCluePageListCursor(loadMoreCluePageListCursor + 1)
+    }
+  }
+  // 线索列表筛选表单初始值
+  const initialClueFilterForm: Omit<IGetClueListRequest, 'pageNo' | 'pageSize' | 'userId'> = {
+    isImportantClue: false
+  }
+  // 线索列表筛选表单
+  const [clueFilterForm, setClueFilterForm] = useState<Omit<IGetClueListRequest, 'pageNo' | 'pageSize' | 'userId'>>(initialClueFilterForm) // 筛选表单数据
+  // 线索列表搜索输入框值
+  const [searchInputValue, setSearchInputValue] = useState<string>('')
+  // 线索列表搜索输入框disabled
+  const [isSearchInputDisabled, setIsSearchInputDisabled] = useState<boolean>(false)
+  // 线索列表搜索输入框值防抖
+  const debounceSearchInputValue = useDebounceValue(searchInputValue, 300)
+  useEffect(() => {
+    setClueFilterForm({
+      ...clueFilterForm,
+      name: debounceSearchInputValue
+    })
+  }, [debounceSearchInputValue])
+  // 查询线索列表
+  const filterClueList = useCallback(async () => {
+    showToast({
+      title: '加载中...',
+      icon: 'loading',
+      mask: true,
+      duration: 9900000
+    })
+    setIsSearchInputDisabled(true)
+    setLoadMoreCluePageListCursor(1)
+    const res = await getClueListAsyncApi({
+      ...clueFilterForm,
+      pageNo: 1,
+      pageSize: 10,
+      userId: userInfo.id
+    })
+    // console.log('res', res)
+    if (res.code === 0) {
+      setClueList(res.data.list)
+      setClueHasMore(res.data!.list.length === 10) // 判断是否还有更多数据
+      hideToast()
+      setIsSearchInputDisabled(false)
+    } else {
+      setIsSearchInputDisabled(false)
+      showToast({
+        title: res.msg || '查询失败',
+        icon: 'none',
+        duration: 1000
+      })
+    }
+  }, [clueFilterForm])
+  useEffect(() => {
+    if (userInfo.id) {
+      filterClueList()
+    }
+  }, [filterClueList, userInfo])
+
   const [isShowPhone, setIsShowPhone] = useState(false)
   const [isShowAddress, setIsShowAddress] = useState(false)
   const [isShowFilter, setIsShowFilter] = useState(false)
@@ -21,7 +98,6 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
   const [tabValue, setTabValue] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
   const [isShowFollowUp, setIsShowFollowUp] = useState(false)
-  const [clueList, setClueList] = useState<any[]>([])
   const [selectedItem, setSelectedItem] = useState<any>({})
   const [historySession, setHistorySession] = useState<any[]>([])
   const [followUpList, setFollowUpList] = useState<any[]>([])
@@ -67,24 +143,6 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
     )
   }, [])
 
-  // 安全的HTML解析函数
-  const parseSafeHTML = useCallback((html: string) => {
-    if (!html) return ''
-    const cleanHTML = html
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // 移除script标签
-      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '') // 移除iframe标签
-      .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '') // 移除事件处理器
-      .replace(/<[^>]*>/g, '') // 移除所有HTML标签
-      .replace(/&nbsp;/g, ' ') // 替换HTML实体
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&amp;/g, '&')
-      .replace(/&quot;/g, '"')
-      .replace(/&#039;/g, "'")
-      .trim() // 去除首尾空白
-
-    return cleanHTML
-  }, [])
   // ==================== 事件处理函数 ====================
   // 处理头部筛选按钮点击
   const handleActiveIndex = (index: number) => {
@@ -117,7 +175,6 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
   // 新增分页状态
   const [cluePageNum, setCluePageNum] = useState(1)
   const [clueLoading, setClueLoading] = useState(false)
-  const [clueHasMore, setClueHasMore] = useState(true)
 
   const [followUpPageNum, setFollowUpPageNum] = useState(1)
   const [followUpLoading, setFollowUpLoading] = useState(false)
@@ -135,7 +192,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
       mask: true
     })
     setClueLoading(true)
-    clueListAPI({ pageNo: page, pageSize: 10, userId: userInfo?.id, keywords: searchValueClueList }, res => {
+    clueListAPI({ pageNo: page, pageSize: 10, userId: userInfo?.id, isImportantClue: false }, res => {
       if (res.success && res.data) {
         res.data.list.forEach((item: any) => {
           if (item.tags && item.tags.length > 0 && typeof item.tags === 'string') {
@@ -146,7 +203,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
           }
         })
         if (append) {
-          setClueList(prev => [...prev, ...res.data.list])
+          setClueList(prev => [...prev, ...res.data!.list])
         } else {
           setClueList(res.data.list)
         }
@@ -261,19 +318,6 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
       }
       setHistoryLoading(false)
     })
-  }
-
-  function changeTabValue(value: any) {
-    setTabvalue(value)
-    setSearchValueClueList('')
-    setSearchValueFollowRecord('')
-    if (value === 0) {
-      getClueList()
-    } else if (value === 1) {
-      getFollowUpList()
-    } else if (value === 2) {
-      getSession()
-    }
   }
 
   const handleRemove = (id: any) => {
@@ -539,6 +583,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
 
   return (
     <View className="cluePage" style={{ height: `calc(100vh - ${height}px)` }}>
+      {/* 自定义关闭吐司 */}
       {/* 联系人 */}
       <ContactPopup
         visible={isShowPhone}
@@ -562,7 +607,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
         <View className="address_content">
           <Cell.Group>
             {address.map((item, index) => (
-              <Cell key={index} align="center" title={`公司地址${index + 1}`} description={parseSafeHTML(item)} />
+              <Cell key={index} align="center" title={`公司地址${index + 1}`} description={filterHTMLString(item)} />
             ))}
           </Cell.Group>
         </View>
@@ -690,8 +735,6 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
         </View>
       </Popup>
 
-
-
       <Calendar visible={isVisible} type="range" onClose={() => setIsVisible(false)} onConfirm={handleCalendarConfirm} />
 
       {/* <View className="floating-add-btn" onClick={() => addFollow()}>
@@ -700,18 +743,18 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
       </View> */}
 
       <Tabs
-        value={tabvalue}
-        onChange={value => {
-          changeTabValue(value)
+        value={clueFilterForm.isImportantClue ? '1' : '0'}
+        onChange={val => {
+          setClueFilterForm({ isImportantClue: val === '1' })
         }}
       >
-        <Tabs.TabPane title="线索列表">
+        <Tabs.TabPane title="线索列表" value={'0'}>
           <View className="cluePage_list">
             <View className="cluePage_input_box">
               <View className="cluePage_input_icon">
                 <Search color="#AAAAAA" size="36rpx" />
               </View>
-              <Input className="cluePage_input" placeholder="搜索内容" style={{ width: '70%' }} value={searchValueClueList} onChange={e => setSearchValueClueList(e)} onBlur={handleSearchClueList} clearable={true} />
+              <Input className="cluePage_input" placeholder="搜索内容" style={{ width: '70%' }} value={searchInputValue} onChange={e => setSearchInputValue(e)} clearable={true} disabled={isSearchInputDisabled} />
               <Button className="cluePage_search_btn" onClick={e => addFollow(e, { name: 1 })}>
                 写跟进
               </Button>
@@ -723,95 +766,124 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                 flex: 1,
                 paddingTop: '20rpx'
               }}
-              onScrollToLower={loadMoreClueList}
               lowerThreshold={50}
+              id="cluePage_scrollList"
             >
-              {clueList &&
-                clueList.length > 0 &&
-                clueList.map((item, index) => (
-                  <View className="cluePage_item" onClick={e => getFollowUpListPopup(e, item)} key={index}>
-                    <View className="cluePage_item_top">
-                      {item.logo ? (
-                        // 判断是否为图片链接（包含http或https）
-                        item.logo.includes('http') ? (
-                          <Image src={item.logo} className="cluePage_item_Img" />
+              {clueList.length > 0 ? (
+                <InfiniteLoading
+                  target="cluePage_scrollList"
+                  hasMore={clueHasMore}
+                  onLoadMore={loadMoreCluePageList}
+                  // onScroll={() => {
+                  //   console.log('onScroll')
+                  // }}
+                  // onScrollToUpper={() => {
+                  //   console.log('onScrollToUpper')
+                  // }}
+                  loadingText={
+                    <>
+                      <View className="loadingText">
+                        <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="loadingImg" />
+                        <Text className="loading-char">l</Text>
+                        <Text className="loading-char">o</Text>
+                        <Text className="loading-char">a</Text>
+                        <Text className="loading-char">d</Text>
+                        <Text className="loading-char">i</Text>
+                        <Text className="loading-char">n</Text>
+                        <Text className="loading-char">g</Text>
+                        <Text className="loading-char">.</Text>
+                        <Text className="loading-char">.</Text>
+                        <Text className="loading-char">.</Text>
+                      </View>
+                    </>
+                  }
+                  loadMoreText="没有啦～"
+                >
+                  {clueList.map((item, index) => (
+                    <View className="cluePage_item" onClick={e => getFollowUpListPopup(e, item)} key={index}>
+                      <View className="cluePage_item_top">
+                        {item.logo ? (
+                          // 判断是否为图片链接（包含http或https）
+                          item.logo.includes('http') ? (
+                            <Image src={item.logo} className="cluePage_item_Img" />
+                          ) : (
+                            // 如果是文字，显示文字
+                            <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="cluePage_item_Img">
+                              {item.logo}
+                            </Text>
+                          )
                         ) : (
-                          // 如果是文字，显示文字
-                          <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="cluePage_item_Img">
-                            {item.logo}
+                          // 如果为空，显示"暂无"
+                          <Text className="cluePage_item_Img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx' }}>
+                            {filterHTMLString(item.customerCompanyName || '').slice(0, 2) || '暂无'}
                           </Text>
-                        )
-                      ) : (
-                        // 如果为空，显示"暂无"
-                        <Text className="cluePage_item_Img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx' }}>
-                          暂无
-                        </Text>
-                      )}
-                      <View className="cluePage_item_Text">
-                        <View className="item_title">
-                          <View dangerouslySetInnerHTML={{ __html: parseSafeHTML(item.name || '') }}></View>
-                          <View className="item_title_text" onClick={() => handleRemove(item)}>
-                            移除
-                            <View
-                              style={{
-                                width: '24rpx',
-                                height: '24rpx',
-                                marginLeft: '4rpx',
-                                border: '1.5rpx solid currentColor',
-                                borderRadius: '50%',
-                                position: 'relative',
-                                display: 'inline-block'
-                              }}
-                            >
+                        )}
+                        <View className="cluePage_item_Text">
+                          <View className="item_title">
+                            <View dangerouslySetInnerHTML={{ __html: filterHTMLString(item.customerCompanyName || '') }}></View>
+                            <View className="item_title_text" onClick={() => handleRemove(item)}>
+                              移除
                               <View
                                 style={{
-                                  position: 'absolute',
-                                  top: '50%',
-                                  left: '4rpx',
-                                  right: '4rpx',
-                                  height: '1.5rpx',
-                                  backgroundColor: 'currentColor',
-                                  transform: 'translateY(-50%)'
+                                  width: '24rpx',
+                                  height: '24rpx',
+                                  marginLeft: '4rpx',
+                                  border: '1.5rpx solid currentColor',
+                                  borderRadius: '50%',
+                                  position: 'relative',
+                                  display: 'inline-block'
                                 }}
-                              />
+                              >
+                                <View
+                                  style={{
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '4rpx',
+                                    right: '4rpx',
+                                    height: '1.5rpx',
+                                    backgroundColor: 'currentColor',
+                                    transform: 'translateY(-50%)'
+                                  }}
+                                />
+                              </View>
                             </View>
                           </View>
-                        </View>
-                        <View className="item_description">
-                          已跟进：<Text style={{ color: '#EA6835' }}>{item.followUpDays}天</Text>
-                        </View>
-                      </View>
-                    </View>
-                    {item.tags && item.tags.length > 0 && (
-                      <View className="cluePage_item_tag">
-                        {item.tags.map((tag: any, index: number) => (
-                          <View className="cluePage_item_tag_item" key={index}>
-                            {tag}
+                          <View className="item_description">
+                            已跟进：<Text style={{ color: '#EA6835' }}>{item.followUpDays || 0}天</Text>
                           </View>
-                        ))}
+                        </View>
                       </View>
-                    )}
-                    {/* <View className="cluePage_item_product">
+                      {/* {item.tags && item.tags.length > 0 && (
+                    <View className="cluePage_item_tag">
+                      {item.tags.map((tag: any, index: number) => (
+                        <View className="cluePage_item_tag_item" key={index}>
+                          {tag}
+                        </View>
+                      ))}
+                    </View>
+                  )} */}
+                      {/* <View className="cluePage_item_product">
                       <View className={`cluePage_item_product_left${expandedProducts[index] ? ' expanded' : ''}`}>{item.businessScope ? highlightKeyword(item.businessScope, searchValueClueList || '') : '- -'}</View>
                       <View className="cluePage_item_product_right" onClick={() => setExpandedProducts(prev => ({ ...prev, [index]: !prev[index] }))}>
                         {expandedProducts[index] ? '收起' : '展开'}
                       </View>
                     </View> */}
-                    <View className="cluePage_item_contact">
-                      <View className="cluePage_item_contact_item">
-                        <Image onClick={() => handleAiResearchReport(item)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise5.png" className="cluePage_item_contact_item_img" />
-                      </View>
-                      <View className="cluePage_item_contact_item">转为重要线索</View>
-                      <View onClick={() => openPhone(item)} className="cluePage_item_contact_item">
-                        联系方式
-                      </View>
-                      <View onClick={e => addFollow(e, item)} className="cluePage_item_contact_item_">
-                        跟进
+                      <View className="cluePage_item_contact">
+                        <View className="cluePage_item_contact_item">
+                          <Image onClick={() => handleAiResearchReport(item)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise5.png" className="cluePage_item_contact_item_img" />
+                        </View>
+                        <View className="cluePage_item_contact_item">转为重要线索</View>
+                        <View onClick={() => openPhone(item)} className="cluePage_item_contact_item">
+                          联系方式
+                        </View>
+                        <View onClick={e => addFollow(e, item)} className="cluePage_item_contact_item_">
+                          跟进
+                        </View>
                       </View>
                     </View>
-                  </View>
-                ))}
-              {(!clueList || clueList.length === 0) && (
+                  ))}
+                </InfiniteLoading>
+              ) : (
                 <Empty
                   description="暂无线索"
                   image={
@@ -828,97 +900,113 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
             </ScrollView>
           </View>
         </Tabs.TabPane>
-        <Tabs.TabPane title="重要线索">
+        <Tabs.TabPane title="重要线索" value={'1'}>
           <View className="cluePage_list">
             <View className="cluePage_input_box">
               <View className="cluePage_input_icon">
                 <Search color="#AAAAAA" size="36rpx" />
               </View>
-              <Input className="cluePage_input" placeholder="搜索内容" style={{ width: '100%' }} value={searchValueFollowRecord} onChange={e => setSearchValueFollowRecord(e)} onBlur={handleSearchFollowRecord} clearable={true} />
+              <Input className="cluePage_input" placeholder="搜索内容" style={{ width: '70%' }} value={searchInputValue} onChange={e => setSearchInputValue(e)} clearable={true} disabled={isSearchInputDisabled} />
               <Button className="cluePage_search_btn" onClick={e => addFollow(e, { name: 1 })}>
                 写跟进
               </Button>
             </View>
-            {/* <View className="cluePage_filter">
-              <View className="filter_item" onClick={() => handleActiveIndex(0)}>
-                <View className="item_textI">
-                  <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="item_img" />
-                  <View className="item_text">排序</View>
-                </View>
-                <TriangleDown color="#426EFF" size="16rpx" />
-              </View>
-              <View className="filter_item" onClick={() => handleActiveIndex(1)}>
-                <View className="item_textI">
-                  <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="item_img" />
-                  <View className="item_text">筛选</View>
-                </View>
-                <TriangleDown color="#426EFF" size="16rpx" />
-              </View>
-            </View> */}
             <ScrollView
               scrollY
               style={{
-                height: `calc(100vh - 320rpx - ${height}px)`,
-                flex: 1
+                height: `calc(100vh - 220rpx - ${height}px)`,
+                flex: 1,
+                paddingTop: '20rpx'
               }}
-              onScrollToLower={loadMoreFollowUpList}
               lowerThreshold={50}
+              id="cluePage_scrollList"
             >
-              {followUpList.map((item: any, index: number) => (
-                <View className="cluePage_item" key={index}>
-                  <View className="cluePage_item_top">
-                    {item.logo ? (
-                      // 判断是否为图片链接（包含http或https）
-                      item.logo.includes('http') ? (
-                        <Image src={item.logo} className="cluePage_item_Img" />
-                      ) : (
-                        // 如果是文字，显示文字
-                        <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="cluePage_item_Img">
-                          {item.logo}
-                        </Text>
-                      )
-                    ) : (
-                      // 如果为空，显示"暂无"
-                      <Text className="cluePage_item_Img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx' }}>
-                        暂无
-                      </Text>
-                    )}
-                    <View className="cluePage_item_Text">
-                      <View className="item_title">
-                        <View dangerouslySetInnerHTML={{ __html: parseSafeHTML(item.name || '') }}></View>
-                        <View className="item_title_text" onClick={() => handleRemove(item)}>
-                          移除
-                          <View
-                            style={{
-                              width: '24rpx',
-                              height: '24rpx',
-                              marginLeft: '4rpx',
-                              border: '1.5rpx solid currentColor',
-                              borderRadius: '50%',
-                              position: 'relative',
-                              display: 'inline-block'
-                            }}
-                          >
-                            <View
-                              style={{
-                                position: 'absolute',
-                                top: '50%',
-                                left: '4rpx',
-                                right: '4rpx',
-                                height: '1.5rpx',
-                                backgroundColor: 'currentColor',
-                                transform: 'translateY(-50%)'
-                              }}
-                            />
+              {clueList.length > 0 ? (
+                <InfiniteLoading
+                  target="cluePage_scrollList"
+                  hasMore={clueHasMore}
+                  onLoadMore={loadMoreCluePageList}
+                  // onScroll={() => {
+                  //   console.log('onScroll')
+                  // }}
+                  // onScrollToUpper={() => {
+                  //   console.log('onScrollToUpper')
+                  // }}
+
+                  loadingText={
+                    <>
+                      <View className="loadingText">
+                        <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="loadingImg" />
+                        <Text className="loading-char">l</Text>
+                        <Text className="loading-char">o</Text>
+                        <Text className="loading-char">a</Text>
+                        <Text className="loading-char">d</Text>
+                        <Text className="loading-char">i</Text>
+                        <Text className="loading-char">n</Text>
+                        <Text className="loading-char">g</Text>
+                        <Text className="loading-char">.</Text>
+                        <Text className="loading-char">.</Text>
+                        <Text className="loading-char">.</Text>
+                      </View>
+                    </>
+                  }
+                  loadMoreText="没有啦～"
+                >
+                  {clueList.map((item, index) => (
+                    <View className="cluePage_item" onClick={e => getFollowUpListPopup(e, item)} key={index}>
+                      <View className="cluePage_item_top">
+                        {item.logo ? (
+                          // 判断是否为图片链接（包含http或https）
+                          item.logo.includes('http') ? (
+                            <Image src={item.logo} className="cluePage_item_Img" />
+                          ) : (
+                            // 如果是文字，显示文字
+                            <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="cluePage_item_Img">
+                              {item.logo}
+                            </Text>
+                          )
+                        ) : (
+                          // 如果为空，显示"暂无"
+                          <Text className="cluePage_item_Img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx' }}>
+                            {filterHTMLString(item.customerCompanyName || '').slice(0, 2) || '暂无'}
+                          </Text>
+                        )}
+                        <View className="cluePage_item_Text">
+                          <View className="item_title">
+                            <View dangerouslySetInnerHTML={{ __html: filterHTMLString(item.customerCompanyName || '') }}></View>
+                            <View className="item_title_text" onClick={() => handleRemove(item)}>
+                              移除
+                              <View
+                                style={{
+                                  width: '24rpx',
+                                  height: '24rpx',
+                                  marginLeft: '4rpx',
+                                  border: '1.5rpx solid currentColor',
+                                  borderRadius: '50%',
+                                  position: 'relative',
+                                  display: 'inline-block'
+                                }}
+                              >
+                                <View
+                                  style={{
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '4rpx',
+                                    right: '4rpx',
+                                    height: '1.5rpx',
+                                    backgroundColor: 'currentColor',
+                                    transform: 'translateY(-50%)'
+                                  }}
+                                />
+                              </View>
+                            </View>
+                          </View>
+                          <View className="item_description">
+                            已跟进：<Text style={{ color: '#EA6835' }}>{item.followUpDays}天</Text>
                           </View>
                         </View>
                       </View>
-                      <View className="item_description">
-                        已跟进：<Text style={{ color: '#EA6835' }}>{item.followUpDays}天</Text>
-                      </View>
-                    </View>
-                  </View>
-                  {item.tags && item.tags.length > 0 && (
+                      {/* {item.tags && item.tags.length > 0 && (
                     <View className="cluePage_item_tag">
                       {item.tags.map((tag: any, index: number) => (
                         <View className="cluePage_item_tag_item" key={index}>
@@ -926,30 +1014,30 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                         </View>
                       ))}
                     </View>
-                  )}
-                  {/* <View className="cluePage_item_product">
+                  )} */}
+                      {/* <View className="cluePage_item_product">
                       <View className={`cluePage_item_product_left${expandedProducts[index] ? ' expanded' : ''}`}>{item.businessScope ? highlightKeyword(item.businessScope, searchValueClueList || '') : '- -'}</View>
                       <View className="cluePage_item_product_right" onClick={() => setExpandedProducts(prev => ({ ...prev, [index]: !prev[index] }))}>
                         {expandedProducts[index] ? '收起' : '展开'}
                       </View>
                     </View> */}
-                  <View className="cluePage_item_contact">
-                    <View className="cluePage_item_contact_item">
-                      <Image onClick={() => handleAiResearchReport(item)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise5.png" className="cluePage_item_contact_item_img" />
+                      <View className="cluePage_item_contact">
+                        <View className="cluePage_item_contact_item">
+                          <Image onClick={() => handleAiResearchReport(item)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise5.png" className="cluePage_item_contact_item_img" />
+                        </View>
+                        <View onClick={() => openPhone(item)} className="cluePage_item_contact_item">
+                          联系方式
+                        </View>
+                        <View onClick={e => addFollow(e, item)} className="cluePage_item_contact_item_">
+                          跟进
+                        </View>
+                      </View>
                     </View>
-                    <View className="cluePage_item_contact_item">转出重要线索</View>
-                    <View onClick={() => openPhone(item)} className="cluePage_item_contact_item">
-                      联系方式
-                    </View>
-                    <View onClick={e => addFollow(e, item)} className="cluePage_item_contact_item_">
-                      跟进
-                    </View>
-                  </View>
-                </View>
-              ))}
-              {(!followUpList || followUpList.length === 0) && (
+                  ))}
+                </InfiniteLoading>
+              ) : (
                 <Empty
-                  description="暂无重要线索"
+                  description="暂无线索"
                   image={
                     <Image
                       style={{
@@ -964,6 +1052,7 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
             </ScrollView>
           </View>
         </Tabs.TabPane>
+
         {/* <Tabs.TabPane title="历史匹配线索">
           <ScrollView
             scrollY
