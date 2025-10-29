@@ -56,13 +56,16 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
   }, [debounceSearchInputValue])
   // 查询线索列表
   const filterClueList = useCallback(async () => {
+    if (isSearchInputDisabled) {
+      return
+    }
+    setIsSearchInputDisabled(true)
     showToast({
       title: '加载中...',
       icon: 'loading',
       mask: true,
       duration: 9900000
     })
-    setIsSearchInputDisabled(true)
     setLoadMoreCluePageListCursor(1)
     const res = await getClueListAsyncApi({
       ...clueFilterForm,
@@ -399,9 +402,9 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
     setSelectedFilterFields([])
   }
 
-  const handleAiResearchReport = (company: any) => {
+  const handleAiResearchReport = (company: IClue) => {
     Taro.navigateTo({
-      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.unifiedSocialCreditCode}&companyParameter=${company.enterpriseAnalysisBack}&name=${company.name}`
+      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.unifiedSocialCreditCode}&name=${company.customerCompanyName}`
     })
   }
 
@@ -821,7 +824,10 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                         <View className="cluePage_item_Text">
                           <View className="item_title">
                             <View dangerouslySetInnerHTML={{ __html: filterHTMLString(item.customerCompanyName || '') }}></View>
-                            <View className="item_title_text" onClick={() => handleRemove(item)}>
+                            <View className="item_title_text" onClick={(e) => {
+                              e.stopPropagation()
+                              handleRemove(item)
+                            }}>
                               移除
                               <View
                                 style={{
@@ -870,13 +876,22 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                     </View> */}
                       <View className="cluePage_item_contact">
                         <View className="cluePage_item_contact_item">
-                          <Image onClick={() => handleAiResearchReport(item)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise5.png" className="cluePage_item_contact_item_img" />
+                          <Image onClick={(e) => {
+                            e.stopPropagation()
+                            handleAiResearchReport(item)
+                          }} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise5.png" className="cluePage_item_contact_item_img" />
                         </View>
                         <View className="cluePage_item_contact_item">转为重要线索</View>
-                        <View onClick={() => openPhone(item)} className="cluePage_item_contact_item">
+                        <View onClick={(e) => {
+                          e.stopPropagation()
+                          openPhone(item)
+                        }} className="cluePage_item_contact_item">
                           联系方式
                         </View>
-                        <View onClick={e => addFollow(e, item)} className="cluePage_item_contact_item_">
+                        <View onClick={e => {
+                          e.stopPropagation()
+                          addFollow(e, item)
+                        }} className="cluePage_item_contact_item_">
                           跟进
                         </View>
                       </View>
@@ -974,7 +989,13 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                         <View className="cluePage_item_Text">
                           <View className="item_title">
                             <View dangerouslySetInnerHTML={{ __html: filterHTMLString(item.customerCompanyName || '') }}></View>
-                            <View className="item_title_text" onClick={() => handleRemove(item)}>
+                            <View
+                              className="item_title_text"
+                              onClick={e => {
+                                e.stopPropagation()
+                                handleRemove(item)
+                              }}
+                            >
                               移除
                               <View
                                 style={{
@@ -1023,12 +1044,21 @@ const CluePage = forwardRef<{ getClueList: (page?: number, append?: boolean) => 
                     </View> */}
                       <View className="cluePage_item_contact">
                         <View className="cluePage_item_contact_item">
-                          <Image onClick={() => handleAiResearchReport(item)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise5.png" className="cluePage_item_contact_item_img" />
+                          <Image onClick={(e) => {
+                            e.stopPropagation()
+                            handleAiResearchReport(item)
+                          }} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise5.png" className="cluePage_item_contact_item_img" />
                         </View>
-                        <View onClick={() => openPhone(item)} className="cluePage_item_contact_item">
+                        <View onClick={(e) => {
+                          e.stopPropagation()
+                          openPhone(item)
+                        }} className="cluePage_item_contact_item">
                           联系方式
                         </View>
-                        <View onClick={e => addFollow(e, item)} className="cluePage_item_contact_item_">
+                        <View onClick={e => {
+                          e.stopPropagation()
+                          addFollow(e, item)
+                        }} className="cluePage_item_contact_item_">
                           跟进
                         </View>
                       </View>

@@ -192,16 +192,17 @@ function Index() {
     generateReportAPI(
       {
         creditCode: options.creditCode,
-        companyName: options.name,
-        enterpriseAnalysisBack: options.companyParameter || '',
+        // companyName: options.name,
+        // enterpriseAnalysisBack: options.companyParameter || '',
+        enterpriseAnalysisBack: null,
         targetCompanyName: companyInfo.companyName,
         targetCompanyServe: JSON.stringify(companyInfo.expansionDomainKeywordsSelected)
       },
       res => {
         if (res.success) {
-          Taro.setStorageSync('report', JSON.parse(res.data))
-          setReport(JSON.parse(res.data))
-          console.log(JSON.parse(res.data))
+          Taro.setStorageSync('report', JSON.parse(res.data.content))
+          setReport(JSON.parse(res.data.content))
+          console.log(JSON.parse(res.data.content))
 
           setApiCompleted(true)
         } else {

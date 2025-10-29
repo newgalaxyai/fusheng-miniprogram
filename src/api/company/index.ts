@@ -1,6 +1,6 @@
 import { taroPost, taroGet, taroPut, taroDelete } from '@/service'
 import { getCompanyInfoURL, searchCompaniesURL, getProductSellingPointsURL, generateReportURL, enterpriseDetailURL, companyFeedbackCreateURL, enterpriseGraphURL, getCompanyWebNewsListURL, getCompanyWebNewsDetailURL } from '@/service/config'
-import type { IBusinessInfo, ICorpInfoRequest, ICorpInfoResponse, IPersonInfo, IResponse, IShareholderInfo, IAnnualReport, IAnnualReportDetailRequest, IAnnualReportDetail, IBusinessInfoRequest, IOutsideInvestment, IBranchOffice, IActualController, IDirectControl, IBusibessPublicity, ISuspectedRelation } from '../types'
+import type { IBusinessInfo, ICorpInfoRequest, ICorpInfoResponse, IPersonInfo, IResponse, IShareholderInfo, IAnnualReport, IAnnualReportDetailRequest, IAnnualReportDetail, IBusinessInfoRequest, IOutsideInvestment, IBranchOffice, IActualController, IDirectControl, IBusibessPublicity, ISuspectedRelation, IGenerateCorpReportRequest, IAPIResponse, IGenerateCorpReportResponse } from '../types'
 import { getBusinessInfoURL, getPersonInfoURL, getShareholderInfoURL, getAnnualReportURL, getAnnualReportDetailURL, getOutsideInvestmentURL, getBranchOfficeURL, getActualControllerURL, getDirectControlURL, getBusinessSelfPublicationURL, getSuspectedRelationURL } from '../url'
 
 // 获取产品卖点
@@ -179,7 +179,7 @@ export const searchCompaniesAPI = (data: any, callback: (res: IResponse<any>) =>
 }
 
 // 生成报告
-export const generateReportAPI = (data: any, callback: (res: IResponse<any>) => void) => {
+export const generateReportAPI = (data: IGenerateCorpReportRequest, callback: (res: IResponse<IGenerateCorpReportResponse>) => void) => {
   taroPost({
     url: generateReportURL,
     data,

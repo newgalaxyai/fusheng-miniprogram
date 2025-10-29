@@ -249,3 +249,28 @@ export type ISuspectedRelation = {
         address: string; // 地址
     }[]; // 地址
 }
+
+// 企业报告
+export type IGenerateCorpReportRequest = {
+  creditCode: string
+  targetCompanyName: string
+  targetCompanyServe: string
+  enterpriseAnalysisBack: string | null
+}
+export type ICorpReportContent = {
+  title: string
+  content: string
+}
+export type ICorpReport = {
+  summary_task: ICorpReportContent
+  base_task: ICorpReportContent
+  product_task: ICorpReportContent
+  risk_task: ICorpReportContent
+  development_task: ICorpReportContent
+  innovation_task: ICorpReportContent
+  analysis_task: ICorpReportContent
+}
+export type IGenerateCorpReportResponse = {
+  id: number // 报告id
+  content: string
+}
