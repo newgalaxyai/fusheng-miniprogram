@@ -35,6 +35,8 @@ export const ROUTE = {
     ENTERPRISE_PRODUCT: '/subpackages/company/enterpriseDetail/detail/enterpriseProduct/index',
     // 同业分析
     PEER_ANALYSIS: '/subpackages/company/enterpriseDetail/detail/industryAnalysis/index',
+    // 分析报告
+    AI_RESEARCH_REPORT: '/subpackages/company/aiResearchReport/index',
 }
 
 export const ROUTE_NAME = {
@@ -72,4 +74,11 @@ export const ROUTE_NAME = {
     ENTERPRISE_PRODUCT: '企业产品',
     // 同业分析
     PEER_ANALYSIS: '同业分析',
+}
+
+export const ROUTE_PARAMS_NAME = {
+    // 统一社会信用代码
+    CREDIT_CODE: 'creditCode',
+    // 公司名称
+    COMPANY_NAME: 'name',
 }

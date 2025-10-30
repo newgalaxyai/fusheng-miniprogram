@@ -1,6 +1,7 @@
 import { taroRequest, taroPost, taroGet, taroPut, taroDelete } from '@/service'
 import { clueListURL, clueCreateURL, clueDeleteURL, clueFollowUpDeleteURL, clueFollowUpCreateURL, clueFollowUpPageURL, clueFollowUpUpdateURL, uploadFileURL, clueFollowUpHistoryURL, clueFollowUpDetailURL, clueCreateSelectURL } from '@/service/config'
-import type { IAPIResponse, IClue, IGetClueListRequest, IPaginationResponse, IResponse } from '../types'
+import type { IAPIResponse, IClue, IGetClueListRequest, IPaginationResponse, IResponse, IUpdateClueRequest } from '../types'
+import { clueUpdateURL } from '../url'
 
 // 获得线索列表
 export const clueListAPI = (data: IGetClueListRequest, callback: (res: IResponse<IPaginationResponse<IClue>>) => void) => {
@@ -75,6 +76,35 @@ export const clueCreateAPI = (data: any, callback: (res: IResponse<any>) => void
     url: clueCreateURL,
     data,
     success: (res: any) => {
+      callback({
+        success: true,
+        data: res.data
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => {})
+}
+
+// 更新线索
+export const clueUpdateAPI = (data: IUpdateClueRequest, callback: (res: IResponse<boolean>) => void) => {
+  taroPut({
+    url: clueUpdateURL,
+    data,
+    success: (res: IAPIResponse<boolean>) => {
       callback({
         success: true,
         data: res.data

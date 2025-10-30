@@ -1,7 +1,7 @@
 import { taroPost, taroGet, taroPut, taroDelete } from '@/service'
 import { getCompanyInfoURL, searchCompaniesURL, getProductSellingPointsURL, generateReportURL, enterpriseDetailURL, companyFeedbackCreateURL, enterpriseGraphURL, getCompanyWebNewsListURL, getCompanyWebNewsDetailURL } from '@/service/config'
-import type { IBusinessInfo, ICorpInfoRequest, ICorpInfoResponse, IPersonInfo, IResponse, IShareholderInfo, IAnnualReport, IAnnualReportDetailRequest, IAnnualReportDetail, IBusinessInfoRequest, IOutsideInvestment, IBranchOffice, IActualController, IDirectControl, IBusibessPublicity, ISuspectedRelation, IGenerateCorpReportRequest, IAPIResponse, IGenerateCorpReportResponse } from '../types'
-import { getBusinessInfoURL, getPersonInfoURL, getShareholderInfoURL, getAnnualReportURL, getAnnualReportDetailURL, getOutsideInvestmentURL, getBranchOfficeURL, getActualControllerURL, getDirectControlURL, getBusinessSelfPublicationURL, getSuspectedRelationURL } from '../url'
+import type { IBusinessInfo, ICorpInfoRequest, ICorpInfoResponse, IPersonInfo, IResponse, IShareholderInfo, IAnnualReport, IAnnualReportDetailRequest, IAnnualReportDetail, IBusinessInfoRequest, IOutsideInvestment, IBranchOffice, IActualController, IDirectControl, IBusibessPublicity, ISuspectedRelation, IGenerateCorpReportRequest, IAPIResponse, IGenerateCorpReportResponse, IGetCorpContactInfoRequest, IGetCorpContactInfoResponse } from '../types'
+import { getBusinessInfoURL, getPersonInfoURL, getShareholderInfoURL, getAnnualReportURL, getAnnualReportDetailURL, getOutsideInvestmentURL, getBranchOfficeURL, getActualControllerURL, getDirectControlURL, getBusinessSelfPublicationURL, getSuspectedRelationURL, getCorpContactInfoURL } from '../url'
 
 // 获取产品卖点
 export const getProductSellingPointsAPI = (data: any, callback: (res: IResponse<any>) => void) => {
@@ -564,6 +564,35 @@ export const getSuspectedRelationAPI = (data: ICorpInfoRequest, callback: (res: 
       callback({
         success: true,
         data: res.data.list
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => {})
+}
+
+// 获取企业联系方式
+export const getCorpContactInfoAPI = (data: IGetCorpContactInfoRequest, callback: (res: IResponse<IGetCorpContactInfoResponse>) => void) => {
+  taroGet({
+    url: getCorpContactInfoURL,
+    data,
+    success: (res: any) => {
+      callback({
+        success: true,
+        data: res.data
       })
     },
     fail: (err: any) => {

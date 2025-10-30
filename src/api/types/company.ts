@@ -274,3 +274,21 @@ export type IGenerateCorpReportResponse = {
   id: number // 报告id
   content: string
 }
+
+// 企业联系方式请求参数
+export type IGetCorpContactInfoRequest = {
+  creditCode: string // 社会信用代码
+}
+// 联系人信息
+export type ICorpContactInfo = {
+  name: string // 联系人名称
+  position: string // 联系人职务
+  phone: string // 联系人手机号
+  type: number // 类型 1.固定电话 2.业务人员
+  recommend: boolean // 是否推荐
+}
+// 获取企业联系方式响应
+export type IGetCorpContactInfoResponse = {
+  fixedPhones: ICorpContactInfo[] // 固定电话
+  businessPeople: ICorpContactInfo[] // 业务人员
+}
