@@ -85,6 +85,8 @@ const CluePage = forwardRef<
   const [clueFilterForm, setClueFilterForm] = useState<IFilterClueForm>(initialClueFilterForm) // 筛选表单数据
   // 查询线索列表
   const filterClueList = useCallback(async () => {
+    console.log('filterClueList', clueFilterForm)
+
     if (isSearchInputDisabled) {
       return
     }
@@ -111,11 +113,7 @@ const CluePage = forwardRef<
       setIsSearchInputDisabled(false)
     } else {
       setIsSearchInputDisabled(false)
-      showToast({
-        title: res.msg || '查询失败',
-        icon: 'none',
-        duration: 1000
-      })
+      hideToast()
     }
   }, [clueFilterForm])
   useEffect(() => {
@@ -123,7 +121,40 @@ const CluePage = forwardRef<
       filterClueList()
     }
   }, [filterClueList, userInfo])
+  // ==================== 刷新线索列表 ====================
+  useEffect(() => {
+    function refreshList() {
+      // getFollowUpList()
+      filterClueList()
+    }
+
+    Taro.eventCenter.on('refresh', refreshList)
+
+    return () => {
+      Taro.eventCenter.off('refresh', refreshList)
+    }
+  }, [filterClueList])
   // ==================== 线索操作 ====================
+  // 添加跟进
+  function addFollow(e: any, item?: IClue) {
+    e.stopPropagation()
+    if (clueList && clueList.length > 0) {
+      Taro.navigateTo({
+        url: `${ROUTE.ADD_FOLLOW}?&${ROUTE_PARAMS_NAME.IS_IMPORTANT_CLUE}=${
+          clueFilterForm.isImportantClue
+        }${
+          item
+            ? `&${ROUTE_PARAMS_NAME.CLUE_ID}=${item.id}&${ROUTE_PARAMS_NAME.ASSOCIATE_LEAD}=${item.customerCompanyName}`
+            : ''
+        }`
+      })
+    } else {
+      Taro.showToast({
+        title: '请先添加线索',
+        icon: 'none'
+      })
+    }
+  }
   // 移除线索
   const handleRemove = (clueItem: IClue) => {
     Taro.showModal({
@@ -598,20 +629,6 @@ const CluePage = forwardRef<
     getFollowUpList()
   }
 
-  function addFollow(e: any, item: any) {
-    e.stopPropagation()
-    if (clueList && clueList.length > 0) {
-      Taro.navigateTo({
-        url: `/subpackages/cluePage/addFollow/index?leadId=${item.id}&associateLead=${item.name}`
-      })
-    } else {
-      Taro.showToast({
-        title: '请先添加线索',
-        icon: 'none'
-      })
-    }
-  }
-
   function parseDate(createTime: any): React.ReactNode {
     let time = new Date(createTime)
     // 转为2025-01-01 12:00:00
@@ -645,18 +662,6 @@ const CluePage = forwardRef<
     if (followUpLoading || !followUpHasMore) return
     getFollowUpList(followUpPageNum + 1, true)
   }
-
-  useEffect(() => {
-    function refreshList() {
-      getFollowUpList()
-    }
-
-    Taro.eventCenter.on('refresh', refreshList)
-
-    return () => {
-      Taro.eventCenter.on('refresh', refreshList)
-    }
-  }, [])
 
   const loadMoreHistorySession = () => {
     if (historyLoading || !historyHasMore) return
@@ -929,7 +934,7 @@ const CluePage = forwardRef<
                 clearable={true}
                 disabled={isSearchInputDisabled}
               />
-              <Button className="cluePage_search_btn" onClick={e => addFollow(e, { name: 1 })}>
+              <Button className="cluePage_search_btn" onClick={e => addFollow(e)}>
                 写跟进
               </Button>
             </View>
@@ -1159,7 +1164,7 @@ const CluePage = forwardRef<
                 clearable={true}
                 disabled={isSearchInputDisabled}
               />
-              <Button className="cluePage_search_btn" onClick={e => addFollow(e, { name: 1 })}>
+              <Button className="cluePage_search_btn" onClick={e => addFollow(e)}>
                 写跟进
               </Button>
             </View>

@@ -47,9 +47,9 @@ class TaroRequest {
       err => {
         console.error('响应失败:', err)
         Taro.showToast({
-          title: err.data.msg,
+          title: err.msg || '响应失败',
           icon: 'error',
-          duration: 2000
+          duration: 1500
         })
         this.handleError(err)
         return Promise.reject(err)

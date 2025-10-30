@@ -1,10 +1,35 @@
 import { taroRequest, taroPost, taroGet, taroPut, taroDelete } from '@/service'
-import { clueListURL, clueCreateURL, clueDeleteURL, clueFollowUpDeleteURL, clueFollowUpCreateURL, clueFollowUpPageURL, clueFollowUpUpdateURL, uploadFileURL, clueFollowUpHistoryURL, clueFollowUpDetailURL, clueCreateSelectURL } from '@/service/config'
-import type { IAPIResponse, IClue, IGetClueListRequest, IPaginationResponse, IResponse, IUpdateClueRequest } from '../types'
-import { clueUpdateURL } from '../url'
+import {
+  clueListURL,
+  clueCreateURL,
+  clueDeleteURL,
+  clueFollowUpDeleteURL,
+  clueFollowUpCreateURL,
+  clueFollowUpPageURL,
+  clueFollowUpUpdateURL,
+  uploadFileURL,
+  clueFollowUpHistoryURL,
+  clueFollowUpDetailURL,
+  clueCreateSelectURL
+} from '@/service/config'
+import type {
+  IAPIResponse,
+  IClue,
+  ICorpContactInfo,
+  IGetAllClueListRequest,
+  IGetAllClueListResponse,
+  IGetClueListRequest,
+  IPaginationResponse,
+  IResponse,
+  IUpdateClueRequest
+} from '../types'
+import { clueContactSelectURL, clueUpdateURL } from '../url'
 
 // 获得线索列表
-export const clueListAPI = (data: IGetClueListRequest, callback: (res: IResponse<IPaginationResponse<IClue>>) => void) => {
+export const clueListAPI = (
+  data: IGetClueListRequest,
+  callback: (res: IResponse<IPaginationResponse<IClue>>) => void
+) => {
   taroGet({
     url: clueListURL,
     data,
@@ -33,7 +58,9 @@ export const clueListAPI = (data: IGetClueListRequest, callback: (res: IResponse
 }
 
 // 获得线索列表（异步）
-export const getClueListAsyncApi = async (data: IGetClueListRequest): Promise<IAPIResponse<IPaginationResponse<IClue>>> => {
+export const getClueListAsyncApi = async (
+  data: IGetClueListRequest
+): Promise<IAPIResponse<IPaginationResponse<IClue>>> => {
   const response = await taroRequest.getAsync<IAPIResponse<IPaginationResponse<IClue>>>({
     url: clueListURL,
     data
@@ -42,11 +69,46 @@ export const getClueListAsyncApi = async (data: IGetClueListRequest): Promise<IA
 }
 
 // 获得线索下拉
-export const clueListSelectAPI = (data: any, callback: (res: IResponse<any>) => void) => {
+export const clueListSelectAPI = (
+  data: IGetAllClueListRequest,
+  callback: (res: IResponse<IGetAllClueListResponse>) => void
+) => {
   taroGet({
     url: clueCreateSelectURL,
     data,
-    success: (res: any) => {
+    success: (res: IAPIResponse<IGetAllClueListResponse>) => {
+      callback({
+        success: true,
+        data: res.data
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => {})
+}
+
+// 获取线索关联联系人
+export const clueContactSelectAPI = (
+  data: { creditCode: string },
+  callback: (res: IResponse<ICorpContactInfo[]>) => void
+) => {
+  taroGet({
+    url: clueContactSelectURL,
+    data,
+    success: (res: IAPIResponse<ICorpContactInfo[]>) => {
       callback({
         success: true,
         data: res.data
@@ -100,7 +162,10 @@ export const clueCreateAPI = (data: any, callback: (res: IResponse<any>) => void
 }
 
 // 更新线索
-export const clueUpdateAPI = (data: IUpdateClueRequest, callback: (res: IResponse<boolean>) => void) => {
+export const clueUpdateAPI = (
+  data: IUpdateClueRequest,
+  callback: (res: IResponse<boolean>) => void
+) => {
   taroPut({
     url: clueUpdateURL,
     data,

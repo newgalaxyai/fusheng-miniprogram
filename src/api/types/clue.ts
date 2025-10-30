@@ -29,3 +29,31 @@ export type IUpdateClueRequest = {
   isImportantClue?: boolean // 是否重要线索
   isTop?: boolean // 是否置顶
 }
+
+// 简单获取所有线索（id和name）
+export type IGetAllClueListRequest = {
+  isImportantClue: boolean // 是否为重要线索
+}
+export type IGetAllClueListResponse = {
+  id: number
+  name: string
+  unifiedSocialCreditCode: string // 统一社会信用代码
+}[]
+
+export type IFile = {
+  name: string // 文件名
+  size: number // 文件大小
+  url: string // 文件url
+  // type: string // 文件类型
+  status?: string // 文件状态
+}
+// 新增跟进
+export type IAddFollowUpRequest = {
+  leadId: number // 线索id
+  contactInfo: string // 联系信息
+  type?: string // 跟进类型
+  method?: string // 跟进方式
+  followUpTime?: string // 跟进时间
+  content: string // 跟进内容
+  followUpFileList?: IFile[] | null // 跟进文件列表
+}
