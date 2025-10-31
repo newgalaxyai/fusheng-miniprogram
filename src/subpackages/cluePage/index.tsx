@@ -31,6 +31,7 @@ import { IClue, IGetClueListRequest } from '@/api/types'
 import { filterHTMLString } from '@/utils/filterString'
 import { useAppSelector } from '@/hooks/useAppStore'
 import { ROUTE, ROUTE_PARAMS_NAME } from '@/constants'
+import { CLUE_EVENT } from '@/constants/event'
 
 type IFilterClueForm = Omit<IGetClueListRequest, 'pageNo' | 'pageSize' | 'userId'>
 
@@ -121,39 +122,23 @@ const CluePage = forwardRef<
       filterClueList()
     }
   }, [filterClueList, userInfo])
-  // ==================== 刷新线索列表 ====================
+  // ==================== 返回线索列表更新相应线索事件 ====================
   useEffect(() => {
-    function refreshList() {
-      // getFollowUpList()
-      filterClueList()
-    }
+    function refreshList(clueId: number, clueIndex: number) {}
 
-    Taro.eventCenter.on('refresh', refreshList)
+    Taro.eventCenter.on(CLUE_EVENT.UPDATE_CLUE, refreshList)
 
     return () => {
-      Taro.eventCenter.off('refresh', refreshList)
+      Taro.eventCenter.off(CLUE_EVENT.UPDATE_CLUE, refreshList)
     }
-  }, [filterClueList])
+  }, [])
   // ==================== 线索操作 ====================
   // 添加跟进
-  function addFollow(e: any, item?: IClue) {
+  function addFollow(e: any, clueIndex: number, item: IClue) {
     e.stopPropagation()
-    if (clueList && clueList.length > 0) {
-      Taro.navigateTo({
-        url: `${ROUTE.ADD_FOLLOW}?&${ROUTE_PARAMS_NAME.IS_IMPORTANT_CLUE}=${
-          clueFilterForm.isImportantClue
-        }${
-          item
-            ? `&${ROUTE_PARAMS_NAME.CLUE_ID}=${item.id}&${ROUTE_PARAMS_NAME.ASSOCIATE_LEAD}=${item.customerCompanyName}`
-            : ''
-        }`
-      })
-    } else {
-      Taro.showToast({
-        title: '请先添加线索',
-        icon: 'none'
-      })
-    }
+    Taro.navigateTo({
+      url: `${ROUTE.FOLLOW_RECORD}?&${ROUTE_PARAMS_NAME.CLUE_ID}=${item.id}`
+    })
   }
   // 移除线索
   const handleRemove = (clueItem: IClue) => {
@@ -291,15 +276,15 @@ const CluePage = forwardRef<
     }
   }
 
-  function getFollowUpListPopup(e: any, item: any) {
-    e.stopPropagation()
-    // 跳转到新的跟进记录列表页面
-    Taro.navigateTo({
-      url: `/subpackages/cluePage/followList/index?leadId=${item.id}&leadName=${encodeURIComponent(
-        item.name || ''
-      )}`
-    })
-  }
+  // function getFollowUpListPopup(e: any, item: any) {
+  //   e.stopPropagation()
+  //   // 跳转到新的跟进记录列表页面
+  //   Taro.navigateTo({
+  //     url: `/subpackages/cluePage/followList/index?leadId=${item.id}&leadName=${encodeURIComponent(
+  //       item.name || ''
+  //     )}`
+  //   })
+  // }
 
   // 新增分页状态
   const [cluePageNum, setCluePageNum] = useState(1)
@@ -934,9 +919,9 @@ const CluePage = forwardRef<
                 clearable={true}
                 disabled={isSearchInputDisabled}
               />
-              <Button className="cluePage_search_btn" onClick={e => addFollow(e)}>
+              {/* <Button className="cluePage_search_btn" onClick={e => addFollow(e)}>
                 写跟进
-              </Button>
+              </Button> */}
             </View>
             <ScrollView
               scrollY
@@ -984,7 +969,7 @@ const CluePage = forwardRef<
                   {clueList.map((item, index) => (
                     <View
                       className="cluePage_item"
-                      onClick={e => getFollowUpListPopup(e, item)}
+                      // onClick={e => getFollowUpListPopup(e, item)}
                       key={index}
                     >
                       <View className="cluePage_item_top">
@@ -1122,7 +1107,7 @@ const CluePage = forwardRef<
                         <View
                           onClick={e => {
                             e.stopPropagation()
-                            addFollow(e, item)
+                            addFollow(e, index, item)
                           }}
                           className="cluePage_item_contact_item_"
                         >
@@ -1164,9 +1149,9 @@ const CluePage = forwardRef<
                 clearable={true}
                 disabled={isSearchInputDisabled}
               />
-              <Button className="cluePage_search_btn" onClick={e => addFollow(e)}>
+              {/* <Button className="cluePage_search_btn" onClick={e => addFollow(e)}>
                 写跟进
-              </Button>
+              </Button> */}
             </View>
             <ScrollView
               scrollY
@@ -1215,7 +1200,7 @@ const CluePage = forwardRef<
                   {clueList.map((item, index) => (
                     <View
                       className="cluePage_item"
-                      onClick={e => getFollowUpListPopup(e, item)}
+                      // onClick={e => getFollowUpListPopup(e, item)}
                       key={index}
                     >
                       <View className="cluePage_item_top">
@@ -1344,7 +1329,7 @@ const CluePage = forwardRef<
                         <View
                           onClick={e => {
                             e.stopPropagation()
-                            addFollow(e, item)
+                            addFollow(e, index, item)
                           }}
                           className="cluePage_item_contact_item_"
                         >

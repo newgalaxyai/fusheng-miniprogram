@@ -16,3 +16,7 @@ export type IPaginationResponse<T> = {
     list: T[] // 列表
     total: number // 总数量
 }
+
+export type IGetDetailRequest = {
+    id: number
+}

@@ -9,14 +9,26 @@ import {
   CheckClose
 } from '@nutui/icons-react-taro'
 import { searchCompaniesAPI } from '@/api/company'
-import { clueContactSelectAPI, clueFollowUpCreateAPI } from '@/api/clue' // 移除uploadFileAPI
-import { Calendar, CalendarCard, type CalendarCardValue, Popup } from '@nutui/nutui-react-taro'
-import Taro, { useLoad, useRouter } from '@tarojs/taro'
+import { clueContactSelectAPI, clueFollowUpCreateAPI, getClueDetailAPI } from '@/api/clue' // 移除uploadFileAPI
+import { Calendar, CalendarCard, Popup, Picker, DatePicker } from '@nutui/nutui-react-taro'
+import type { CalendarCardValue, PickerOption } from '@nutui/nutui-react-taro'
+import { Check } from '@nutui/icons-react-taro'
+import Taro, { useLoad, useRouter, showModal } from '@tarojs/taro'
 import './index.scss'
 import { useSelector } from 'react-redux'
 import { clueListSelectAPI } from '@/api/clue'
 import { BASE_URL } from '@/service/config' // 新增导入
-import { IAddFollowUpRequest, ICorpContactInfo, IFile, IGetAllClueListResponse } from '@/api/types'
+import {
+  IAddFollowUpRequest,
+  IClue,
+  ICorpContactInfo,
+  IFile,
+  IGetAllClueListResponse
+} from '@/api/types'
+import { filterHTMLString } from '@/utils/filterString'
+import { CLUE_EVENT } from '@/constants/event'
+import { ROUTE_PARAMS_NAME } from '@/constants'
+import dayjs from 'dayjs'
 
 // 文件类型定义
 interface FileItem {
@@ -33,13 +45,34 @@ interface FileItem {
 }
 
 function AddFollowPage() {
+  // 线索详情
+  const [clueDetail, setClueDetail] = useState<IClue>()
+  // // 线索在线索列表中的索引
+  // const [clueIndex, setClueIndex] = useState<number | null>(null)
+  // 接收路由参数
+  useLoad(loadOptions => {
+    console.log('loadOptions', loadOptions)
+    // if (loadOptions[ROUTE_PARAMS_NAME.CLUE_INDEX]) {
+    //   const index = Number(loadOptions[ROUTE_PARAMS_NAME.CLUE_INDEX])
+    //   setClueIndex(index)
+    // }
+    if (loadOptions[ROUTE_PARAMS_NAME.CLUE_ID]) {
+      const clueId = Number(loadOptions[ROUTE_PARAMS_NAME.CLUE_ID])
+      getClueDetailAPI({ id: clueId }, res => {
+        if (res.success) {
+          setClueDetail(res.data)
+        }
+      })
+    }
+  })
   // 初始化表单数据
   const initialFormData = {
     userId: Taro.getStorageSync('token').userId,
-    associateLead: '',
-    leadId: null,
-    associateLeadContact: '',
-    contactId: '',
+    // leadId: null,
+    // associateLead: '',
+    // associateLeadContact: '',
+    // contactId: '',
+    contactInfo: '',
     type: '',
     method: '',
     followUpTime: '',
@@ -48,119 +81,107 @@ function AddFollowPage() {
   }
   // 表单数据
   const [formData, setFormData] = useState(initialFormData)
-  // 是否重要线索
-  const [isImportantClue, setIsImportantClue] = useState<boolean | null>(null)
-  // 下拉选项数据
-  const [dropdownData, setDropdownData] = useState<{
-    associateLead: IGetAllClueListResponse
-    associateLeadContact: ICorpContactInfo[]
-  }>({
-    associateLead: [],
-    associateLeadContact: []
-  })
-  // 接收路由参数
-  useLoad(loadOptions => {
-    // console.log('loadOptions', loadOptions)
-    setFormData(prev => ({
-      ...prev,
-      leadId: loadOptions.leadId ? loadOptions.leadId : '',
-      associateLead: loadOptions.associateLead ? loadOptions.associateLead : ''
-    }))
-    // 是否重要线索
-    setIsImportantClue(loadOptions.isImportantClue)
-
-    // const instance = Taro.getCurrentInstance()
-    // const params: any = instance.router?.params
-    // if (params) {
-    //   const { leadId, associateLead } = params
-
-    //   // 如果有传入的参数，更新表单数据
-    //   if (leadId || associateLead) {
-    //     setFormData(prev => ({
-    //       ...prev,
-    //       leadId: leadId || '',
-    //       associateLead: associateLead ? decodeURIComponent(associateLead) : ''
-    //     }))
-
-    //     // 如果有 associateLead 参数，同时更新搜索关键词以便显示
-    //     if (associateLead) {
-    //       setSearchKeyword(prev => ({
-    //         ...prev,
-    //         associateLead: decodeURIComponent(associateLead)
-    //       }))
-    //     }
-    //   }
-    // }
-  })
-  // 关联线索下拉选项
+  // ==================== 关联线索联系人 ====================
+  // 选项列表
+  const [contactInfoOptions, setContactInfoOptions] = useState<ICorpContactInfo[]>([])
   useEffect(() => {
-    if (isImportantClue != null) {
-      clueListSelectAPI({ isImportantClue }, res => {
-        if (res.success && res.data) {
-          // 将 API 返回的数据转换为正确的数组格式
-          // 添加HTML清理函数
-          const stripHtml = (html: string): string => {
-            return html.replace(/<[^>]*>/g, '').trim()
-          }
-
-          // 修改第95-98行
-          const newOptions = res.data.map((item: any) => ({
-            ...item,
-            name: stripHtml(item.name || '- -')
-          }))
-          setDropdownData(prev => ({
-            ...prev,
-            associateLead: newOptions // 设置为数组而不是单个字符串
-          }))
-        }
-      })
-    }
-  }, [isImportantClue])
-  useEffect(() => {
-    // console.log('formData.leadId', formData.leadId)
-    // console.log('dropdownData.associateLead', dropdownData.associateLead)
-
-    if (formData.leadId && dropdownData.associateLead.length > 0) {
+    if (clueDetail?.unifiedSocialCreditCode) {
       clueContactSelectAPI(
         {
-          creditCode:
-            dropdownData.associateLead.find(item => item.id == formData.leadId)
-              ?.unifiedSocialCreditCode || ''
+          creditCode: clueDetail?.unifiedSocialCreditCode
         },
         res => {
           if (res.success) {
-            setDropdownData(prev => ({
-              ...prev,
-              associateLeadContact: res.data || [] // 设置为数组而不是单个字符串
-            }))
+            setContactInfoOptions(res.data || [])
+            if (res.data.length > 0) {
+              setFormData(prev => ({
+                ...prev,
+                contactInfo: JSON.stringify(res.data?.[0])
+              }))
+            }
           }
         }
       )
     }
-  }, [formData.leadId, dropdownData.associateLead.length])
+  }, [clueDetail?.unifiedSocialCreditCode])
+  // 选择器
+  // 打开状态
+  const [showContactPicker, setShowContactPicker] = useState(false)
+  // ==================== 跟进类型 ====================
+  // 选择器
+  // 选项列表
+  // 跟进类型选项
+  // [
+  //   { id: 1, name: '线索', selected: false },
+  //   { id: 2, name: '客户', selected: false },
+  //   { id: 3, name: '联系人', selected: false },
+  //   { id: 4, name: '商机', selected: false }
+  // ]
+  const [followUpTypeOptions, setFollowUpTypeOptions] = useState<PickerOption[]>([
+    {
+      text: '线索',
+      value: '线索'
+    },
+    {
+      text: '客户',
+      value: '客户'
+    },
+    {
+      text: '联系人',
+      value: '联系人'
+    },
+    {
+      text: '商机',
+      value: '商机'
+    }
+  ])
+  // 打开状态
+  const [showFollowUpTypePicker, setShowFollowUpTypePicker] = useState(false)
+  // ==================== 跟进方式 ====================
+  // 选择器
+  // 跟进方式选项
+  // [
+  //   { id: 1, name: '电话', selected: false },
+  //   { id: 2, name: '邮件', selected: false },
+  //   { id: 3, name: '微信', selected: false },
+  //   { id: 4, name: '拜访', selected: false },
+  //   { id: 5, name: '其他', selected: false }
+  // ]
+  const [followUpMethodOptions, setFollowUpMethodOptions] = useState<PickerOption[]>([
+    {
+      text: '电话',
+      value: '电话'
+    },
+    {
+      text: '邮件',
+      value: '邮件'
+    },
+    {
+      text: '微信',
+      value: '微信'
+    },
+    {
+      text: '拜访',
+      value: '拜访'
+    },
+    {
+      text: '其他',
+      value: '其他'
+    }
+  ])
+  // 打开状态
+  const [showFollowUpMethodPicker, setShowFollowUpMethodPicker] = useState(false)
+  // ==================== 跟进时间 ====================
+  // 选择器
+  // 打开状态
+  const [showFollowUpTimePicker, setShowFollowUpTimePicker] = useState(false)
 
+  // ==================== 分界线 ====================
   const [changeFollowUpTime, setChangeFollowUpTime] = useState(new Date() as CalendarCardValue)
   const userInfo = useSelector((state: any) => state.login.userInfo)
   const [showFollowUpType, setShowFollowUpType] = useState(false)
   const [showFollowUpMethod, setShowFollowUpMethod] = useState(false)
   const [showFollowUpTime, setShowFollowUpTime] = useState(false)
-
-  // 跟进类型选项
-  const [followUpTypeOptions, setFollowUpTypeOptions] = useState([
-    { id: 1, name: '线索', selected: false },
-    { id: 2, name: '客户', selected: false },
-    { id: 3, name: '联系人', selected: false },
-    { id: 4, name: '商机', selected: false }
-  ])
-
-  // 跟进方式选项
-  const [followUpMethodOptions, setFollowUpMethodOptions] = useState([
-    { id: 1, name: '电话', selected: false },
-    { id: 2, name: '邮件', selected: false },
-    { id: 3, name: '微信', selected: false },
-    { id: 4, name: '拜访', selected: false },
-    { id: 5, name: '其他', selected: false }
-  ])
 
   // 下拉框显示状态
   const [dropdownVisible, setDropdownVisible] = useState({
@@ -184,51 +205,51 @@ function AddFollowPage() {
   }
 
   // 处理搜索输入
-  const handleSearchInput = (field: string, value: string) => {
-    if (isImportantClue == null) {
-      return
-    }
-    clueListSelectAPI({ isImportantClue }, res => {
-      if (res.success && res.data) {
-        // 将 API 返回的数据转换为正确的数组格式
-        const newOptions = res.data.map((item: any) => ({
-          id: item.id,
-          name: item.name
-        }))
+  // const handleSearchInput = (field: string, value: string) => {
+  //   if (isImportantClue == null) {
+  //     return
+  //   }
+  //   clueListSelectAPI({ isImportantClue }, res => {
+  //     if (res.success && res.data) {
+  //       // 将 API 返回的数据转换为正确的数组格式
+  //       const newOptions = res.data.map((item: any) => ({
+  //         id: item.id,
+  //         name: item.name
+  //       }))
 
-        setDropdownData(prev => ({
-          ...prev,
-          [field]: newOptions // 设置为数组而不是单个字符串
-        }))
-      }
-    })
-    setSearchKeyword(prev => ({
-      ...prev,
-      [field]: value
-    }))
+  //       setDropdownData(prev => ({
+  //         ...prev,
+  //         [field]: newOptions // 设置为数组而不是单个字符串
+  //       }))
+  //     }
+  //   })
+  //   setSearchKeyword(prev => ({
+  //     ...prev,
+  //     [field]: value
+  //   }))
 
-    // 同时更新formData，这样用户手动输入时也能保存
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
+  //   // 同时更新formData，这样用户手动输入时也能保存
+  //   setFormData(prev => ({
+  //     ...prev,
+  //     [field]: value
+  //   }))
 
-    setDropdownVisible(prev => {
-      // 如果是打开下拉框，先关闭所有其他下拉框
-      if (!prev[field]) {
-        return {
-          associateLead: false,
-          associateLeadContact: false,
-          [field]: true
-        }
-      }
-      // 如果是关闭下拉框，只关闭当前字段
-      return {
-        ...prev,
-        [field]: !prev[field]
-      }
-    })
-  }
+  //   setDropdownVisible(prev => {
+  //     // 如果是打开下拉框，先关闭所有其他下拉框
+  //     if (!prev[field]) {
+  //       return {
+  //         associateLead: false,
+  //         associateLeadContact: false,
+  //         [field]: true
+  //       }
+  //     }
+  //     // 如果是关闭下拉框，只关闭当前字段
+  //     return {
+  //       ...prev,
+  //       [field]: !prev[field]
+  //     }
+  //   })
+  // }
 
   // 切换下拉框显示状态
   const toggleDropdown = (field: string) => {
@@ -252,6 +273,7 @@ function AddFollowPage() {
   // 选择下拉选项
   // 添加一个辅助函数来移除HTML标签
   const stripHtmlTags = (html: string): string => {
+    html = filterHTMLString(html)
     return html.replace(/<[^>]*>/g, '')
   }
 
@@ -264,6 +286,7 @@ function AddFollowPage() {
         : option.name
     // 移除HTML标签后再存储
     const cleanOptionName = stripHtmlTags(optionName)
+    console.log('cleanOptionName', cleanOptionName)
 
     setFormData(prev => {
       const newData = {
@@ -272,12 +295,12 @@ function AddFollowPage() {
       }
 
       // 根据字段类型设置对应的ID
-      if (field === 'associateLead') {
-        newData.leadId = option.id
-      } else if (field === 'associateLeadContact') {
-        // console.log('associateLeadContact', option)
-        newData.contactId = JSON.stringify(option)
-      }
+      // if (field === 'associateLead') {
+      //   newData.leadId = option.id
+      // } else if (field === 'associateLeadContact') {
+      //   // console.log('associateLeadContact', option)
+      //   newData.contactId = JSON.stringify(option)
+      // }
 
       return newData
     })
@@ -296,33 +319,33 @@ function AddFollowPage() {
   }
 
   // 过滤搜索结果
-  const getFilteredOptions = (field: string) => {
-    const keyword = searchKeyword[field].toLowerCase()
-    const options = dropdownData[field]
+  // const getFilteredOptions = (field: string) => {
+  //   const keyword = searchKeyword[field].toLowerCase()
+  //   const options = dropdownData[field]
 
-    if (!keyword) return options
+  //   if (!keyword) return options
 
-    return options.filter((option: any) => {
-      // 处理字符串格式的数据
-      if (typeof option === 'string') {
-        return option.toLowerCase().includes(keyword)
-      }
+  //   return options.filter((option: any) => {
+  //     // 处理字符串格式的数据
+  //     if (typeof option === 'string') {
+  //       return option.toLowerCase().includes(keyword)
+  //     }
 
-      // 处理对象格式的数据
-      if (field === 'associateLead') {
-        return (
-          (option.name && option.name.toLowerCase().includes(keyword)) ||
-          (option.contact && option.contact.toLowerCase().includes(keyword))
-        )
-      } else if (field === 'associateLeadContact') {
-        return (
-          (option.name && option.name.toLowerCase().includes(keyword)) ||
-          (option.company && option.company.toLowerCase().includes(keyword))
-        )
-      }
-      return false
-    })
-  }
+  //     // 处理对象格式的数据
+  //     if (field === 'associateLead') {
+  //       return (
+  //         (option.name && option.name.toLowerCase().includes(keyword)) ||
+  //         (option.contact && option.contact.toLowerCase().includes(keyword))
+  //       )
+  //     } else if (field === 'associateLeadContact') {
+  //       return (
+  //         (option.name && option.name.toLowerCase().includes(keyword)) ||
+  //         (option.company && option.company.toLowerCase().includes(keyword))
+  //       )
+  //     }
+  //     return false
+  //   })
+  // }
 
   // 格式化文件大小
   const formatFileSize = (bytes: number): string => {
@@ -532,11 +555,14 @@ function AddFollowPage() {
       associateLeadContact: false
     })
     if (field === 'type') {
-      setShowFollowUpType(true)
+      // setShowFollowUpType(true)
+      setShowFollowUpTypePicker(true)
     } else if (field === 'method') {
-      setShowFollowUpMethod(true)
+      // setShowFollowUpMethod(true)
+      setShowFollowUpMethodPicker(true)
     } else if (field === 'followUpTime') {
-      setShowFollowUpTime(true)
+      // setShowFollowUpTime(true)
+      setShowFollowUpTimePicker(true)
     }
   }
 
@@ -561,38 +587,38 @@ function AddFollowPage() {
   }
 
   // 选择跟进类型
-  const selectFollowUpType = (optionId: number) => {
-    const updatedOptions = followUpTypeOptions.map(option => ({
-      ...option,
-      selected: option.id === optionId
-    }))
-    setFollowUpTypeOptions(updatedOptions)
-    const selectedOption = updatedOptions.find(option => option.selected)
-    if (selectedOption) {
-      setFormData(prev => ({
-        ...prev,
-        type: selectedOption.name
-      }))
-    }
-    setShowFollowUpType(false)
-  }
+  // const selectFollowUpType = (optionId: number) => {
+  //   const updatedOptions = followUpTypeOptions.map(option => ({
+  //     ...option,
+  //     selected: option.id === optionId
+  //   }))
+  //   setFollowUpTypeOptions(updatedOptions)
+  //   const selectedOption = updatedOptions.find(option => option.selected)
+  //   if (selectedOption) {
+  //     setFormData(prev => ({
+  //       ...prev,
+  //       type: selectedOption.name
+  //     }))
+  //   }
+  //   setShowFollowUpType(false)
+  // }
 
-  // 选择跟进方式
-  const selectFollowUpMethod = (optionId: number) => {
-    const updatedOptions = followUpMethodOptions.map(option => ({
-      ...option,
-      selected: option.id === optionId
-    }))
-    setFollowUpMethodOptions(updatedOptions)
-    const selectedOption = updatedOptions.find(option => option.selected)
-    if (selectedOption) {
-      setFormData(prev => ({
-        ...prev,
-        method: selectedOption.name
-      }))
-    }
-    setShowFollowUpMethod(false)
-  }
+  // // 选择跟进方式
+  // const selectFollowUpMethod = (optionId: number) => {
+  //   const updatedOptions = followUpMethodOptions.map(option => ({
+  //     ...option,
+  //     selected: option.id === optionId
+  //   }))
+  //   setFollowUpMethodOptions(updatedOptions)
+  //   const selectedOption = updatedOptions.find(option => option.selected)
+  //   if (selectedOption) {
+  //     setFormData(prev => ({
+  //       ...prev,
+  //       method: selectedOption.name
+  //     }))
+  //   }
+  //   setShowFollowUpMethod(false)
+  // }
 
   const renderFormField = (
     label: string,
@@ -606,7 +632,14 @@ function AddFollowPage() {
     layoutType: 'vertical' | 'horizontal' = 'vertical'
   ) => {
     const isDropdownField = field === 'associateLead' || field === 'associateLeadContact'
-    const filteredOptions = isDropdownField ? getFilteredOptions(field) : []
+    // const filteredOptions = isDropdownField ? getFilteredOptions(field) : []
+    const filteredOptions = []
+    let contactData: ICorpContactInfo | null = null
+    if (field === 'associateLeadContact') {
+      contactData = formData.contactInfo
+        ? (JSON.parse(formData.contactInfo) as ICorpContactInfo)
+        : null
+    }
 
     return (
       <View className={`form-field ${layoutType}`}>
@@ -623,27 +656,62 @@ function AddFollowPage() {
             )}
             {isShowDropdownIcon ? (
               <View onClick={() => onInputClick(field)} className="field-input-disabled">
-                {field === 'followUpTime'
-                  ? formData[field]
-                    ? conversionTime(formData[field], false)
-                    : '请选择跟进时间'
-                  : formData[field] || placeholder}
+                {formData[field] || placeholder}
               </View>
             ) : (
-              <Input
-                className="field-input"
-                placeholder={placeholder}
-                value={isDropdownField ? formData[field] || searchKeyword[field] : formData[field]}
-                onInput={e =>
-                  isDropdownField
-                    ? handleSearchInput(field, e.detail.value)
-                    : handleInputChange(field, e.detail.value)
-                }
+              <View
                 onClick={e => {
                   e.stopPropagation()
-                  isDropdownField && toggleDropdown(field)
+                  setShowContactPicker(true)
                 }}
-              />
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}
+              >
+                {contactData ? (
+                  <Text
+                    style={{
+                      height: '100%',
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    {contactData.name + ' ' + '(' + contactData.phone + ')'}
+                  </Text>
+                ) : (
+                  <Text
+                    style={{
+                      height: '100%',
+                      flex: 1,
+                      color: '#AAAAAA',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    {placeholder}
+                  </Text>
+                )}
+                <ArrowDownSize6 size="28rpx" color="#333333" />
+              </View>
+              // <Input
+              //   className="field-input"
+              //   placeholder={placeholder}
+              //   value={isDropdownField ? formData[field] || searchKeyword[field] : formData[field]}
+              //   onInput={e =>
+              //     isDropdownField
+              //       ? handleSearchInput(field, e.detail.value)
+              //       : handleInputChange(field, e.detail.value)
+              //   }
+              //   onClick={e => {
+              //     e.stopPropagation()
+              //     isDropdownField && toggleDropdown(field)
+              //   }}
+              // />
             )}
             {hasDropdown && (
               <View
@@ -679,7 +747,7 @@ function AddFollowPage() {
 
           {/* 下拉选项 */}
           {isDropdownField && dropdownVisible[field] && (
-            <View className="dropdown-options" onClick={e => e.stopPropagation()}>
+            <ScrollView scrollY className="dropdown-options" onClick={e => e.stopPropagation()}>
               {filteredOptions.length > 0 ? (
                 filteredOptions.map((option: any, index: number) => (
                   <View
@@ -707,7 +775,7 @@ function AddFollowPage() {
                   <Text className="no-data-text">暂无数据</Text>
                 </View>
               )}
-            </View>
+            </ScrollView>
           )}
         </View>
       </View>
@@ -715,34 +783,34 @@ function AddFollowPage() {
   }
 
   function handleSubmit(): void {
-    if (!formData.associateLead) {
-      Taro.showToast({
-        title: '请选择关联线索',
-        icon: 'none'
-      })
-      return
-    }
-    if (!formData.associateLeadContact) {
+    // if (!formData.associateLead) {
+    //   Taro.showToast({
+    //     title: '请选择关联线索',
+    //     icon: 'none'
+    //   })
+    //   return
+    // }
+    if (!formData.contactInfo) {
       Taro.showToast({
         title: '请选择关联线索联系人',
         icon: 'none'
       })
       return
     }
-    if (!formData.type) {
-      Taro.showToast({
-        title: '请选择跟进类型',
-        icon: 'none'
-      })
-      return
-    }
-    if (!formData.followUpTime) {
-      Taro.showToast({
-        title: '请选择跟进时间',
-        icon: 'none'
-      })
-      return
-    }
+    // if (!formData.type) {
+    //   Taro.showToast({
+    //     title: '请选择跟进类型',
+    //     icon: 'none'
+    //   })
+    //   return
+    // }
+    // if (!formData.followUpTime) {
+    //   Taro.showToast({
+    //     title: '请选择跟进时间',
+    //     icon: 'none'
+    //   })
+    //   return
+    // }
     if (!formData.content) {
       Taro.showToast({
         title: '请输入跟进内容',
@@ -750,47 +818,54 @@ function AddFollowPage() {
       })
       return
     }
-    let queryData: IAddFollowUpRequest = {
-      leadId: Number(formData.leadId),
-      contactInfo: formData.contactId,
-      content: formData.content
-    }
-    if (formData.type && formData.type !== '') {
-      queryData.type = formData.type
-    }
-    if (formData.method && formData.method !== '') {
-      queryData.method = formData.method
-    }
-    if (formData.followUpTime && formData.followUpTime !== '') {
-      queryData.followUpTime = formData.followUpTime
-    }
-    if (formData.followUpFileList && formData.followUpFileList.length > 0) {
-      queryData.followUpFileList = formData.followUpFileList.map(
-        item =>
-          ({
-            name: item.name,
-            size: Number(item.sizeInBytes),
-            url: item.url || ''
-          } as IFile)
-      )
-    }
-    clueFollowUpCreateAPI(queryData, res => {
-      if (res.success) {
-        Taro.showToast({
-          title: '添加成功',
-          icon: 'none',
-          duration: 1500,
-        })
-        setTimeout(() => {
-          Taro.navigateBack()
-          Taro.eventCenter.trigger('refresh')
-        }, 1700)
-      } else {
-        Taro.showToast({
-          title: res.data.msg || '添加失败, 请稍后重试',
-          icon: 'none',
-          duration: 2000
-        })
+    showModal({
+      title: '请确认',
+      content: '是否确认所有信息准确无误？小程序暂不支持编辑跟进记录，请谨慎提交',
+      success: res => {
+        if (res.confirm) {
+          let queryData: IAddFollowUpRequest = {
+            leadId: clueDetail?.id!,
+            contactInfo: formData.contactInfo,
+            content: formData.content
+          }
+          if (formData.type && formData.type !== '') {
+            queryData.type = formData.type
+          }
+          if (formData.method && formData.method !== '') {
+            queryData.method = formData.method
+          }
+          if (formData.followUpTime && formData.followUpTime !== '') {
+            queryData.followUpTime = formData.followUpTime
+          }
+          if (formData.followUpFileList && formData.followUpFileList.length > 0) {
+            queryData.followUpFileList = formData.followUpFileList.map(
+              item =>
+                ({
+                  name: item.name,
+                  size: Number(item.sizeInBytes),
+                  url: item.url || ''
+                } as IFile)
+            )
+          }
+          clueFollowUpCreateAPI(queryData, res => {
+            if (res.success) {
+              Taro.showToast({
+                title: '添加成功',
+                icon: 'none',
+                duration: 1500
+              })
+              setTimeout(() => {
+                Taro.navigateBack()
+              }, 1700)
+            } else {
+              Taro.showToast({
+                title: res.data.msg || '添加失败, 请稍后重试',
+                icon: 'none',
+                duration: 2000
+              })
+            }
+          })
+        }
       }
     })
   }
@@ -805,7 +880,7 @@ function AddFollowPage() {
         onClick={e => closeSelect(e)}
       >
         {/* 关联线索 - 垂直布局 */}
-        {renderFormField(
+        {/* {renderFormField(
           '关联线索',
           'associateLead',
           '下拉选择企业名称,或者关键词搜索',
@@ -815,16 +890,23 @@ function AddFollowPage() {
           false,
           false,
           'vertical'
-        )}
+        )} */}
+        <View className="clue_name">
+          <View className="field-label">
+            <Text className="required-mark">*</Text>
+            <Text className="label-text">关联线索</Text>
+          </View>
+          <Text>{filterHTMLString(clueDetail?.customerCompanyName || '')}</Text>
+        </View>
 
         {/* 关联线索联系人 - 水平布局 */}
         {renderFormField(
           '关联线索联系人',
           'associateLeadContact',
-          '下拉选择联系人,或者号码搜索',
+          '请选择',
           true,
-          true,
-          true,
+          false,
+          false,
           false,
           false,
           'vertical'
@@ -835,7 +917,7 @@ function AddFollowPage() {
           '跟进类型',
           'type',
           '请选择',
-          true,
+          false,
           false,
           false,
           true,
@@ -860,11 +942,11 @@ function AddFollowPage() {
         {renderFormField(
           '跟进时间',
           'followUpTime',
-          '请选择开始时间',
+          '请选择',
+          false,
+          false,
+          false,
           true,
-          false,
-          false,
-          false,
           true,
           'horizontal'
         )}
@@ -932,7 +1014,7 @@ function AddFollowPage() {
         </View>
       </ScrollView>
 
-      <Popup
+      {/* <Popup
         zIndex={99999}
         closeIcon={<Close size="32rpx" color="#333333" />}
         onClose={() => closePopup('type')}
@@ -989,8 +1071,8 @@ function AddFollowPage() {
               </View>
             ))}
         </View>
-      </Popup>
-      <Popup
+      </Popup> */}
+      {/* <Popup
         zIndex={99999}
         closeIcon={<Close size="32rpx" color="#333333" />}
         onClose={() => closePopup('followUpTime')}
@@ -1004,7 +1086,69 @@ function AddFollowPage() {
         <View className="buttonTime" onClick={() => Timing()}>
           选择时间
         </View>
-      </Popup>
+      </Popup> */}
+
+      <Picker
+        title="请选择联系人"
+        visible={showContactPicker}
+        options={contactInfoOptions.map(item => ({
+          text: item.name + '(' + item.phone + ')',
+          value: JSON.stringify(item)
+        }))}
+        defaultValue={[formData.contactInfo]}
+        onConfirm={(_, value: string[]) => {
+          setFormData({
+            ...formData,
+            contactInfo: value[0]
+          })
+          setShowContactPicker(false)
+        }}
+        onClose={() => setShowContactPicker(false)}
+      />
+      <Picker
+        title="请选择类型"
+        visible={showFollowUpTypePicker}
+        options={followUpTypeOptions}
+        onConfirm={(_, value: string[]) => {
+          setFormData({
+            ...formData,
+            type: value[0]
+          })
+          setShowFollowUpTypePicker(false)
+        }}
+        onClose={() => setShowFollowUpTypePicker(false)}
+      />
+      <Picker
+        title="请选择方式"
+        visible={showFollowUpMethodPicker}
+        options={followUpMethodOptions}
+        onConfirm={(_, value: string[]) => {
+          setFormData({
+            ...formData,
+            method: value[0]
+          })
+          setShowFollowUpMethodPicker(false)
+        }}
+        onClose={() => setShowFollowUpMethodPicker(false)}
+      />
+      <DatePicker
+        title="选择跟进时间"
+        startDate={new Date(1970, 0, 1)}
+        endDate={new Date(dayjs().format('YY99-12-31 23:59:59'))}
+        defaultValue={new Date()}
+        showChinese
+        type="datetime"
+        visible={showFollowUpTimePicker}
+        onClose={() => setShowFollowUpTimePicker(false)}
+        onConfirm={(_, values) => {
+          const date = values.slice(0, 3).join('-')
+          const time = values.slice(-2).join(':')
+          setFormData({
+            ...formData,
+            followUpTime: date + ' ' + time + ':00'
+          })
+        }}
+      />
     </View>
   )
 }

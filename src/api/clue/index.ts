@@ -19,11 +19,12 @@ import type {
   IGetAllClueListRequest,
   IGetAllClueListResponse,
   IGetClueListRequest,
+  IGetDetailRequest,
   IPaginationResponse,
   IResponse,
   IUpdateClueRequest
 } from '../types'
-import { clueContactSelectURL, clueUpdateURL } from '../url'
+import { clueContactSelectURL, clueUpdateURL, getClueDetailURL } from '../url'
 
 // 获得线索列表
 export const clueListAPI = (
@@ -400,6 +401,35 @@ export const uploadFileAPI = (data: any, callback: (res: IResponse<any>) => void
     url: uploadFileURL,
     data,
     success: (res: any) => {
+      callback({
+        success: true,
+        data: res.data
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => {})
+}
+
+// 获取线索详情
+export const getClueDetailAPI = (data: IGetDetailRequest, callback: (res: IResponse<IClue>) => void) => {
+  taroGet({
+    url: getClueDetailURL,
+    data,
+    success: (res: IAPIResponse<IClue>) => {
       callback({
         success: true,
         data: res.data

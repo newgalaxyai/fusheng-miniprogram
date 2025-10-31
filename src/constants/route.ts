@@ -39,6 +39,8 @@ export const ROUTE = {
     AI_RESEARCH_REPORT: '/subpackages/company/aiResearchReport/index',
     // 添加跟进
     ADD_FOLLOW: '/subpackages/cluePage/addFollow/index',
+    // 跟进记录
+    FOLLOW_RECORD: '/subpackages/cluePage/followList/index',
 }
 
 export const ROUTE_NAME = {
@@ -84,9 +86,7 @@ export const ROUTE_PARAMS_NAME = {
     // 公司名称
     COMPANY_NAME: 'name',
     // 线索ID
-    CLUE_ID: 'leadId',
-    // 关联线索
-    ASSOCIATE_LEAD: 'associateLead',
-    // 是否重要线索
-    IS_IMPORTANT_CLUE: 'isImportantClue',
+    CLUE_ID: 'clueId',
+    // 线索在线索列表的index
+    CLUE_INDEX: 'clueIndex',
 }
