@@ -16,10 +16,12 @@ import type {
   IAPIResponse,
   IClue,
   ICorpContactInfo,
+  IFollowUp,
   IGetAllClueListRequest,
   IGetAllClueListResponse,
   IGetClueListRequest,
   IGetDetailRequest,
+  IGetFollowUpListRequest,
   IPaginationResponse,
   IResponse,
   IUpdateClueRequest
@@ -278,6 +280,17 @@ export const clueFollowUpPageAPI = (data: any, callback: (res: IResponse<any>) =
       }
     }
   }).catch(() => {})
+}
+
+// 获取跟进列表异步
+export const getFollowUpListAsyncAPI = async (
+  data: IGetFollowUpListRequest
+): Promise<IAPIResponse<IPaginationResponse<IFollowUp>>> => {
+  const response = await taroRequest.getAsync<IAPIResponse<IPaginationResponse<IFollowUp>>>({
+    url: clueFollowUpPageURL,
+    data
+  })
+  return response
 }
 
 // 更新线索跟进

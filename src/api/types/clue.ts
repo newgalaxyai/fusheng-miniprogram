@@ -57,3 +57,21 @@ export type IAddFollowUpRequest = {
   content: string // 跟进内容
   followUpFileList?: IFile[] | null // 跟进文件列表
 }
+
+// 跟进列表
+export type IFollowUp = {
+  id: number
+  leadId: number // 线索id
+  contactInfo: string // 联系信息
+  type?: string // 跟进类型
+  method?: string // 跟进方式
+  followUpTime?: number // 跟进时间
+  content: string // 跟进内容
+  followUpFileList?: IFile[] | null // 跟进文件列表
+  createTime: number // 创建时间
+}
+// 获取跟进列表请求参数
+export type IGetFollowUpListRequest = IPaginationRequest & {
+  leadId: number // 线索id
+  content?: string // 跟进内容
+}

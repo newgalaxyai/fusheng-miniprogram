@@ -36,6 +36,41 @@
   --nutui-calendar-day67-color: #4981f8;
   --nutui-color-primary: #4981f8;
 
+  .seachinput_box {
+    padding-block: 12rpx;
+    padding-inline: 24rpx;
+    height: 80rpx;
+    width: 100%;
+    box-sizing: border-box;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background-color: #f7f7f7;
+    border-radius: 12rpx;
+
+    .seach_icon {
+      margin-right: 20rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .seachinput {
+      padding: 0;
+      height: 100%;
+      flex: 1;
+      border: none;
+      outline: none;
+      background-color: transparent;
+    }
+
+    .search_text {
+      flex-shrink: 0;
+      font-size: 28rpx;
+      color: #426eff;
+    }
+  }
+
   // 右下角浮动按钮样式
   .floating-add-btn {
     position: fixed;

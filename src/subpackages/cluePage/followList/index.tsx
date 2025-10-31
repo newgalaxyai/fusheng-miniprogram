@@ -1,135 +1,217 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { View, Text, Image, ScrollView } from '@tarojs/components'
-import { Input, Empty, Button } from '@nutui/nutui-react-taro'
+import {
+  Input,
+  Empty,
+  Button,
+  Steps,
+  Step,
+  InfiniteLoading,
+  SearchBar,
+  Divider
+} from '@nutui/nutui-react-taro'
 import './index.scss'
 import { Search } from '@nutui/icons-react-taro'
 import Taro, { useLoad } from '@tarojs/taro'
-import { clueFollowUpPageAPI } from '@/api/clue'
+import { clueFollowUpPageAPI, getFollowUpListAsyncAPI } from '@/api/clue'
 import { useSelector } from 'react-redux'
+import { IFollowUp, IGetFollowUpListRequest } from '@/api/types'
+import { useAppSelector } from '@/hooks/useAppStore'
 
 const FollowListPage = () => {
-  const userInfo = useSelector((state: any) => state.login.userInfo)
-  const [followUpList, setFollowUpList] = useState<any[]>([])
-  const [searchValue, setSearchValue] = useState('')
-  const [selectedItem, setSelectedItem] = useState<any>(null)
+  const {
+    login: { userInfo }
+  } = useAppSelector(state => state)
+  // ==================== 搜索框 ====================
+  const [searchInputValue, setSearchInputValue] = useState('')
+  // ==================== 写跟进按钮 ====================
+  // 跳转到添加跟进页面
+  const addFollow = () => {
+    Taro.navigateTo({
+      url: ``
+    })
+  }
+  // ==================== 筛选表单 ====================
+  // 初始化表单数据
+  const initialFilterFollowUpListForm: IGetFollowUpListRequest = {
+    pageNo: 1,
+    pageSize: 10,
+    leadId: 0
+  }
+  const [filterFollowUpListForm, setFilterFollowUpListForm] = useState<IGetFollowUpListRequest>(
+    initialFilterFollowUpListForm
+  )
+  // ==================== 跟进列表 ====================
   const [loading, setLoading] = useState(false)
+  const [followUpList, setFollowUpList] = useState<IFollowUp[]>([])
+  // 获取跟进列表
+  const getFollowUpList = useCallback(async () => {
+    setLoading(true)
+    setFollowUpCursor(1)
+    const followUpRes = await getFollowUpListAsyncAPI(filterFollowUpListForm)
+    if (followUpRes.code == 0) {
+      const newData = followUpRes.data.list || []
+      setFollowUpList(newData)
+      setHasMore(newData.length === 10)
+    } else {
+      Taro.showToast({
+        title: '获取失败',
+        icon: 'none'
+      })
+    }
+    setLoading(false)
+  }, [filterFollowUpListForm])
+  useEffect(() => {
+    getFollowUpList()
+  }, [getFollowUpList])
+  // ==================== 滚动加载 ====================
+  const [followUpCursor, setFollowUpCursor] = useState<number>(1)
   const [hasMore, setHasMore] = useState(true)
-  const [page, setPage] = useState(1)
+  // 加载更多
+  const loadMore = async () => {
+    const followUpRes = await getFollowUpListAsyncAPI({
+      ...filterFollowUpListForm,
+      pageNo: followUpCursor + 1
+    })
+    if (followUpRes.code == 0) {
+      const newData = followUpRes.data.list || []
+      setFollowUpList(prev => [...prev, ...newData])
+      setHasMore(newData.length === 10)
+      setFollowUpCursor(followUpCursor + 1)
+    } else {
+      Taro.showToast({
+        title: '获取失败',
+        icon: 'none'
+      })
+    }
+  }
+
+  // const [selectedItem, setSelectedItem] = useState<any>(null)
+  // const [page, setPage] = useState(1)
 
   // 解析安全HTML
-  const parseSafeHTML = (html: string) => {
-    if (!html) return ''
-    return html.replace(/<[^>]*>/g, '')
-  }
+  // const parseSafeHTML = (html: string) => {
+  //   if (!html) return ''
+  //   return html.replace(/<[^>]*>/g, '')
+  // }
 
-  // 解析日期
-  const parseDate = (dateString: string) => {
-    if (!dateString) return '跟进时间'
-    const date = new Date(dateString)
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
-  }
-
-  // 获取跟进列表
-  const getFollowUpList = (pageNum = 1, append = false) => {
-    if (loading || (!hasMore && pageNum > 1)) return
-
-    setLoading(true)
-    const params = {
-      pageNum: pageNum,
-      pageSize: 10,
-      userId: userInfo?.id,
-      leadId: selectedItem?.id || '',
-      keywords: searchValue
-    }
-
-    clueFollowUpPageAPI(params, res => {
-      if (res.success && res.data) {
-        const newData = res.data.list || []
-        if (append) {
-          setFollowUpList(prev => [...prev, ...newData])
-        } else {
-          setFollowUpList(newData)
-        }
-        setHasMore(newData.length === 10)
-        setPage(pageNum)
-      } else {
-        Taro.showToast({
-          title: '获取失败',
-          icon: 'none'
-        })
-      }
-      setLoading(false)
-    })
-  }
-
-  // 加载更多
-  const loadMore = () => {
-    if (hasMore && !loading) {
-      getFollowUpList(page + 1, true)
-    }
-  }
+  // // 解析日期
+  // const parseDate = (dateString: string) => {
+  //   if (!dateString) return '跟进时间'
+  //   const date = new Date(dateString)
+  //   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+  //     date.getDate()
+  //   ).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(
+  //     date.getMinutes()
+  //   ).padStart(2, '0')}`
+  // }
 
   // 搜索处理
-  const handleSearch = () => {
-    setPage(1)
-    setHasMore(true)
-    getFollowUpList(1, false)
-  }
+  // const handleSearch = () => {
+  //   setPage(1)
+  //   setHasMore(true)
+  //   getFollowUpList(1, false)
+  // }
 
   // 跳转到跟进详情页面
-  const toFollowPage = (item: any) => {
-    Taro.navigateTo({
-      url: `/subpackages/cluePage/follow/index?id=${item.id}`
-    })
-  }
+  // const toFollowPage = (item: any) => {
+  //   Taro.navigateTo({
+  //     url: `/subpackages/cluePage/follow/index?id=${item.id}`
+  //   })
+  // }
 
-  // 跳转到添加跟进页面
-  const addFollow = (e: any) => {
-    e.stopPropagation()
-    e.preventDefault()
-    Taro.navigateTo({
-      url: `/subpackages/cluePage/addFollow/index?leadId=${selectedItem?.id}&associateLead=${encodeURIComponent(selectedItem?.name || '')}&name=1`
-    })
-  }
+  // useLoad(() => {
+  //   // 获取页面参数
+  //   const instance = Taro.getCurrentInstance()
+  //   const params = instance.router?.params
 
-  useLoad(() => {
-    // 获取页面参数
-    const instance = Taro.getCurrentInstance()
-    const params = instance.router?.params
+  //   if (params) {
+  //     const { leadId, leadName } = params
+  //     if (leadId) {
+  //       setSelectedItem({
+  //         id: leadId,
+  //         name: leadName ? decodeURIComponent(leadName) : ''
+  //       })
+  //     }
+  //   }
+  // })
 
-    if (params) {
-      const { leadId, leadName } = params
-      if (leadId) {
-        setSelectedItem({
-          id: leadId,
-          name: leadName ? decodeURIComponent(leadName) : ''
-        })
-      }
-    }
-  })
-
-  useEffect(() => {
-    if (selectedItem?.id) {
-      getFollowUpList(1, false)
-    }
-  }, [selectedItem])
+  // useEffect(() => {
+  //   if (selectedItem?.id) {
+  //     getFollowUpList(1, false)
+  //   }
+  // }, [selectedItem])
 
   return (
     <View className="followList_page">
       {/* 搜索框和写跟进按钮 */}
-      <View className="followList_input_box">
+      {/* <View className="followList_input_box">
         <View className="followList_input_icon">
           <Search color="#AAAAAA" size="36rpx" />
         </View>
-        <Input className="followList_input" placeholder="搜索跟进内容" style={{ width: '100%' }} value={searchValue} onChange={e => setSearchValue(e)} onBlur={handleSearch} clearable={true} />
-        <Button className="followList_search_btn" onClick={addFollow}>
+        <Input
+          className="followList_input"
+          placeholder="搜索跟进内容"
+          style={{ width: '100%' }}
+          value={searchInputValue}
+          onChange={e => setSearchInputValue(e)}
+          clearable={true}
+        />
+      </View> */}
+      <View className="followList_search_box">
+        <View className="seachinput_box">
+          <View className="seach_icon">
+            <Search color="#AAAAAA" size="36rpx" />
+          </View>
+          <Input
+            className="seachinput"
+            placeholder="搜索跟进内容"
+            style={{ width: '100%' }}
+            value={searchInputValue}
+            onChange={setSearchInputValue}
+            onClear={() => {
+              console.log('onClear')
+              if (filterFollowUpListForm.content) {
+                const newFilterFollowUpListForm = { ...filterFollowUpListForm }
+                delete newFilterFollowUpListForm.content
+                setFilterFollowUpListForm(newFilterFollowUpListForm)
+              }
+            }}
+            clearable={true}
+          />
+          <Divider direction="vertical" />
+          <Text
+            className="search_text"
+            onClick={() => {
+              setFilterFollowUpListForm({
+                ...filterFollowUpListForm,
+                content: searchInputValue
+              })
+            }}
+          >
+            搜索
+          </Text>
+        </View>
+        <Button
+          className="followList_search_btn"
+          onClick={() => {
+            addFollow()
+          }}
+        >
           写跟进
         </Button>
       </View>
 
       {/* 跟进记录列表 */}
-      <ScrollView scrollY className="followList_content" onScrollToLower={loadMore} lowerThreshold={50} style={{ height: 'calc(100vh - 160rpx)' }}>
-        {followUpList.map((item: any, index: number) => (
+      <ScrollView
+        scrollY
+        id="followUpScrollList"
+        className="followList_content"
+        onScrollToLower={loadMore}
+        lowerThreshold={50}
+        style={{ height: 'calc(100vh - 160rpx)' }}
+      >
+        {/* {followUpList.map((item: any, index: number) => (
           <View className="clueRecord_item" onClick={() => toFollowPage(item)} key={index}>
             <View className="clueRecord_item_left">{item?.avatar ? <Image src={item.avatar} className="avatar" /> : <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="avatar" />}</View>
             <View className="clueRecord_item_right">
@@ -146,11 +228,61 @@ const FollowListPage = () => {
               <View className="item_content">{item.content || '跟进内容'}</View>
             </View>
           </View>
-        ))}
+        ))} */}
+        {followUpList.length > 0 && (
+          <InfiniteLoading
+            target="followUpScrollList"
+            hasMore={hasMore}
+            onLoadMore={loadMore}
+            loadingText={
+              <>
+                <View className="loadingText">
+                  <Image
+                    src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png"
+                    className="loadingImg"
+                  />
+                  <Text className="loading-char">l</Text>
+                  <Text className="loading-char">o</Text>
+                  <Text className="loading-char">a</Text>
+                  <Text className="loading-char">d</Text>
+                  <Text className="loading-char">i</Text>
+                  <Text className="loading-char">n</Text>
+                  <Text className="loading-char">g</Text>
+                  <Text className="loading-char">.</Text>
+                  <Text className="loading-char">.</Text>
+                  <Text className="loading-char">.</Text>
+                </View>
+              </>
+            }
+            loadMoreText="没有啦～"
+          >
+            <Steps
+              direction="vertical"
+              /*@ts-ignore */
+              type="dot"
+              status="business"
+            >
+              {followUpList.map((followItem, index) => (
+                <Step
+                  key={index}
+                  title={followItem.followUpTime}
+                  description={
+                    <>
+                      <View className="followUpItem"></View>
+                    </>
+                  }
+                />
+              ))}
+            </Steps>
+          </InfiniteLoading>
+        )}
 
         {(!followUpList || followUpList.length === 0) && !loading && (
           <View className="empty_container">
-            <Image className="empty_image" src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png" />
+            <Image
+              className="empty_image"
+              src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png"
+            />
             <Text className="empty_text">暂无跟进记录</Text>
           </View>
         )}
