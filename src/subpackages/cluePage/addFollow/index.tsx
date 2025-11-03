@@ -13,7 +13,7 @@ import { clueContactSelectAPI, clueFollowUpCreateAPI, getClueDetailAPI } from '@
 import { Calendar, CalendarCard, Popup, Picker, DatePicker } from '@nutui/nutui-react-taro'
 import type { CalendarCardValue, PickerOption } from '@nutui/nutui-react-taro'
 import { Check } from '@nutui/icons-react-taro'
-import Taro, { useLoad, useRouter, showModal } from '@tarojs/taro'
+import Taro, { useLoad, useRouter, showModal, eventCenter } from '@tarojs/taro'
 import './index.scss'
 import { useSelector } from 'react-redux'
 import { clueListSelectAPI } from '@/api/clue'
@@ -856,6 +856,8 @@ function AddFollowPage() {
               })
               setTimeout(() => {
                 Taro.navigateBack()
+                // 刷新跟进列表
+                eventCenter.trigger(CLUE_EVENT.REFRESH_FOLLOW_LIST)
               }, 1700)
             } else {
               Taro.showToast({

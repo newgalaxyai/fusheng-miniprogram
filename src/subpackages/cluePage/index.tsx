@@ -145,7 +145,7 @@ const CluePage = forwardRef<
     })
   }
   // 转为重要线索
-  const handleToImportantClue = (clueItem: IClue) => {
+  const handleToImportantClue = (clueItem: IClue, clueIndex: number) => {
     Taro.showModal({
       title: '提示',
       content: `确定将${filterHTMLString(clueItem.customerCompanyName)}转为重要线索吗？`,
@@ -153,7 +153,7 @@ const CluePage = forwardRef<
         if (res.confirm) {
           clueUpdateAPI({ id: clueItem.id, isImportantClue: true }, res => {
             if (res.success) {
-              setClueList(prevList => prevList.filter(item => item.id !== clueItem.id))
+              setClueList(prevList => prevList.splice(clueIndex, 1))
               Taro.showToast({
                 title: '转为重要线索成功',
                 icon: 'none',
@@ -1102,7 +1102,7 @@ const CluePage = forwardRef<
                             className="cluePage_item_contact_item"
                             onClick={e => {
                               e.stopPropagation()
-                              handleToImportantClue(item)
+                              handleToImportantClue(item, index)
                             }}
                           >
                             转为重要线索

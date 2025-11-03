@@ -12,23 +12,33 @@ import {
 } from '@nutui/nutui-react-taro'
 import './index.scss'
 import { Search } from '@nutui/icons-react-taro'
-import Taro, { useLoad } from '@tarojs/taro'
+import Taro, { useLoad, eventCenter } from '@tarojs/taro'
 import { clueFollowUpPageAPI, getFollowUpListAsyncAPI } from '@/api/clue'
 import { useSelector } from 'react-redux'
-import { IFollowUp, IGetFollowUpListRequest } from '@/api/types'
+import { ICorpContactInfo, IFollowUp, IGetFollowUpListRequest } from '@/api/types'
 import { useAppSelector } from '@/hooks/useAppStore'
+import { ROUTE, ROUTE_PARAMS_NAME } from '@/constants'
+import dayjs from 'dayjs'
+import { CLUE_EVENT } from '@/constants/event'
 
 const FollowListPage = () => {
   const {
     login: { userInfo }
   } = useAppSelector(state => state)
+  useLoad(loadOptions => {
+    const leadId = loadOptions[ROUTE_PARAMS_NAME.CLUE_ID]
+    setFilterFollowUpListForm({
+      ...filterFollowUpListForm,
+      leadId: Number(leadId)
+    })
+  })
   // ==================== 搜索框 ====================
   const [searchInputValue, setSearchInputValue] = useState('')
   // ==================== 写跟进按钮 ====================
   // 跳转到添加跟进页面
   const addFollow = () => {
     Taro.navigateTo({
-      url: ``
+      url: `${ROUTE.ADD_FOLLOW}?${ROUTE_PARAMS_NAME.CLUE_ID}=${filterFollowUpListForm.leadId}`
     })
   }
   // ==================== 筛选表单 ====================
@@ -47,6 +57,9 @@ const FollowListPage = () => {
   // 获取跟进列表
   const getFollowUpList = useCallback(async () => {
     setLoading(true)
+    if (filterFollowUpListForm.leadId === 0) {
+      return
+    }
     setFollowUpCursor(1)
     const followUpRes = await getFollowUpListAsyncAPI(filterFollowUpListForm)
     if (followUpRes.code == 0) {
@@ -85,6 +98,13 @@ const FollowListPage = () => {
       })
     }
   }
+  // 新增跟进后刷新列表事件
+  useEffect(() => {
+    eventCenter.on(CLUE_EVENT.REFRESH_FOLLOW_LIST, getFollowUpList)
+    return () => {
+      eventCenter.off(CLUE_EVENT.REFRESH_FOLLOW_LIST, getFollowUpList)
+    }
+  }, [getFollowUpList])
 
   // const [selectedItem, setSelectedItem] = useState<any>(null)
   // const [page, setPage] = useState(1)
@@ -157,7 +177,25 @@ const FollowListPage = () => {
           onChange={e => setSearchInputValue(e)}
           clearable={true}
         />
-      </View> */}
+      </View>
+      {followUpList.map((item: any, index: number) => (
+          <View className="clueRecord_item" onClick={() => toFollowPage(item)} key={index}>
+            <View className="clueRecord_item_left">{item?.avatar ? <Image src={item.avatar} className="avatar" /> : <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="avatar" />}</View>
+            <View className="clueRecord_item_right">
+              <View className="clueRecord_item_right_top">
+                <View className="item_time">
+                  <Image src="https://find-console.newgalaxyai.com/glks/assets/chat/chat1.png" className="item_time_img"></Image>
+                  {parseDate(item.createTime || '跟进时间')}
+                </View>
+                <View className="status text-ellipsis">{item.nickname || '跟进人'}</View>
+              </View>
+              <View className="item_link">
+                跟进方式：{item.method || '跟进方式'}｜{item.followUpName || '客户名称'}({item.followUpPosition || '客户职位'})｜{item.followUpPhone || '客户手机号'}
+              </View>
+              <View className="item_content">{item.content || '跟进内容'}</View>
+            </View>
+          </View>
+        ))} */}
       <View className="followList_search_box">
         <View className="seachinput_box">
           <View className="seach_icon">
@@ -203,80 +241,57 @@ const FollowListPage = () => {
       </View>
 
       {/* 跟进记录列表 */}
-      <ScrollView
-        scrollY
-        id="followUpScrollList"
-        className="followList_content"
-        onScrollToLower={loadMore}
-        lowerThreshold={50}
-        style={{ height: 'calc(100vh - 160rpx)' }}
-      >
-        {/* {followUpList.map((item: any, index: number) => (
-          <View className="clueRecord_item" onClick={() => toFollowPage(item)} key={index}>
-            <View className="clueRecord_item_left">{item?.avatar ? <Image src={item.avatar} className="avatar" /> : <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="avatar" />}</View>
-            <View className="clueRecord_item_right">
-              <View className="clueRecord_item_right_top">
-                <View className="item_time">
-                  <Image src="https://find-console.newgalaxyai.com/glks/assets/chat/chat1.png" className="item_time_img"></Image>
-                  {parseDate(item.createTime || '跟进时间')}
-                </View>
-                <View className="status text-ellipsis">{item.nickname || '跟进人'}</View>
-              </View>
-              <View className="item_link">
-                跟进方式：{item.method || '跟进方式'}｜{item.followUpName || '客户名称'}({item.followUpPosition || '客户职位'})｜{item.followUpPhone || '客户手机号'}
-              </View>
-              <View className="item_content">{item.content || '跟进内容'}</View>
-            </View>
-          </View>
-        ))} */}
-        {followUpList.length > 0 && (
-          <InfiniteLoading
-            target="followUpScrollList"
-            hasMore={hasMore}
-            onLoadMore={loadMore}
-            loadingText={
-              <>
-                <View className="loadingText">
-                  <Image
-                    src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png"
-                    className="loadingImg"
-                  />
-                  <Text className="loading-char">l</Text>
-                  <Text className="loading-char">o</Text>
-                  <Text className="loading-char">a</Text>
-                  <Text className="loading-char">d</Text>
-                  <Text className="loading-char">i</Text>
-                  <Text className="loading-char">n</Text>
-                  <Text className="loading-char">g</Text>
-                  <Text className="loading-char">.</Text>
-                  <Text className="loading-char">.</Text>
-                  <Text className="loading-char">.</Text>
-                </View>
-              </>
-            }
-            loadMoreText="没有啦～"
-          >
-            <Steps
-              direction="vertical"
-              /*@ts-ignore */
-              type="dot"
-              status="business"
+      <View className="follow_scroll_container">
+        <ScrollView scrollY id="followUpScrollList" className="follow_scroll_list">
+          {followUpList.length > 0 && (
+            <InfiniteLoading
+              target="followUpScrollList"
+              hasMore={hasMore}
+              onLoadMore={loadMore}
+              loadingText={
+                <>
+                  <View className="loadingText">
+                    <Image
+                      src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png"
+                      className="loadingImg"
+                    />
+                    <Text className="loading-char">l</Text>
+                    <Text className="loading-char">o</Text>
+                    <Text className="loading-char">a</Text>
+                    <Text className="loading-char">d</Text>
+                    <Text className="loading-char">i</Text>
+                    <Text className="loading-char">n</Text>
+                    <Text className="loading-char">g</Text>
+                    <Text className="loading-char">.</Text>
+                    <Text className="loading-char">.</Text>
+                    <Text className="loading-char">.</Text>
+                  </View>
+                </>
+              }
+              loadMoreText="没有啦～"
             >
-              {followUpList.map((followItem, index) => (
-                <Step
-                  key={index}
-                  title={followItem.followUpTime}
-                  description={
-                    <>
-                      <View className="followUpItem"></View>
-                    </>
-                  }
-                />
-              ))}
-            </Steps>
-          </InfiniteLoading>
-        )}
-
+              {followUpList.map((followItem, index) => {
+                const contactInfo = JSON.parse(followItem.contactInfo) as ICorpContactInfo
+                return (
+                  <View key={index} className="followList_item">
+                    <View className="timeline_dot"></View>
+                    {index < followUpList.length - 1 && <View className="timeline_tail"></View>}
+                    <View className="timeline_content">
+                      <View className="timeline_content_title">
+                        {dayjs(followItem.createTime).format('YYYY-MM-DD HH:mm:ss')}
+                      </View>
+                      <View className="timeline_content_desc">
+                        跟进方式:&nbsp;{followItem.method || '-'}，{contactInfo.name}&nbsp;(
+                        {contactInfo.position})&nbsp;{contactInfo.phone}
+                      </View>
+                      <View className="timeline_content_content">{followItem.content}</View>
+                    </View>
+                  </View>
+                )
+              })}
+            </InfiniteLoading>
+          )}
+        </ScrollView>
         {(!followUpList || followUpList.length === 0) && !loading && (
           <View className="empty_container">
             <Image
@@ -286,7 +301,7 @@ const FollowListPage = () => {
             <Text className="empty_text">暂无跟进记录</Text>
           </View>
         )}
-      </ScrollView>
+      </View>
     </View>
   )
 }
