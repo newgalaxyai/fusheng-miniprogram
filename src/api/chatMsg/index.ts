@@ -1,5 +1,23 @@
 import { taroPost, taroGet, taroPut, taroDelete } from '@/service'
-import { textStageURL, companyStageURL, guessYouWantURL, aiSessionCreateURL, aiMessageCreateURL, aiSessionGetURL, aiSessionGetHistorySessionURL, aiSessionListURL, aiSessionPageURL, aiSessionUpdateURL, aiMessageEvaluationCreateURL, aiMessageEvaluationDeleteURL, userFavoriteCreateURL, userFavoriteListURL, userFavoriteDeleteURL, aiSessionDeleteURL, configPreprocessingURL } from '@/service/config'
+import {
+  textStageURL,
+  companyStageURL,
+  guessYouWantURL,
+  aiSessionCreateURL,
+  aiMessageCreateURL,
+  aiSessionGetURL,
+  aiSessionGetHistorySessionURL,
+  aiSessionListURL,
+  aiSessionPageURL,
+  aiSessionUpdateURL,
+  aiMessageEvaluationCreateURL,
+  aiMessageEvaluationDeleteURL,
+  userFavoriteCreateURL,
+  userFavoriteListURL,
+  userFavoriteDeleteURL,
+  aiSessionDeleteURL,
+  configPreprocessingURL
+} from '@/service/config'
 import type { IResponse } from '../types'
 
 export const textStageAPI = (data: any, callback: (res: IResponse<any>) => void) => {
@@ -170,7 +188,10 @@ export const aiSessionGetAPI = (data: any, callback: (res: IResponse<any>) => vo
   }).catch(() => {})
 }
 
-export const aiSessionGetHistorySessionAPI = (data: any, callback: (res: IResponse<any>) => void) => {
+export const aiSessionGetHistorySessionAPI = (
+  data: any,
+  callback: (res: IResponse<any>) => void
+) => {
   taroGet({
     url: aiSessionGetHistorySessionURL,
     data,
@@ -282,7 +303,10 @@ export const aiSessionUpdateAPI = (data: any, callback: (res: IResponse<any>) =>
   }).catch(() => {})
 }
 
-export const aiMessageEvaluationCreateAPI = (data: any, callback: (res: IResponse<any>) => void) => {
+export const aiMessageEvaluationCreateAPI = (
+  data: any,
+  callback: (res: IResponse<any>) => void
+) => {
   taroPost({
     url: aiMessageEvaluationCreateURL,
     data,
@@ -310,7 +334,10 @@ export const aiMessageEvaluationCreateAPI = (data: any, callback: (res: IRespons
   }).catch(() => {})
 }
 
-export const aiMessageEvaluationDeleteAPI = (data: any, callback: (res: IResponse<any>) => void) => {
+export const aiMessageEvaluationDeleteAPI = (
+  data: any,
+  callback: (res: IResponse<any>) => void
+) => {
   taroDelete({
     url: aiMessageEvaluationDeleteURL + '?id=' + data.id,
     success: (res: any) => {

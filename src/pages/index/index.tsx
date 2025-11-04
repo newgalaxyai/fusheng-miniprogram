@@ -7,7 +7,12 @@ import { useExampleActions } from '@/hooks/useExampleActions'
 import AiChat from './aiChat'
 import CluePage from '../../subpackages/cluePage/index'
 import { Del, Setting, Star, TriangleDown, TriangleUp } from '@nutui/icons-react-taro'
-import { aiSessionDeleteAPI, aiSessionGetHistorySessionAPI, aiSessionListAPI, userFavoriteListAPI } from '@/api/chatMsg'
+import {
+  aiSessionDeleteAPI,
+  aiSessionGetHistorySessionAPI,
+  aiSessionListAPI,
+  userFavoriteListAPI
+} from '@/api/chatMsg'
 import { useAppSelector } from '@/hooks/useAppStore'
 import AiMessageComponent from '@/components/AiMessageComponent'
 import { useAppDispatch } from '@/hooks/useAppStore'
@@ -16,6 +21,40 @@ import { useDebounce } from '@/hooks/useDebounce' // 添加防抖 hook 导入
 import { IConversation } from '@/redux/modules/conversation'
 
 function Index() {
+  // useLoad(() => {
+  //   const task = Taro.request({
+  //     url: 'https://akzm.aikol.plus/ai/summarize/stream',
+  //     method: 'POST',
+  //     header: {
+  //       Accept: 'application/json'
+  //     },
+  //     data: {
+  //       user_query: '你好',
+  //       conversation_id: '',
+  //       enable_search: 'False',
+  //       conversationId: 88,
+  //       conversationType: 1,
+  //       memberId: 2,
+  //       senderType: 'assistant-ai',
+  //       id: 299
+  //     },
+  //     enableChunked: true,
+  //     responseType: 'arraybuffer',
+  //     success: res => {
+  //       console.log('Data received 数据接受完毕:', res.data)
+  //     },
+  //     fail: error => {
+  //       console.log('打印***error 错误处理', error)
+  //     },
+  //     complete: complete => {
+  //       console.log('打印***complete 完成接收', complete)
+  //     }
+  //   })
+  //   task.onChunkReceived(res => {
+  //     // 处理数据
+  //     console.log('Data received 数据接受中:', res)
+  //   })
+  // })
   const dispatch = useAppDispatch()
   const userInfo = useAppSelector(state => state.login.userInfo)
   // 获取conversation相关状态
@@ -59,7 +98,11 @@ function Index() {
     // 获取系统信息
     const systemInfo = Taro.getSystemInfoSync()
 
-    if (!Taro.getStorageSync('companyInfo') || !Taro.getStorageSync('companyInfo').expansionDomainKeywordsSelected || Taro.getStorageSync('companyInfo').expansionDomainKeywordsSelected.length === 0) {
+    if (
+      !Taro.getStorageSync('companyInfo') ||
+      !Taro.getStorageSync('companyInfo').expansionDomainKeywordsSelected ||
+      Taro.getStorageSync('companyInfo').expansionDomainKeywordsSelected.length === 0
+    ) {
       setCompanyShow(true)
     }
 
@@ -198,7 +241,11 @@ function Index() {
   // 处理 Swipe 打开事件
   const handleSwipeOpen = (chatItemId: string) => {
     // 如果当前有打开的 Swipe 且不是同一个，先关闭它
-    if (currentOpenSwipe && currentOpenSwipe !== chatItemId && swipeRefs.current[currentOpenSwipe]) {
+    if (
+      currentOpenSwipe &&
+      currentOpenSwipe !== chatItemId &&
+      swipeRefs.current[currentOpenSwipe]
+    ) {
       swipeRefs.current[currentOpenSwipe].close()
     }
     setCurrentOpenSwipe(chatItemId)
@@ -228,14 +275,35 @@ function Index() {
 
   return (
     <View className="homePage">
-      <View className="homePage_content" style={{ width: '100%', height: totalHeight, paddingTop: capsuleInfo.statusBarHeight }}>
-        <Image src="https://find-console.newgalaxyai.com/glks/assets/home/home1.png" className="homePage_history_img" onClick={goHistoryFun} />
-        <Image src="https://find-console.newgalaxyai.com/glks/assets/home/home2.png" className="homePage_new_img" onClick={goNew} />
+      <View
+        className="homePage_content"
+        style={{ width: '100%', height: totalHeight, paddingTop: capsuleInfo.statusBarHeight }}
+      >
+        <Image
+          src="https://find-console.newgalaxyai.com/glks/assets/home/home1.png"
+          className="homePage_history_img"
+          onClick={goHistoryFun}
+        />
+        <Image
+          src="https://find-console.newgalaxyai.com/glks/assets/home/home2.png"
+          className="homePage_new_img"
+          onClick={goNew}
+        />
         <View className="homePage_title">
-          <View className={`homePage_text tab-item-0${activeIndex === 0 ? ' homePage_text_active' : ''}`} onClick={() => handleActiveIndex(0)}>
+          <View
+            className={`homePage_text tab-item-0${
+              activeIndex === 0 ? ' homePage_text_active' : ''
+            }`}
+            onClick={() => handleActiveIndex(0)}
+          >
             AI获客
           </View>
-          <View className={`homePage_text tab-item-1${activeIndex === 1 ? ' homePage_text_active' : ''}`} onClick={() => handleActiveIndex(1)}>
+          <View
+            className={`homePage_text tab-item-1${
+              activeIndex === 1 ? ' homePage_text_active' : ''
+            }`}
+            onClick={() => handleActiveIndex(1)}
+          >
             线索池
           </View>
           <Image
@@ -248,10 +316,21 @@ function Index() {
           />
         </View>
       </View>
-      <Popup visible={showSetting} position="left" style={{ width: '84%', height: '100%' }} onClose={() => setShowSetting(false)}>
+      <Popup
+        visible={showSetting}
+        position="left"
+        style={{ width: '84%', height: '100%' }}
+        onClose={() => setShowSetting(false)}
+      >
         <View className="setting_content">
           <View className="setting_content_title" onClick={() => goSetting()}>
-            <Image src={userInfo?.avatar || 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png'} className="title_img" />
+            <Image
+              src={
+                userInfo?.avatar ||
+                'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png'
+              }
+              className="title_img"
+            />
             <View className="title_info">
               <View className="title_info_name">{userInfo?.nickname}</View>
               <View className="title_info_phone">{userInfo?.mobile}</View>
@@ -279,7 +358,11 @@ function Index() {
                           item.list.map((chatItem: any, index: number) => {
                             const swipeKey = `${item.name}-${chatItem.id}`
                             return (
-                              <Cell key={index} className="list_item" onClick={() => getChatItem(chatItem)}>
+                              <Cell
+                                key={index}
+                                className="list_item"
+                                onClick={() => getChatItem(chatItem)}
+                              >
                                 <Swipe
                                   ref={ref => {
                                     if (ref) {
@@ -332,8 +415,14 @@ function Index() {
                                 <View className="item-title-text-text">{item.title}</View>
                               </View>
                               <View className="item-title-des" onClick={() => toggleExpand(index)}>
-                                <View className="item-title-des-text">{isExpanded ? '收起' : '展开'}</View>
-                                <View style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                                <View className="item-title-des-text">
+                                  {isExpanded ? '收起' : '展开'}
+                                </View>
+                                <View
+                                  style={{
+                                    transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
+                                  }}
+                                >
                                   <TriangleDown color="#8A93A2" size={'26rpx'} />
                                 </View>
                               </View>
@@ -389,13 +478,26 @@ function Index() {
       <Dialog visible={companyShow} footer={null}>
         <View className="dialog_box">
           <View className="dialog_title">企业信息完善</View>
-          <Image src="https://find-console.newgalaxyai.com/glks/assets/chat/chat5.png" className="dialog_img" />
-          <View className="dialog_content">发现您还未完善企业核心信息，补充后AI可挖掘更多优质线索</View>
+          <Image
+            src="https://find-console.newgalaxyai.com/glks/assets/chat/chat5.png"
+            className="dialog_img"
+          />
+          <View className="dialog_content">
+            发现您还未完善企业核心信息，补充后AI可挖掘更多优质线索
+          </View>
           <View className="dialog_footer">
             <View className="dialog_footer_btn" onClick={companyCancel}>
               取消
             </View>
-            <View className="dialog_footer_btn" style={{ color: '#3E80F1', borderLeft: '2rpx solid #F2F2F2', borderRadius: '0 0 24rpx 0' }} onClick={companyConfirm}>
+            <View
+              className="dialog_footer_btn"
+              style={{
+                color: '#3E80F1',
+                borderLeft: '2rpx solid #F2F2F2',
+                borderRadius: '0 0 24rpx 0'
+              }}
+              onClick={companyConfirm}
+            >
               立即完善
             </View>
           </View>

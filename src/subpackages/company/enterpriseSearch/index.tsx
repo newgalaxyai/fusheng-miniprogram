@@ -1167,14 +1167,14 @@ function Index() {
       </View>
 
       {/* 底部批量加入线索 */}
-      <View className="enterpriseBottom">
+      {/* <View className="enterpriseBottom">
         <View className="enterpriseBottom_left">
           <Checkbox value={isAllSelected ? '1' : '0'} onChange={(value: any) => selectAllClues(value)} label={`全选 (${isAllSelected ? selectAllCluesData.length : 0})`} />
         </View>
         <View onClick={handleBatchAddToLeads} style={{ background: isAllSelected ? '#2156FE' : '#9CB4FF' }} className="enterpriseBottom_right">
           批量加入线索
         </View>
-      </View>
+      </View> */}
     </View>
   )
 }

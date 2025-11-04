@@ -1,10 +1,11 @@
 import React, { useEffect, PropsWithChildren } from 'react'
-import { useDidShow, useDidHide } from '@tarojs/taro'
+import { useDidShow, useDidHide, useLoad } from '@tarojs/taro'
 // 全局样式
 import './app.scss'
 import 'taro-ui/dist/style/index.scss'
 import { Provider } from 'react-redux'
 import store from './redux'
+import Taro from '@tarojs/taro'
 
 function App({ children }: PropsWithChildren<any>) {
   // 可以使用所有的 React Hooks
