@@ -19,6 +19,8 @@ import {
   configPreprocessingURL
 } from '@/service/config'
 import type { IResponse } from '../types'
+import Taro from '@tarojs/taro'
+import { IStreamAIAnswerRequest, IStreamEvent, IStreamName } from '../types'
 
 export const textStageAPI = (data: any, callback: (res: IResponse<any>) => void) => {
   taroPost({
@@ -500,4 +502,113 @@ export const preprocessingAPI = (data: any, callback: (res: IResponse<any>) => v
       }
     }
   }).catch(() => {})
+}
+
+// 流式AI回答（SSE，通过 Taro.request 原生能力）
+export const streamAIAnswerAPI = (
+  data: IStreamAIAnswerRequest,
+  handlers: {
+    onMessage?: (event: IStreamEvent) => void
+    onError?: (err: any) => void
+    onComplete?: () => void
+  }
+) => {
+  const url = 'https://find-console.newgalaxyai.com/ai/ask'
+  const token = Taro.getStorageSync('token')
+
+  let lastText = ''
+
+  const requestTask = Taro.request({
+    url,
+    method: 'POST',
+    header: {
+      Accept: 'text/event-stream',
+      'Content-Type': 'application/json',
+    },
+    data,
+    enableChunked: true,
+    responseType: 'text',
+    success: () => {
+      // 完整接收由 onChunkReceived 驱动，无需处理
+    },
+    fail: (error) => {
+      handlers.onError?.(error)
+    },
+    complete: () => {
+      handlers.onComplete?.()
+    }
+  })
+
+  const decoder = typeof TextDecoder !== 'undefined' ? new TextDecoder('utf-8') : null
+
+  requestTask.onChunkReceived((res) => {
+    try {
+      let chunkStr = ''
+      if (typeof res.data === 'string') {
+        chunkStr = res.data as string
+      } else {
+        const uint8Array = new Uint8Array(res.data as ArrayBuffer)
+        chunkStr = decoder ? decoder.decode(uint8Array) : String.fromCharCode.apply(null, Array.from(uint8Array))
+      }
+      let text = lastText + chunkStr
+      lastText = ''
+      let arr = text.split(/\r?\n\r?\n/).filter(Boolean)
+      let lastIndex = arr.length - 1
+
+      // 如果最后一块无法解析，暂存到 lastText 等待下次
+      try {
+        const allParsable = arr.every(item => {
+          const cleaned = item.replace(/^data:\s*/i, '').trim()
+          JSON.parse(cleaned)
+          return true
+        })
+        if (!allParsable && arr.length) {
+          throw new Error('chunk not fully parsable')
+        }
+      } catch (_) {
+        lastText = arr[lastIndex]
+        arr = arr.filter((_, i) => i !== lastIndex)
+      }
+
+      if (arr.length) {
+        arr.forEach(msg => {
+          try {
+            const cleaned = msg.replace(/^data:\s*/i, '').trim()
+            const parsed: any = JSON.parse(cleaned)
+
+            // 兼容 event/name 字段
+            let name: IStreamName | undefined
+            let payload: any
+
+            if (parsed.event) {
+              const eventMap: Record<string, IStreamName> = {
+                message: 'text',
+                message_end: 'end_text'
+              }
+              name = eventMap[parsed.event] || parsed.event
+              payload = parsed.answer ?? parsed.data ?? parsed.conversation_id ?? parsed
+            } else if (parsed.name) {
+              name = parsed.name as IStreamName
+              payload = parsed.data
+            } else if (parsed.conversation_id) {
+              name = 'conversation_id'
+              payload = parsed.conversation_id
+            } else {
+              name = 'text'
+              payload = parsed.answer ?? cleaned
+            }
+
+            handlers.onMessage?.({ name: name as IStreamName, data: payload })
+          } catch (err) {
+            // 单条解析失败，累积到 lastText
+            lastText += msg
+          }
+        })
+      }
+    } catch (error) {
+      handlers.onError?.(error)
+    }
+  })
+
+  return requestTask
 }
