@@ -134,11 +134,27 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
             })
           }
           if (item.aiResponse) {
+            // 安全解析 enterpriseInfo，避免 null 或非法 JSON 导致报错
+            let enterpriseInfoSafe: any = {}
+            try {
+              if (typeof item.enterpriseInfo === 'string' && item.enterpriseInfo) {
+                enterpriseInfoSafe = JSON.parse(item.enterpriseInfo)
+              } else if (item.enterpriseInfo && typeof item.enterpriseInfo === 'object') {
+                enterpriseInfoSafe = item.enterpriseInfo
+              }
+            } catch (_) {
+              enterpriseInfoSafe = {}
+            }
+
+            const rawCompanyList = Array.isArray(enterpriseInfoSafe?.companyList) ? enterpriseInfoSafe.companyList : []
+            const safeSplitNum = typeof enterpriseInfoSafe?.splitNum === 'number' ? enterpriseInfoSafe.splitNum : 0
+            const safeTotal = typeof enterpriseInfoSafe?.total === 'number' ? enterpriseInfoSafe.total : 0
+
             newMessages.push({
               role: 'ai',
               content: item.aiResponse,
               conclusion: item.aiConclusion,
-              companyList: JSON.parse(item.enterpriseInfo).companyList.map((item: any) => {
+              companyList: rawCompanyList.map((item: any) => {
                 // 确保 contactInfo 存在且有正确的结构
                 if (!item.contactInfo) {
                   item.contactInfo = { phones: [] }
@@ -172,8 +188,8 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
                 }
                 return item
               }),
-              splitNum: JSON.parse(item.enterpriseInfo).splitNum,
-              total: JSON.parse(item.enterpriseInfo).total,
+              splitNum: safeSplitNum,
+              total: safeTotal,
               apiStatus: { textComplete: true, companyComplete: true },
               messageId: item.id || generateUniqueId(),
               isCollect: item.isCollect,
