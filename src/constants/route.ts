@@ -41,6 +41,8 @@ export const ROUTE = {
     ADD_FOLLOW: '/subpackages/cluePage/addFollow/index',
     // 跟进记录
     FOLLOW_RECORD: '/subpackages/cluePage/followList/index',
+    // AI企业搜索结果
+    ENTERPRISE_SEARCH_RESULT: '/subpackages/company/enterpriseSearch/index',
 }
 
 export const ROUTE_NAME = {
@@ -89,4 +91,8 @@ export const ROUTE_PARAMS_NAME = {
     CLUE_ID: 'clueId',
     // 线索在线索列表的index
     CLUE_INDEX: 'clueIndex',
+    // 消息id
+    MESSAGE_ID: 'messageId',
+    // 消息关键词
+    MESSAGE_KEYWORD: 'messageKeyword',
 }

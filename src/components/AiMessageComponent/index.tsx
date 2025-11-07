@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { View, Image, Text, RichText } from '@tarojs/components'
 import { ArrowRight, ArrowRightSmall } from '@nutui/icons-react-taro'
 import { marked } from 'marked'
 import Taro from '@tarojs/taro'
+import { ROUTE, ROUTE_PARAMS_NAME } from '@/constants'
+import MarkdownComponent from '../MarkDownComponent'
 
 // 配置marked选项，适合小程序环境
 marked.setOptions({
@@ -31,35 +33,45 @@ const parseMarkdown = (text: string): string => {
     // 应用自定义样式处理
     let htmlResult = processedText
       // 处理嵌套的背景色div，移除外层div的padding
-      .replace(/<div style="background-color:#f0f8ff; padding:10px; border-radius:5px;">[\s\S]*?<\/div>/g, '<div style="background-color:#ffffff; padding:none; border-radius:50px;">$1</div>')
+      .replace(
+        /<div style="background-color:#f0f8ff; padding:10px; border-radius:5px;">[\s\S]*?<\/div>/g,
+        '<div style="background-color:#ffffff; padding:none; border-radius:50px;">$1</div>'
+      )
       // 使用“块级表格解析”：匹配“表头 | 分隔线 | 多行数据”
-      .replace(/(?:^|\n)\s*\|(.+?)\|\s*\n\s*\|([-\s:|]+)\|\s*\n((?:\s*\|.*\|\s*\n?)*)/g, (match, headerLine, separatorLine, bodyLines) => {
-        const normalize = (line: string) => line.replace(/^\s*\|\s*|\s*\|\s*$/g, '')
-        const headers = normalize(headerLine)
-          .split('|')
-          .map(c => c.trim())
-          .filter(Boolean)
+      .replace(
+        /(?:^|\n)\s*\|(.+?)\|\s*\n\s*\|([-\s:|]+)\|\s*\n((?:\s*\|.*\|\s*\n?)*)/g,
+        (match, headerLine, separatorLine, bodyLines) => {
+          const normalize = (line: string) => line.replace(/^\s*\|\s*|\s*\|\s*$/g, '')
+          const headers = normalize(headerLine)
+            .split('|')
+            .map(c => c.trim())
+            .filter(Boolean)
 
-        // 可根据分隔线的 :--- :---: ---: 判定对齐方式，这里简单左对齐
-        const thStyle = 'padding:12px 16px;border:1px solid #ddd;background:#f7f7f7;font-weight:600;text-align:left;vertical-align:top;font-size:12px;line-height:1.4;'
-        const tdStyle = 'padding:12px 16px;border:1px solid #ddd;text-align:left;vertical-align:top;font-size:12px;line-height:1.4;'
+          // 可根据分隔线的 :--- :---: ---: 判定对齐方式，这里简单左对齐
+          const thStyle =
+            'padding:12px 16px;border:1px solid #ddd;background:#f7f7f7;font-weight:600;text-align:left;vertical-align:top;font-size:12px;line-height:1.4;'
+          const tdStyle =
+            'padding:12px 16px;border:1px solid #ddd;text-align:left;vertical-align:top;font-size:12px;line-height:1.4;'
 
-        const thead = `<thead><tr>${headers.map(h => `<th style="${thStyle}">${h}</th>`).join('')}</tr></thead>`
+          const thead = `<thead><tr>${headers
+            .map(h => `<th style="${thStyle}">${h}</th>`)
+            .join('')}</tr></thead>`
 
-        const rows = bodyLines
-          .trim()
-          .split('\n')
-          .filter(line => /\|/.test(line.trim()))
-          .map(line => {
-            const cells = normalize(line)
-              .split('|')
-              .map(c => c.trim())
-            return `<tr>${cells.map(c => `<td style="${tdStyle}">${c}</td>`).join('')}</tr>`
-          })
-          .join('')
+          const rows = bodyLines
+            .trim()
+            .split('\n')
+            .filter(line => /\|/.test(line.trim()))
+            .map(line => {
+              const cells = normalize(line)
+                .split('|')
+                .map(c => c.trim())
+              return `<tr>${cells.map(c => `<td style="${tdStyle}">${c}</td>`).join('')}</tr>`
+            })
+            .join('')
 
-        return `<table style="width:100%;border-collapse:collapse;margin:16px 0;border:1px solid #ddd;background:#fff;">${thead}<tbody>${rows}</tbody></table>`
-      })
+          return `<table style="width:100%;border-collapse:collapse;margin:16px 0;border:1px solid #ddd;background:#fff;">${thead}<tbody>${rows}</tbody></table>`
+        }
+      )
       // 处理特殊的列表块（包含字数、内容、样例的部分）
       .replace(/(- \*\*字数\*\*[\s\S]*?(?=\n\n|$))/g, match => {
         const listItems = match
@@ -81,19 +93,49 @@ const parseMarkdown = (text: string): string => {
         return `<div style="background-color:#fff; padding:none; border-radius:5px;">${listItems}${exampleContent}</div>`
       })
       // 处理普通列表项
-      .replace(/^- (.+)$/gm, '<div style="display: flex; margin: 6px 0; align-items: flex-start;"><span style="margin-right: 8px; color: #666;">•</span><span>$1</span></div>')
+      .replace(
+        /^- (.+)$/gm,
+        '<div style="display: flex; margin: 6px 0; align-items: flex-start;"><span style="margin-right: 8px; color: #666;">•</span><span>$1</span></div>'
+      )
       // 处理嵌套的列表项（在HTML内容中的）
-      .replace(/\n\s*- (.+)/g, '<div style="display: flex; margin: 6px 0; align-items: flex-start; margin-left: 20px;"><span style="margin-right: 8px; color: #666;">•</span><span>$1</span></div>')
+      .replace(
+        /\n\s*- (.+)/g,
+        '<div style="display: flex; margin: 6px 0; align-items: flex-start; margin-left: 20px;"><span style="margin-right: 8px; color: #666;">•</span><span>$1</span></div>'
+      )
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
       .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-      .replace(/(<\/table>)\s*## ([^\n]+)/g, '$1<div style="font-size: 14px; font-weight: bold; margin: 10px 0; color: #333;">$2</div>')
-      .replace(/(<\/table>)\s*### ([^\n]+)/g, '$1<div style="font-size: 16px; font-weight: bold; margin: 10px 0; color: #333;">$2</div>')
-      .replace(/(<\/div>)\s*#### ([^\n]+)/g, '$1<div style="font-size: 14px; font-weight: bold; margin: 8px 0; color: #333;">$2</div>')
-      .replace(/^\s*#### ([^\n]+)/gm, '<div style="font-size: 14px; font-weight: bold; margin: 8px 0; color: #333;">$1</div>')
-      .replace(/^\s*### ([^\n]+)/gm, '<div style="font-size: 16px; font-weight: bold; margin: 10px 0; color: #333;">$1</div>')
-      .replace(/^\s*## ([^\n]+)/gm, '<div style="font-size: 14px; font-weight: bold; margin: 10px 0; color: #333;">$1</div>')
-      .replace(/(<\/table>)\s*---\s*/g, '$1<div style="border-top: 2px solid #fff; margin: 10px 0; height: 0;"></div>')
-      .replace(/^---$/gm, '<div style="border-top: 2px solid #fff; margin: 10px 0; height: 0;"></div>')
+      .replace(
+        /(<\/table>)\s*## ([^\n]+)/g,
+        '$1<div style="font-size: 14px; font-weight: bold; margin: 10px 0; color: #333;">$2</div>'
+      )
+      .replace(
+        /(<\/table>)\s*### ([^\n]+)/g,
+        '$1<div style="font-size: 16px; font-weight: bold; margin: 10px 0; color: #333;">$2</div>'
+      )
+      .replace(
+        /(<\/div>)\s*#### ([^\n]+)/g,
+        '$1<div style="font-size: 14px; font-weight: bold; margin: 8px 0; color: #333;">$2</div>'
+      )
+      .replace(
+        /^\s*#### ([^\n]+)/gm,
+        '<div style="font-size: 14px; font-weight: bold; margin: 8px 0; color: #333;">$1</div>'
+      )
+      .replace(
+        /^\s*### ([^\n]+)/gm,
+        '<div style="font-size: 16px; font-weight: bold; margin: 10px 0; color: #333;">$1</div>'
+      )
+      .replace(
+        /^\s*## ([^\n]+)/gm,
+        '<div style="font-size: 14px; font-weight: bold; margin: 10px 0; color: #333;">$1</div>'
+      )
+      .replace(
+        /(<\/table>)\s*---\s*/g,
+        '$1<div style="border-top: 2px solid #fff; margin: 10px 0; height: 0;"></div>'
+      )
+      .replace(
+        /^---$/gm,
+        '<div style="border-top: 2px solid #fff; margin: 10px 0; height: 0;"></div>'
+      )
 
     // 关键修改：再次解码HTML实体，解决&quot;问题
     let decodedHtmlResult = htmlResult
@@ -139,16 +181,7 @@ const ChatTechLoadingAnimation = () => {
 }
 
 interface AiMessageComponentProps {
-  msg: {
-    splitNum: number
-    total: number
-    content: string
-    conclusion: string
-    companyList: any[]
-    apiStatus: { textComplete: boolean; companyComplete: boolean }
-    messageId: string
-    role: string
-  }
+  msg: any
 }
 
 const toBranch = (val: any, e?: any) => {
@@ -170,7 +203,9 @@ const toDynamic = (val: any, e?: any) => {
   }
   let res = { gid: val?.gid, name: val.name, logo: val.logo }
   Taro.navigateTo({
-    url: `/subpackages/company/enterpriseDetail/detail/dynamicInfo/index?item=${JSON.stringify(res)}`
+    url: `/subpackages/company/enterpriseDetail/detail/dynamicInfo/index?item=${JSON.stringify(
+      res
+    )}`
   })
 }
 
@@ -187,123 +222,166 @@ const navigateToCompanyDetail = (company: any, e?: any) => {
 }
 
 const navigateToCompanyList = (msg: any) => {
-  // 先跳转页面
-  Taro.navigateTo({ url: `/subpackages/company/enterpriseSearch/index?messageId=${msg.messageId}` }).then(() => {
-    // 页面跳转成功后，延迟触发事件
-    setTimeout(() => {
-      console.log('企业搜索数据', msg.companyList)
-      Taro.eventCenter.trigger('enterpriseSearchData', {
-        companyList: msg.companyList,
-        total: msg.total,
-        messageId: msg.messageId
-      })
-    }, 100) // 延迟100ms确保目标页面已经加载
+  // 跳转“企业搜索”页面，兼容 id 或旧的 messageId
+  const mid = msg?.id || msg?.messageId
+  Taro.navigateTo({
+    url: `${ROUTE.ENTERPRISE_SEARCH_RESULT}?${ROUTE_PARAMS_NAME.MESSAGE_ID}=${mid}&${ROUTE_PARAMS_NAME.MESSAGE_KEYWORD}=${msg.keyword}`
   })
 }
 
+// 旧的“查看所有企业”入口依赖旧数据结构与跨页事件，已移除
+
 const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
-  useEffect(() => {
-    const handleEnterpriseDetailUnload = (res: any) => {
-      if (res.messageId === msg.messageId) {
-        msg.companyList.forEach((item: any) => {
-          if (item.creditCode === res.creditCode) {
-            item.hasFeedback = res.hasFeedback
-            item.isJoinClue = res.isJoinClue
-            item.commentContent = res.commentContent
-          }
-        })
-      }
-    }
-    Taro.eventCenter.on('enterpriseDetailUnloadAi', handleEnterpriseDetailUnload)
+  const renderCorpList = () => {
+    if (msg.tableType !== 'corp') return null
+    const list = Array.isArray(msg.tableData) ? msg.tableData : []
+    if (list.length === 0) return null
 
-    return () => {
-      Taro.eventCenter.off('enterpriseDetailUnloadAi', handleEnterpriseDetailUnload)
-    }
-  }, [msg])
+    return (
+      <View>
+        {list.slice(0, 10).map((val: any, idx: number) => {
+          const logo = val.logo || ''
+          const name = val.name || '- -'
+          const creditCode = val.credit_code || val.creditCode || ''
 
-  useEffect(() => {
-    const handleEnterpriseSearchDataEdit = (data: any) => {
-      if (data.messageId === msg.messageId) {
-        msg.companyList = data.companyList
-      }
-    }
-    Taro.eventCenter.on('enterpriseSearchDataEdit', handleEnterpriseSearchDataEdit)
+          const clickCompany = () =>
+            navigateToCompanyDetail({ creditCode, name, messageId: msg.id || msg.messageId })
 
-    return () => {
-      Taro.eventCenter.off('enterpriseSearchDataEdit', handleEnterpriseSearchDataEdit)
-    }
-  }, [])
-
-  return (
-    <View>
-      {msg.content ? <RichText className="chatMsg_ai_text" nodes={parseMarkdown(msg.content)} /> : null}
-      {msg.role === 'ai' && msg.apiStatus.textComplete && msg.companyList && msg.companyList.length > 0
-        ? msg.companyList.slice(0, msg.splitNum == 0 || msg.splitNum == null ? 10 : msg.splitNum).map((val, valIdx) => (
-            <View key={valIdx}>
-              <View className="chat_ai_company" onClick={() => navigateToCompanyDetail({ ...val, messageId: msg.messageId })}>
+          return (
+            <View key={idx}>
+              <View className="chat_ai_company" onClick={clickCompany}>
                 <View className="company_left">
-                  {val.logo ? (
-                    // 判断是否为图片链接（包含http或https）
-                    val.logo.includes('http') ? (
-                      <Image src={val.logo} className="company_left_img" />
-                    ) : (
-                      // 如果是文字，显示文字
-                      <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="company_left_img">
-                        {val.logo}
-                      </Text>
-                    )
+                  {logo && String(logo).includes('http') ? (
+                    <Image src={logo} className="company_left_img" />
+                  ) : logo ? (
+                    <Text
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#1B5BFF',
+                        color: '#fff',
+                        borderRadius: '8rpx',
+                        fontSize: '32rpx',
+                        textAlign: 'center',
+                        padding: '8rpx',
+                        boxSizing: 'border-box'
+                      }}
+                      className="company_left_img"
+                    >
+                      {logo}
+                    </Text>
                   ) : (
-                    // 如果为空，显示"暂无"
-                    <Text className="company_left_img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx' }}>
+                    <Text
+                      className="company_left_img"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#1B5BFF',
+                        color: '#fff',
+                        borderRadius: '8rpx',
+                        fontSize: '32rpx'
+                      }}
+                    >
                       暂无
                     </Text>
                   )}
                 </View>
                 <View className="company_right">
                   <View className="company_right_top">
-                    <Text className="company_right_top_text">{val.name}</Text>
+                    <Text className="company_right_top_text">{name}</Text>
                     <ArrowRightSmall color="#2B2B2B" size="24rpx" />
                   </View>
-                  {/* <View className="company_right_tags">
-                    {val.regStatus != 'null' && <Text className="company_right_tag">{val.regStatus || '- -'}</Text>}
-                    <Text className="company_right_tag">{val?.contactInfo?.phones?.length || 0}联系方式</Text>
-                    <Text className="company_right_tag">{val?.staffNum}人</Text>
-                  </View>
-                  <View className="company_right_info">
-                    <Text className="legal-person">法人:{val.legalPerson}</Text>
-                    <Text className="address">{val.handleLocation}</Text>
-                    <View className="website">
-                      <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise3.png" className="website_img" />
-                      官网
-                    </View>
-                  </View>
-                  <View className="company_right_date">
-                    <Text className="company_right_date_text">{val.establishTime}</Text>
-                  </View> */}
                   <View className="company_right_tabs">
-                    <View className="company_right_tab" onClick={e => toBranch(val, e)}>
+                    <View
+                      className="company_right_tab"
+                      onClick={e => toBranch({ creditCode, name }, e)}
+                    >
                       <View style={{ marginRight: 4 }}>总部及分支机构</View>
                       <ArrowRightSmall color="#ffffff" size="24rpx" />
                     </View>
-                    <View className="company_right_tab" onClick={e => toDynamic(val, e)}>
+                    <View
+                      className="company_right_tab"
+                      onClick={e => toDynamic({ gid: '', logo, name }, e)}
+                    >
                       <View style={{ marginRight: 4 }}>近期动态</View>
                       <ArrowRightSmall color="#ffffff" size="24rpx" />
                     </View>
                   </View>
                 </View>
               </View>
-              {valIdx === msg.splitNum - 1 && (
-                <View className="chatMsg_ai_fun_line" onClick={() => navigateToCompanyList(msg)}>
-                  <View style={{ marginRight: '16rpx' }}>查看{msg.total}企业信息</View>
-                  <ArrowRight color="#1B5BFF" size="30rpx" />
-                </View>
-              )}
             </View>
-          ))
-        : null}
-      {msg.conclusion ? <View style={{ marginTop: '16rpx' }} className="chatMsg_ai_text" dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.conclusion) }}></View> : null}
-      {/* 加载动画单独显示在文字和公司列表下方 */}
-      {(!msg.apiStatus.textComplete || !msg.apiStatus.companyComplete) && <ChatTechLoadingAnimation />}
+          )
+        })}
+
+        {/* 查看全部企业按钮 */}
+        <View
+          className="company_view_all"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12rpx 16rpx',
+            background: '#f7faff',
+            borderRadius: '12rpx',
+            marginTop: '8rpx'
+          }}
+          onClick={() => navigateToCompanyList(msg)}
+        >
+          <Text style={{ color: '#2B2B2B', fontSize: '32rpx', fontWeight: '600' }}>查看全部</Text>
+          <ArrowRightSmall color="#2B2B2B" size="32rpx" />
+        </View>
+      </View>
+    )
+  }
+
+  const renderPhoneList = () => {
+    if (msg.tableType !== 'phone') return null
+    const list = Array.isArray(msg.tableData) ? msg.tableData : []
+    if (list.length === 0) return null
+
+    return (
+      <View className="contact_list">
+        {list.map((item: any, idx: number) => (
+          <View
+            className="contact_item"
+            key={`${item.phone || idx}-${idx}`}
+            onClick={() => item.phone && Taro.makePhoneCall({ phoneNumber: String(item.phone) })}
+          >
+            <View className="contact_main">
+              <View className="contact_phone">{item.phone || '未知号码'}</View>
+              {item.recommend ? <View className="contact_recommend">推荐</View> : null}
+            </View>
+            <View className="contact_sub">
+              <View className="contact_name">{item.name || '- -'}</View>
+              <View className="contact_position">{item.position || ''}</View>
+            </View>
+          </View>
+        ))}
+      </View>
+    )
+  }
+
+  return (
+    <View>
+      {msg.reasoningProcess ? (
+        <MarkdownComponent content={msg.reasoningProcess} />
+      ) : null}
+      {msg.aiResponse ? (
+        <MarkdownComponent content={msg.aiResponse} />
+      ) : null}
+      {renderCorpList()}
+      {renderPhoneList()}
+      {msg.aiConclusion ? (
+        <View
+          style={{ marginTop: '16rpx' }}
+          className="chatMsg_ai_text"
+        >
+          <MarkdownComponent content={msg.aiConclusion} />
+        </View>
+      ) : null}
+      {!Boolean(msg?.id) ? <ChatTechLoadingAnimation /> : null}
     </View>
   )
 }

@@ -1,5 +1,6 @@
 export type IStreamName =
   | 'conversation_id'
+  | 'keywords'
   | 'start_thinking'
   | 'thinking'
   | 'end_thinking'
@@ -7,7 +8,7 @@ export type IStreamName =
   | 'text'
   | 'end_text'
   | 'start_table'
-  | 'table'
+  | 'json'
   | 'end_table'
 
 export interface IStreamEvent<T = any> {

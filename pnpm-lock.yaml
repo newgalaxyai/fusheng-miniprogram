@@ -89,9 +89,15 @@ importers:
       react-refresh:
         specifier: ^0.11.0
         version: 0.11.0
+      taro-markdown:
+        specifier: ^0.0.2
+        version: 0.0.2(@tarojs/components@3.6.37(@tarojs/helper@3.6.37)(@tarojs/runtime@3.6.37(@tarojs/shared@3.6.37))(@tarojs/shared@3.6.37)(@types/react@18.3.23)(postcss@8.5.6)(react@18.3.1))(@tarojs/taro@3.6.37(@tarojs/helper@3.6.37)(@tarojs/runtime@3.6.37(@tarojs/shared@3.6.37))(@types/react@18.3.23)(postcss@8.5.6))(@types/react@18.3.23)(react@18.3.1)
       taro-ui:
         specifier: ^3.3.0
         version: 3.3.0(b6e0bb46aee32de4e3b9cfd2839ce705)
+      towxml:
+        specifier: ^3.0.6
+        version: 3.0.6
     devDependencies:
       '@babel/core':
         specifier: ^7.28.0
@@ -8501,6 +8507,14 @@ packages:
     resolution: {integrity: sha512-DZ4yORTwrbTj/7MZYq2w+/ZFdI6OZ/f9SFHR+71gIVUZhOQPHzVCLpvRnPgyaMpfWxxk/4ONva3GQSyNIKRv6A==}
     engines: {node: '>=10'}
 
+  taro-markdown@0.0.2:
+    resolution: {integrity: sha512-qWeH2HeeMf2jzLNbV0LKNTI5+rbYkbzdX7pknI2NqLYAbL3FJY/ll7HeV+bSrG74/W0nF6UIZFi96ia1hTyFpw==}
+    peerDependencies:
+      '@tarojs/components': ^3.6.19
+      '@tarojs/taro': ^3.6.19
+      '@types/react': ^18.2.38
+      react: ^18.2.0
+
   taro-ui@3.3.0:
     resolution: {integrity: sha512-M4tf2OEy1BzmeFyvF0kFOgzzW1Lc86TlQ5UwZh4cNMkuViqGId/DLqY0iMlqAjfXstRn0x4HaFFw91xfLqkPzg==}
     peerDependencies:
@@ -8642,6 +8656,9 @@ packages:
   tough-cookie@4.1.4:
     resolution: {integrity: sha512-Loo5UUvLD9ScZ6jh8beX1T6sO1w2/MpCRpEP7V280GKMVUQ0Jzar2U3UJPsrdbziLEMMhu3Ujnq//rhiFuIeag==}
     engines: {node: '>=6'}
+
+  towxml@3.0.6:
+    resolution: {integrity: sha512-AiEEyTYemk3xLlypfihR+vr/slyjvQZvZbGGXQdRklwYY8dbDEGUDopFwAtfW7tVkOc09rfZ7yu040vjJU84cw==}
 
   tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
@@ -19662,6 +19679,13 @@ snapshots:
       mkdirp: 1.0.4
       yallist: 4.0.0
 
+  taro-markdown@0.0.2(@tarojs/components@3.6.37(@tarojs/helper@3.6.37)(@tarojs/runtime@3.6.37(@tarojs/shared@3.6.37))(@tarojs/shared@3.6.37)(@types/react@18.3.23)(postcss@8.5.6)(react@18.3.1))(@tarojs/taro@3.6.37(@tarojs/helper@3.6.37)(@tarojs/runtime@3.6.37(@tarojs/shared@3.6.37))(@types/react@18.3.23)(postcss@8.5.6))(@types/react@18.3.23)(react@18.3.1):
+    dependencies:
+      '@tarojs/components': 3.6.37(@tarojs/helper@3.6.37)(@tarojs/runtime@3.6.37(@tarojs/shared@3.6.37))(@tarojs/shared@3.6.37)(@types/react@18.3.23)(postcss@8.5.6)(react@18.3.1)
+      '@tarojs/taro': 3.6.37(@tarojs/helper@3.6.37)(@tarojs/runtime@3.6.37(@tarojs/shared@3.6.37))(@types/react@18.3.23)(postcss@8.5.6)
+      '@types/react': 18.3.23
+      react: 18.3.1
+
   taro-ui@3.3.0(b6e0bb46aee32de4e3b9cfd2839ce705):
     dependencies:
       '@tarojs/components': 3.6.37(@tarojs/helper@3.6.37)(@tarojs/runtime@3.6.37(@tarojs/shared@3.6.37))(@tarojs/shared@3.6.37)(@types/react@18.3.23)(postcss@8.5.6)(react@18.3.1)
@@ -19807,6 +19831,10 @@ snapshots:
       punycode: 2.3.1
       universalify: 0.2.0
       url-parse: 1.5.10
+
+  towxml@3.0.6:
+    dependencies:
+      fs-extra: 8.1.0
 
   tr46@0.0.3: {}
 

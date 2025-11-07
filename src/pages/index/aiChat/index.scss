@@ -231,16 +231,16 @@
       margin-top: 50rpx;
     }
 
-    .chatMsg_ai {
-      width: 100%;
-      height: 100%;
-      background: #fff;
-      border-radius: 32rpx;
-      padding: 16rpx 0;
-      box-sizing: border-box;
-      color: #333;
-      font-size: 32rpx;
-      word-break: break-all;
+      .chatMsg_ai {
+        width: 100%;
+        height: 100%;
+        background: #fff;
+        border-radius: 32rpx;
+        padding: 16rpx 0;
+        box-sizing: border-box;
+        color: #333;
+        font-size: 32rpx;
+        word-break: break-all;
 
       .chatMsg_ai_fun_line {
         width: 100%;
@@ -573,16 +573,16 @@
         }
       }
 
-      .chatMsg_ai_fun {
-        width: 100%;
-        height: 100%;
-        background: #fff;
-        border-radius: 32rpx;
-        box-sizing: border-box;
-        display: flex;
-        align-items: center;
-        gap: 40rpx;
-        margin-top: 42rpx;
+        .chatMsg_ai_fun {
+          width: 100%;
+          height: 100%;
+          background: #fff;
+          border-radius: 32rpx;
+          box-sizing: border-box;
+          display: flex;
+          align-items: center;
+          gap: 40rpx;
+          margin-top: 42rpx;
 
         .chatMsg_ai_fun_img {
           width: 32rpx;
@@ -615,6 +615,60 @@
             transition: transform 0.05s ease-in-out;
           }
         }
+
+        // 联系人列表（phone 表格类型）
+        .contact_list {
+          width: 100%;
+          background: #F7F7F7;
+          border-radius: 24rpx;
+          padding: 16rpx;
+          box-sizing: border-box;
+          margin-top: 24rpx;
+        }
+
+        .contact_item {
+          width: 100%;
+          background: #fff;
+          border-radius: 16rpx;
+          padding: 16rpx;
+          box-sizing: border-box;
+          margin-bottom: 16rpx;
+        }
+
+        .contact_main {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 8rpx;
+        }
+
+        .contact_phone {
+          font-weight: 600;
+          color: #2B2B2B;
+        }
+
+        .contact_recommend {
+          height: 40rpx;
+          border-radius: 8rpx;
+          background: #E6EDFF;
+          color: #1B5BFF;
+          font-size: 24rpx;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 12rpx;
+        }
+
+        .contact_sub {
+          display: flex;
+          align-items: center;
+          gap: 16rpx;
+          color: #6E6E6E;
+          font-size: 28rpx;
+        }
+
+        .contact_name {}
+        .contact_position {}
       }
     }
   }

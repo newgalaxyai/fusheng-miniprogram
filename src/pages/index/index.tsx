@@ -160,7 +160,7 @@ function Index() {
   useEffect(() => {
     if (userInfo?.id) {
       getSession()
-      getFavoriteList()
+      // getFavoriteList()
     }
   }, [userInfo])
 

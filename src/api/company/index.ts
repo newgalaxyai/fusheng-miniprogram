@@ -1,7 +1,7 @@
-import { taroPost, taroGet, taroPut, taroDelete } from '@/service'
+import { taroPost, taroGet, taroPut, taroDelete, taroRequest } from '@/service'
 import { getCompanyInfoURL, searchCompaniesURL, getProductSellingPointsURL, generateReportURL, enterpriseDetailURL, companyFeedbackCreateURL, enterpriseGraphURL, getCompanyWebNewsListURL, getCompanyWebNewsDetailURL } from '@/service/config'
-import type { IBusinessInfo, ICorpInfoRequest, ICorpInfoResponse, IPersonInfo, IResponse, IShareholderInfo, IAnnualReport, IAnnualReportDetailRequest, IAnnualReportDetail, IBusinessInfoRequest, IOutsideInvestment, IBranchOffice, IActualController, IDirectControl, IBusibessPublicity, ISuspectedRelation, IGenerateCorpReportRequest, IAPIResponse, IGenerateCorpReportResponse, IGetCorpContactInfoRequest, IGetCorpContactInfoResponse } from '../types'
-import { getBusinessInfoURL, getPersonInfoURL, getShareholderInfoURL, getAnnualReportURL, getAnnualReportDetailURL, getOutsideInvestmentURL, getBranchOfficeURL, getActualControllerURL, getDirectControlURL, getBusinessSelfPublicationURL, getSuspectedRelationURL, getCorpContactInfoURL } from '../url'
+import type { IBusinessInfo, ICorpInfoRequest, ICorpInfoResponse, IPersonInfo, IResponse, IShareholderInfo, IAnnualReport, IAnnualReportDetailRequest, IAnnualReportDetail, IBusinessInfoRequest, IOutsideInvestment, IBranchOffice, IActualController, IDirectControl, IBusibessPublicity, ISuspectedRelation, IGenerateCorpReportRequest, IAPIResponse, IGenerateCorpReportResponse, IGetCorpContactInfoRequest, IGetCorpContactInfoResponse, IClue, IGetCorpListRequest, IPaginationResponse, ICorp } from '../types'
+import { getBusinessInfoURL, getPersonInfoURL, getShareholderInfoURL, getAnnualReportURL, getAnnualReportDetailURL, getOutsideInvestmentURL, getBranchOfficeURL, getActualControllerURL, getDirectControlURL, getBusinessSelfPublicationURL, getSuspectedRelationURL, getCorpContactInfoURL, getCorpListURL } from '../url'
 
 // 获取产品卖点
 export const getProductSellingPointsAPI = (data: any, callback: (res: IResponse<any>) => void) => {
@@ -611,4 +611,16 @@ export const getCorpContactInfoAPI = (data: IGetCorpContactInfoRequest, callback
       }
     }
   }).catch(() => {})
+}
+
+// 获取企业列表
+
+export const getCorpListAsyncApi = async (
+  data: IGetCorpListRequest
+): Promise<IAPIResponse<IPaginationResponse<ICorp>>> => {
+  const response = await taroRequest.getAsync<IAPIResponse<IPaginationResponse<ICorp>>>({
+    url: getCorpListURL,
+    data
+  })
+  return response
 }

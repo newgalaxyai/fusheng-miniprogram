@@ -22,3 +22,5 @@ export const getBusinessSelfPublicationURL = '/fs/basic/getShareholderContributi
 export const getSuspectedRelationURL = '/fs/basic/getSuspectedList'
 // 获取企业联系方式
 export const getCorpContactInfoURL = '/fs/qzd-company-info/getCompanyTypeInfo'
+// 获取企业报告
+export const getCorpListURL = '/fs/qzd-company-info/getList'

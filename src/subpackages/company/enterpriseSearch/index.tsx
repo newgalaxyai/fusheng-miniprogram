@@ -2,43 +2,116 @@
 // React核心依赖
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 // UI组件库导入
-import { Checkbox, InfiniteLoading, Radio, Popup, Cell, Button, Tabs, TextArea, SearchBar } from '@nutui/nutui-react-taro'
+import {
+  Checkbox,
+  InfiniteLoading,
+  Radio,
+  Popup,
+  Cell,
+  Button,
+  Tabs,
+  TextArea,
+  SearchBar
+} from '@nutui/nutui-react-taro'
 // Taro框架组件
 import { View, Image, Text } from '@tarojs/components'
 // 图标组件
 import { Add, ArrowDown, Checked } from '@nutui/icons-react-taro'
 // Taro核心功能
-import Taro from '@tarojs/taro'
+import Taro, { useLoad } from '@tarojs/taro'
 // 样式文件
 import './index.scss'
 // 自定义组件
 import CustomDialog from '@/components/CustomDialog'
 // API接口
 import { clueCreateAPI, clueDeleteAPI } from '@/api/clue'
-import { companyFeedbackCreateAPI } from '@/api/company'
+import { companyFeedbackCreateAPI, getCorpListAsyncApi } from '@/api/company'
 // 自定义Hooks
 import { useAppSelector } from '@/hooks/useAppStore'
-import ContactPopup from '@/components/ContactPopup'
+// import ContactPopup from '@/components/ContactPopup'
+import CorpContactComponent from '@/components/corp-contact'
+import { ROUTE, ROUTE_PARAMS_NAME } from '@/constants'
+import { ICorp, IGetCorpListRequest } from '@/api/types'
+import { filterHTMLString } from '@/utils/filterString'
 
 function Index() {
+  const [messageId, setMessageId] = useState<number>()
+  // 获取页面参数
+  useLoad(loadOptions => {
+    // console.log('loadOptions', loadOptions)
+
+    const searchParams = loadOptions
+    setFilterFormData({
+      ...filterFormData,
+      messageId: Number(searchParams[ROUTE_PARAMS_NAME.MESSAGE_ID]),
+      keyword: searchParams[ROUTE_PARAMS_NAME.MESSAGE_KEYWORD]
+    })
+    setMessageId(Number(searchParams[ROUTE_PARAMS_NAME.MESSAGE_ID]))
+  })
+  const [total, setTotal] = useState(0) // 企业总数
+  const [customList, setCustomList] = useState<ICorp[]>([]) // 企业列表数据
+  // 初始筛选参数
+  const initialFilter: IGetCorpListRequest = {
+    pageNo: 1,
+    pageSize: 10,
+    source: 2,
+    messageId: null,
+    keyword: ''
+  }
+  // 筛选区formdata
+  const [filterFormData, setFilterFormData] = useState<IGetCorpListRequest>(initialFilter)
+  // 获取企业列表
+  const getCorpList = useCallback(async () => {
+    if (filterFormData.messageId != null) {
+      // console.log('messageId', filterFormData)
+
+      const res = await getCorpListAsyncApi(filterFormData)
+      if (res.code === 0) {
+        setCustomList(res.data.list)
+        setTotal(res.data.total)
+        setCustomHasMore(corpListCursor < 6)
+      }
+    }
+  }, [filterFormData])
+  useEffect(() => {
+    getCorpList()
+  }, [getCorpList])
+  // 下拉加载更多
+  const [corpListCursor, setCorpListCursor] = useState<number>(1)
+  const [customHasMore, setCustomHasMore] = useState(true) // 是否还有更多数据
+  const corpListLoadMore = async () => {
+    if (!customHasMore) {
+      return
+    }
+    const res = await getCorpListAsyncApi({
+      ...filterFormData,
+      pageNo: corpListCursor + 1
+    })
+    if (res.code === 0) {
+      setCustomList(prev => [...prev, ...res.data.list])
+      setCorpListCursor(corpListCursor + 1)
+      setCustomHasMore(corpListCursor < 6)
+    }
+  }
+  // 联系方式弹窗
+  const [isShowPhone, setIsShowPhone] = useState(false) // 联系人弹窗
+  // 打开弹窗选中的企业代码
+  const [currentCreditCode, setCurrentCreditCode] = useState<string>('')
+
   // ==================== 搜索相关状态 ====================
   const [searchValue, setSearchValue] = useState('') // 搜索关键词
-  const [messageId, setMessageId] = useState('') // 搜索关键词
   const [selectAllCluesData, setSelectAllCluesData] = useState<any[]>([]) // 搜索关键词
   const [matchHighest, setMatchHighest] = useState(false) // 匹配最高开关
   const [headerHeight, setHeaderHeight] = useState(0) // 头部高度
   const [bottomHeight, setBottomHeight] = useState(0) // 底部高度
 
   // ==================== 列表数据状态 ====================
-  const [customHasMore, setCustomHasMore] = useState(true) // 是否还有更多数据
-  const [customList, setCustomList] = useState<any[]>([]) // 企业列表数据
   const [originalCustomList, setOriginalCustomList] = useState<any[]>([]) // 保存原始排序的企业列表数据
   const [phoneInfo, setPhoneInfo] = useState<any[]>([]) // 手机号
   const [fixedLines, setFixedLines] = useState<any[]>([]) // 固话
   const [emails, setEmails] = useState<any[]>([]) // 邮箱
   const [address, setAddress] = useState<any[]>([]) // 地址
   const [others, setOthers] = useState<any[]>([]) // 其他
-  const [total, setTotal] = useState(0) // 企业总数
   const companyInfo = Taro.getStorageSync('companyInfo') || {}
   const userInfo = useAppSelector(state => state.login.userInfo)
   const [clueId, setClueId] = useState('')
@@ -70,7 +143,6 @@ function Index() {
 
   // ==================== 弹窗显示状态 ====================
   const [isShowActionSheet, setIsShowActionSheet] = useState(false) // 行业选择弹窗
-  const [isShowPhone, setIsShowPhone] = useState(false) // 联系人弹窗
   const [isShowAddress, setIsShowAddress] = useState(false) // 工厂地址弹窗
   const [isShowFeedback, setIsShowFeedback] = useState(false) // 反馈弹窗
   const [isShowInvalid, setIsShowInvalid] = useState(false) // 无效线索原因弹窗
@@ -154,7 +226,9 @@ function Index() {
       }
 
       // 处理tags字段
-      newItem.tags = Array.isArray(newItem.tags) ? newItem.tags.filter((tag: any) => tag !== '曾用名') : []
+      newItem.tags = Array.isArray(newItem.tags)
+        ? newItem.tags.filter((tag: any) => tag !== '曾用名')
+        : []
       return newItem
     })
 
@@ -275,8 +349,9 @@ function Index() {
   // 打开联系人弹窗
   function openPhone(val: any) {
     setIsShowPhone(true)
-    setPhoneInfo(val.contactInfo?.phones)
-    setEmails(val.contactInfo.emails)
+    setCurrentCreditCode(filterHTMLString(val.creditCode))
+    // setPhoneInfo(val.contactInfo?.phones)
+    // setEmails(val.contactInfo.emails)
   }
 
   // 打开地址弹窗
@@ -359,9 +434,9 @@ function Index() {
   }
 
   // AI研究报告
-  const handleAiResearchReport = (company: any) => {
+  const handleAiResearchReport = (company: ICorp) => {
     Taro.navigateTo({
-      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.creditCode}&companyParameter=${company.enterpriseAnalysisBack}&name=${company.name}`
+      url: `${ROUTE.AI_RESEARCH_REPORT}?${ROUTE_PARAMS_NAME.CREDIT_CODE}=${filterHTMLString(company.creditCode)}&${ROUTE_PARAMS_NAME.COMPANY_NAME}=${company.name}`
     })
   }
 
@@ -369,7 +444,9 @@ function Index() {
   // 处理地区选择
   const handleRegionSelect = (province: string, city: string) => {
     // 检查当前城市是否已被选中
-    const isCurrentlySelected = regionList.some(p => p.province === province && p.cities.some(c => c.name === city && c.selected))
+    const isCurrentlySelected = regionList.some(
+      p => p.province === province && p.cities.some(c => c.name === city && c.selected)
+    )
 
     if (isCurrentlySelected) {
       // 如果已选中，则取消选中
@@ -433,7 +510,7 @@ function Index() {
 
     companyFeedbackCreateAPI(
       {
-        creditCode: val.creditCode,
+        creditCode: filterHTMLString(val.creditCode),
         isLiked: newFeedbackStatus,
         commentContent: '有效'
       },
@@ -508,7 +585,7 @@ function Index() {
 
     companyFeedbackCreateAPI(
       {
-        creditCode: itemInfo.creditCode,
+        creditCode: filterHTMLString(itemInfo.creditCode),
         isLiked: 2,
         feedbackType: parseInt(checked[0]),
         commentContent: feedBackValue || '不符合我的业务'
@@ -615,11 +692,13 @@ function Index() {
   const handleDialogConfirm = (currentOperatingItem: any, type: string) => {
     if (currentOperatingItem) {
       if (type === 'add') {
-        clueCreateAPI({ unifiedSocialCreditCodes: currentOperatingItem.creditCode }, res => {
+        clueCreateAPI({ unifiedSocialCreditCodes: filterHTMLString(currentOperatingItem.creditCode) }, res => {
           if (res.success) {
             setCustomList(prevList => {
               const newList = [...prevList]
-              const targetIndex = newList.findIndex(item => item.creditCode === currentOperatingItem.creditCode)
+              const targetIndex = newList.findIndex(
+                item => item.creditCode === currentOperatingItem.creditCode
+              )
               if (targetIndex !== -1) {
                 newList[targetIndex] = {
                   ...newList[targetIndex],
@@ -643,7 +722,7 @@ function Index() {
           }
         })
       } else if (type === 'remove') {
-        clueDeleteAPI({ unifiedSocialCreditCode: currentOperatingItem.creditCode }, res => {
+        clueDeleteAPI({ unifiedSocialCreditCode: filterHTMLString(currentOperatingItem.creditCode) }, res => {
           if (res.success) {
             setCustomList(prevList =>
               prevList.map(item => {
@@ -759,7 +838,7 @@ function Index() {
   const handleRestoreConfirm = (item: any) => {
     companyFeedbackCreateAPI(
       {
-        creditCode: item?.creditCode || '',
+        creditCode: filterHTMLString(item?.creditCode || ''),
         isLiked: 0,
         commentContent: ''
       },
@@ -825,32 +904,71 @@ function Index() {
       {/* <CustomDialog visible={showRestoreDialog} title="您确定要恢复该线索吗？" content="恢复后该线索可以重新选择匹配与不匹配" onConfirm={handleRestoreConfirm} onCancel={handleRestoreCancel} /> */}
 
       {/* 行业前10选择弹窗 */}
-      <Popup position="bottom" style={{ height: '50%' }} visible={isShowActionSheet} onClose={() => setIsShowActionSheet(false)}>
+      <Popup
+        position="bottom"
+        style={{ height: '50%' }}
+        visible={isShowActionSheet}
+        onClose={() => setIsShowActionSheet(false)}
+      >
         <View className="popup_header">
           <View className="popup_header_title"></View>
-          <Image onClick={() => setIsShowActionSheet(false)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+          <Image
+            onClick={() => setIsShowActionSheet(false)}
+            src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png"
+            className="popup_header_img"
+          />
         </View>
         <View className="popup_content">
-          <Radio.Group value={selectedId} onChange={setSelectedId} labelPosition="left" style={{ width: '100%' }}>
+          <Radio.Group
+            value={selectedId}
+            onChange={setSelectedId}
+            labelPosition="left"
+            style={{ width: '100%' }}
+          >
             {sheetList.map(item => (
               <Cell key={item.id} style={{ width: '100%', boxSizing: 'border-box' }}>
-                <Radio icon={<Checked />} activeIcon={<Checked color="#426EFF" />} value={item.id} labelPosition="left" style={{ width: '100%', boxSizing: 'border-box', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Radio
+                  icon={<Checked />}
+                  activeIcon={<Checked color="#426EFF" />}
+                  value={item.id}
+                  labelPosition="left"
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
                   <View className="actionSheet_content_item">{item.name}</View>
                 </Radio>
               </Cell>
             ))}
           </Radio.Group>
-          <Button fill="none" shape="round" style={{ width: '100%', height: '80rpx', marginTop: '20rpx', borderRadius: 'none' }} onClick={() => setIsShowActionSheet(false)}>
+          <Button
+            fill="none"
+            shape="round"
+            style={{ width: '100%', height: '80rpx', marginTop: '20rpx', borderRadius: 'none' }}
+            onClick={() => setIsShowActionSheet(false)}
+          >
             取消
           </Button>
         </View>
       </Popup>
 
       {/* 无效线索原因弹窗 */}
-      <Popup position="bottom" style={{ height: '50%' }} visible={isShowInvalid} onClose={() => setIsShowInvalid(false)}>
+      <Popup
+        position="bottom"
+        style={{ height: '50%' }}
+        visible={isShowInvalid}
+        onClose={() => setIsShowInvalid(false)}
+      >
         <View className="popup_header">
           <View className="popup_header_title">无效线索原因</View>
-          <Image onClick={() => setIsShowInvalid(false)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+          <Image
+            onClick={() => setIsShowInvalid(false)}
+            src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png"
+            className="popup_header_img"
+          />
         </View>
         <View className="invalid_content">{itemInfo.commentContent || '与我的业务无关'}</View>
         <View onClick={() => recover(itemInfo)} className="invalid_content_button">
@@ -859,7 +977,7 @@ function Index() {
       </Popup>
 
       {/* 联系人信息弹窗 */}
-      <ContactPopup
+      {/* <ContactPopup
         visible={isShowPhone}
         onClose={() => setIsShowPhone(false)}
         contactData={{
@@ -871,13 +989,27 @@ function Index() {
         }}
         tabValue={tabValue}
         onTabChange={(value: number) => setTabValue(value)}
+      /> */}
+      <CorpContactComponent
+        visible={isShowPhone}
+        setVisible={setIsShowPhone}
+        creditCode={currentCreditCode}
       />
 
       {/* 工厂地址弹窗 */}
-      <Popup position="bottom" style={{ maxHeight: '95%', minHeight: '95%' }} visible={isShowAddress} onClose={() => setIsShowAddress(false)}>
+      <Popup
+        position="bottom"
+        style={{ maxHeight: '95%', minHeight: '95%' }}
+        visible={isShowAddress}
+        onClose={() => setIsShowAddress(false)}
+      >
         <View className="popup_header">
           <View className="popup_header_title">工厂地址</View>
-          <Image onClick={() => setIsShowAddress(false)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+          <Image
+            onClick={() => setIsShowAddress(false)}
+            src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png"
+            className="popup_header_img"
+          />
         </View>
         <View className="address_content">
           <Cell.Group>
@@ -889,15 +1021,32 @@ function Index() {
       </Popup>
 
       {/* 反馈弹窗 */}
-      <Popup position="bottom" style={{ maxHeight: '95%', minHeight: '95%' }} visible={isShowFeedback} onClose={() => setIsShowFeedback(false)}>
+      <Popup
+        position="bottom"
+        style={{ maxHeight: '95%', minHeight: '95%' }}
+        visible={isShowFeedback}
+        onClose={() => setIsShowFeedback(false)}
+      >
         <View className="popup_header">
-          <View className="popup_header_title" style={{ fontSize: '40rpx', color: '#333333', textAlign: 'left', paddingLeft: '24rpx' }}>
+          <View
+            className="popup_header_title"
+            style={{ fontSize: '40rpx', color: '#333333', textAlign: 'left', paddingLeft: '24rpx' }}
+          >
             反馈-不匹配/不合适
           </View>
-          <Image onClick={() => setIsShowFeedback(false)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+          <Image
+            onClick={() => setIsShowFeedback(false)}
+            src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png"
+            className="popup_header_img"
+          />
         </View>
         <View className="feedBack_content">
-          <Checkbox.Group defaultValue={['1']} value={checked} style={{ width: '100%', padding: '24rpx', boxSizing: 'border-box' }} onChange={CheckedChange}>
+          <Checkbox.Group
+            defaultValue={['1']}
+            value={checked}
+            style={{ width: '100%', padding: '24rpx', boxSizing: 'border-box' }}
+            onChange={CheckedChange}
+          >
             <Checkbox value="1" label="产品不匹配" />
             <Checkbox value="2" label="公司与信息匹配不上" />
             <Checkbox value="3" label="公司类型错误" />
@@ -907,7 +1056,16 @@ function Index() {
           <View className="feedBack_content_footer">
             <View className="feedBack_content_footer_text">其他原因（选填）</View>
             <View className="feedBack_content_footer_input">
-              <TextArea cursorSpacing={100} value={feedBackValue} onChange={changeTextArea} placeholder="请输入备注" autoSize maxLength={500} showCount={false} adjustPosition={true} />
+              <TextArea
+                cursorSpacing={100}
+                value={feedBackValue}
+                onChange={changeTextArea}
+                placeholder="请输入备注"
+                autoSize
+                maxLength={500}
+                showCount={false}
+                adjustPosition={true}
+              />
             </View>
           </View>
           <View className="feedBack_content_footer_text">您的反馈有助于我们改进数据更精准</View>
@@ -923,12 +1081,25 @@ function Index() {
       </Popup>
 
       {/* 地区选择弹窗 */}
-      <Popup className="region-popup" position="bottom" style={{ maxHeight: '95%', minHeight: '95%' }} visible={isShowRegion} onClose={() => setIsShowRegion(false)}>
+      <Popup
+        className="region-popup"
+        position="bottom"
+        style={{ maxHeight: '95%', minHeight: '95%' }}
+        visible={isShowRegion}
+        onClose={() => setIsShowRegion(false)}
+      >
         <View className="popup_header">
           <View className="popup_header_title">选择地区</View>
-          <Image onClick={() => setIsShowRegion(false)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+          <Image
+            onClick={() => setIsShowRegion(false)}
+            src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png"
+            className="popup_header_img"
+          />
         </View>
-        <View className="region_content" style={{ height: `calc(${regionPopupHeight}px - 100rpx)`, overflow: 'hidden' }}>
+        <View
+          className="region_content"
+          style={{ height: `calc(${regionPopupHeight}px - 100rpx)`, overflow: 'hidden' }}
+        >
           <Tabs
             value={tabValue}
             style={{ height: `calc(${regionPopupHeight}px - 260rpx)` } as React.CSSProperties}
@@ -940,7 +1111,16 @@ function Index() {
           >
             {regionList.map(item => (
               <Tabs.TabPane key={item.province} title={`${item.province}`}>
-                <View className="region_content_item" style={{ height: '100%', overflow: 'auto', padding: '24rpx', boxSizing: 'border-box', paddingTop: '0' }}>
+                <View
+                  className="region_content_item"
+                  style={{
+                    height: '100%',
+                    overflow: 'auto',
+                    padding: '24rpx',
+                    boxSizing: 'border-box',
+                    paddingTop: '0'
+                  }}
+                >
                   {item.cities.map(city => (
                     <Cell
                       key={city.name}
@@ -971,7 +1151,7 @@ function Index() {
 
       {/* ==================== 主要内容区域 ==================== */}
       {/* 头部搜索区域 */}
-      <View className="headerSearch">
+      {/* <View className="headerSearch">
         <View className="headerSearch_Item_box">
           <View onClick={() => handleActiveIndex(0)} className={`headerSearch_Item ${matchHighest ? 'headerSearch_Item_active' : ''}`}>
             匹配最高
@@ -1005,16 +1185,30 @@ function Index() {
             <View>共有{total}条搜索结果</View>
           </View>
         </View>
+      </View> */}
+
+      <View className="searchContent_right">
+        <Image
+          src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png"
+          className="searchContent_right_img"
+        />
+        <View>共有{total > 999 ? '999+' : total}条搜索结果</View>
       </View>
 
       {/* 筛选内容区域 */}
-      <View className="enterpriseContent" style={{ height: `calc(100vh - ${bottomHeight + headerHeight}px)` }}>
+      <View
+        className="enterpriseContent"
+        style={{ height: `calc(100vh - ${bottomHeight + headerHeight}px)` }}
+      >
         <InfiniteLoading
           target="enterpriseContent"
           loadingText={
             <>
               <View className="loadingText">
-                <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png" className="loadingImg" />
+                <Image
+                  src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise11.png"
+                  className="loadingImg"
+                />
                 <Text className="loading-char">l</Text>
                 <Text className="loading-char">o</Text>
                 <Text className="loading-char">a</Text>
@@ -1028,13 +1222,16 @@ function Index() {
               </View>
             </>
           }
-          loadMoreText="没有啦～"
+          loadMoreText="请移步电脑端查看更多数据"
           hasMore={customHasMore}
-          onLoadMore={customLoadMore}
+          onLoadMore={corpListLoadMore}
         >
           {/* 企业列表渲染 */}
           {customList.map((item, index) => (
-            <View key={item.creditCode || item.id || `${item.companyName}-${index}`} onClick={() => handleEnterpriseDetail(item)}>
+            <View
+              key={item.creditCode}
+              // onClick={() => handleEnterpriseDetail(item)}
+            >
               <View className="enterpriseContent_item">
                 {/* 企业基本信息 */}
                 <View className="enterpriseContent_item_top">
@@ -1044,13 +1241,38 @@ function Index() {
                       <Image src={item.logo} className="enterpriseContent_item_Img" />
                     ) : (
                       // 如果是文字，显示文字
-                      <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="enterpriseContent_item_Img">
+                      <Text
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: '#1B5BFF',
+                          color: '#fff',
+                          borderRadius: '8rpx',
+                          fontSize: '32rpx',
+                          textAlign: 'center',
+                          padding: '8rpx',
+                          boxSizing: 'border-box'
+                        }}
+                        className="enterpriseContent_item_Img"
+                      >
                         {item.logo}
                       </Text>
                     )
                   ) : (
                     // 如果为空，显示"暂无"
-                    <Text className="enterpriseContent_item_Img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx' }}>
+                    <Text
+                      className="enterpriseContent_item_Img"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#1B5BFF',
+                        color: '#fff',
+                        borderRadius: '8rpx',
+                        fontSize: '32rpx'
+                      }}
+                    >
                       暂无
                     </Text>
                   )}
@@ -1058,16 +1280,19 @@ function Index() {
                     <View className="title">{item.name}</View>
                     <View className="description">
                       <View className="certification">
-                        <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise3.png" className="certification_img" />
+                        <Image
+                          src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise3.png"
+                          className="certification_img"
+                        />
                         <View className="certification_text">官网</View>
                       </View>
-                      {item.score && <View className="match">匹配{item.score}%</View>}
+                      {item.recommend && <View className="match">推荐</View>}
                     </View>
                   </View>
                 </View>
 
                 {/* 企业标签 */}
-                <View className="enterpriseContent_item_tag">
+                {/* <View className="enterpriseContent_item_tag">
                   <View className="enterpriseContent_item_tag_item">{item.regStatus}</View>
                   {item.tags &&
                     item.tags.length > 0 &&
@@ -1076,19 +1301,24 @@ function Index() {
                         {tag}
                       </View>
                     ))}
-                </View>
+                </View> */}
 
                 {/* 企业详细信息 */}
                 <View className="enterpriseContent_item_info">
                   <View className="enterpriseContent_item_info_item">{item.legalPerson}</View>
-                  <View className="enterpriseContent_item_info_item">{item.regCapital}</View>
+                  {/* <View className="enterpriseContent_item_info_item">{item.regCapital}</View> */}
                   <View className="enterpriseContent_item_info_item">{item.establishTime}</View>
-                  <View className="enterpriseContent_item_info_item">{item.handleLocation}</View>
                 </View>
 
                 {/* 企业产品信息 */}
-                <View className="enterpriseContent_item_product">
-                  <View className={`enterpriseContent_item_product_left${expandedProducts[index] ? ' expanded' : ''}`}>{highlightKeyword(item.businessScope, searchValue || item.orgType)}</View>
+                {/* <View className="enterpriseContent_item_product">
+                  <View
+                    className={`enterpriseContent_item_product_left${
+                      expandedProducts[index] ? ' expanded' : ''
+                    }`}
+                  >
+                    {highlightKeyword(item.businessScope, searchValue || item.orgType)}
+                  </View>
                   <View
                     className="enterpriseContent_item_product_right"
                     onClick={e => {
@@ -1098,12 +1328,16 @@ function Index() {
                   >
                     {expandedProducts[index] ? '收起' : '展开'}
                   </View>
-                </View>
+                </View> */}
 
                 {/* 企业联系方式 */}
                 <View className="enterpriseContent_item_contact">
                   <View className="enterpriseContent_item_contact_item">
-                    <Image onClick={() => handleAiResearchReport(item)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise5.png" className="enterpriseContent_item_contact_item_img" />
+                    <Image
+                      onClick={() => handleAiResearchReport(item)}
+                      src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise5.png"
+                      className="enterpriseContent_item_contact_item_img"
+                    />
                   </View>
                   <View
                     onClick={e => {
@@ -1112,19 +1346,25 @@ function Index() {
                     }}
                     className="enterpriseContent_item_contact_item"
                   >
-                    <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise1.png" className="enterpriseContent_item_contact_item_img" />
-                    电话({item.contactInfo?.phones.length || 0})
+                    <Image
+                      src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise1.png"
+                      className="enterpriseContent_item_contact_item_img"
+                    />
+                    联系方式
                   </View>
-                  <View
+                  {/* <View
                     onClick={e => {
                       e.stopPropagation()
                       openAddress(item)
                     }}
                     className="enterpriseContent_item_contact_item"
                   >
-                    <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise2.png" className="enterpriseContent_item_contact_item_img" />
-                    地址({item?.regLocation ? 1 : 0 || 0})
-                  </View>
+                    <Image
+                      src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise2.png"
+                      className="enterpriseContent_item_contact_item_img"
+                    />
+                    地址
+                  </View> */}
                 </View>
 
                 {/* 企业操作按钮 */}
@@ -1132,24 +1372,61 @@ function Index() {
                   <View className="enterpriseContent_item_bottom_left">
                     {/* 点赞按钮 */}
                     {(item.hasFeedback === 0 || item.hasFeedback === 1) && (
-                      <View onClick={e => handleLike(e, item)} className={`enterpriseContent_item_bottom_left_good ${item.hasFeedback === 1 ? 'liked' : ''} ${showHeartbeat ? 'heartbeat' : ''}`}>
-                        <Image src={item.hasFeedback === 1 ? 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise6.png' : 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise8.png'} className="enterpriseContent_item_bottom_left_good_img" />
+                      <View
+                        onClick={e => handleLike(e, item)}
+                        className={`enterpriseContent_item_bottom_left_good ${
+                          item.hasFeedback === 1 ? 'liked' : ''
+                        } ${showHeartbeat ? 'heartbeat' : ''}`}
+                      >
+                        <Image
+                          src={
+                            item.hasFeedback === 1
+                              ? 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise6.png'
+                              : 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise8.png'
+                          }
+                          className="enterpriseContent_item_bottom_left_good_img"
+                        />
                         <Text className="enterpriseContent_item_bottom_left_good_text">有效</Text>
                       </View>
                     )}
                     {/* 点踩按钮 */}
                     {(item.hasFeedback === 0 || item.hasFeedback === 2) && (
-                      <View onClick={e => handleDislike(e, item)} className={`enterpriseContent_item_bottom_left_bad ${item.hasFeedback === 2 ? 'disliked' : ''} ${showShake ? 'shake' : ''}`}>
-                        <Image src={item.hasFeedback === 2 ? 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise7.png' : 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise9.png'} className="enterpriseContent_item_bottom_left_bad_img" />
-                        <Text className="enterpriseContent_item_bottom_left_bad_text">无效线索</Text>
-                        {item.hasFeedback === 2 && <ArrowDown color="#8E8E8E" style={{ width: '28rpx', height: '28rpx', marginLeft: '6rpx' }} />}
+                      <View
+                        onClick={e => handleDislike(e, item)}
+                        className={`enterpriseContent_item_bottom_left_bad ${
+                          item.hasFeedback === 2 ? 'disliked' : ''
+                        } ${showShake ? 'shake' : ''}`}
+                      >
+                        <Image
+                          src={
+                            item.hasFeedback === 2
+                              ? 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise7.png'
+                              : 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise9.png'
+                          }
+                          className="enterpriseContent_item_bottom_left_bad_img"
+                        />
+                        <Text className="enterpriseContent_item_bottom_left_bad_text">
+                          无效线索
+                        </Text>
+                        {item.hasFeedback === 2 && (
+                          <ArrowDown
+                            color="#8E8E8E"
+                            style={{ width: '28rpx', height: '28rpx', marginLeft: '6rpx' }}
+                          />
+                        )}
                       </View>
                     )}
                   </View>
                   {/* 线索操作按钮 */}
                   {!item.isJoinClue ? (
-                    <View onClick={e => handleAddToLeads(e, item)} className="enterpriseContent_item_bottom_right">
-                      <Add color="#fff" style={{ marginRight: '12rpx', width: '32rpx', height: '32rpx' }} />
+                    <View
+                      onClick={e => handleAddToLeads(e, item)}
+                      className="enterpriseContent_item_bottom_right"
+                    >
+                      <Add
+                        color="#fff"
+                        style={{ marginRight: '12rpx', width: '32rpx', height: '32rpx' }}
+                      />
                       <Text className="enterpriseContent_item_bottom_right_add_text">加入线索</Text>
                     </View>
                   ) : (
@@ -1181,3 +1458,73 @@ function Index() {
 
 // ==================== 组件导出 ====================
 export default Index
+
+// {/* 企业操作按钮 */}
+// <View className="enterpriseContent_item_bottom">
+//   <View className="enterpriseContent_item_bottom_left">
+//     {/* 点赞按钮 */}
+//     {(item.hasFeedback === 0 || item.hasFeedback === 1) && (
+//       <View
+//         onClick={e => handleLike(e, item)}
+//         className={`enterpriseContent_item_bottom_left_good ${
+//           item.hasFeedback === 1 ? 'liked' : ''
+//         } ${showHeartbeat ? 'heartbeat' : ''}`}
+//       >
+//         <Image
+//           src={
+//             item.hasFeedback === 1
+//               ? 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise6.png'
+//               : 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise8.png'
+//           }
+//           className="enterpriseContent_item_bottom_left_good_img"
+//         />
+//         <Text className="enterpriseContent_item_bottom_left_good_text">有效</Text>
+//       </View>
+//     )}
+//     {/* 点踩按钮 */}
+//     {(item.hasFeedback === 0 || item.hasFeedback === 2) && (
+//       <View
+//         onClick={e => handleDislike(e, item)}
+//         className={`enterpriseContent_item_bottom_left_bad ${
+//           item.hasFeedback === 2 ? 'disliked' : ''
+//         } ${showShake ? 'shake' : ''}`}
+//       >
+//         <Image
+//           src={
+//             item.hasFeedback === 2
+//               ? 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise7.png'
+//               : 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise9.png'
+//           }
+//           className="enterpriseContent_item_bottom_left_bad_img"
+//         />
+//         <Text className="enterpriseContent_item_bottom_left_bad_text">
+//           无效线索
+//         </Text>
+//         {item.hasFeedback === 2 && (
+//           <ArrowDown
+//             color="#8E8E8E"
+//             style={{ width: '28rpx', height: '28rpx', marginLeft: '6rpx' }}
+//           />
+//         )}
+//       </View>
+//     )}
+//   </View>
+//   {/* 线索操作按钮 */}
+//   {!item.isJoinClue ? (
+//     <View
+//       onClick={e => handleAddToLeads(e, item)}
+//       className="enterpriseContent_item_bottom_right"
+//     >
+//       <Add
+//         color="#fff"
+//         style={{ marginRight: '12rpx', width: '32rpx', height: '32rpx' }}
+//       />
+//       <Text className="enterpriseContent_item_bottom_right_add_text">加入线索</Text>
+//     </View>
+//   ) : (
+//     <View onClick={e => handleRemoveFromLeads(e, item)} className="remove">
+//       <Text className="remove_text">移除</Text>
+//       <View className="remove_icon"></View>
+//     </View>
+//   )}
+// </View>
