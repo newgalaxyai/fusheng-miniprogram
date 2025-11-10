@@ -25,3 +25,20 @@ export type IMessage = {
   // enterpriseInfo: string // 企业信息
   // enterpriseResultCount: number // 企业信息数量
 }
+
+// 更新消息请求参数
+export type IUpdateMessageRequest = {
+  id: number | null
+  userId?: number // 用户id
+  sessionId?: number | null // 会话id
+  keyword?: string | null // 关键词
+  userMessage?: string // 用户问题
+  reasoningProcess?: string | null // 思考内容
+  aiResponse?: string | null // 正文内容
+  tableType?: 'empty' | 'corp' | 'phone' // 表格类型 empty无表格 corp企业 phone联系方式
+  tableData?: any // 表格数据
+  isCollect?: boolean // 是否收藏
+  isLike?: number // 是否点赞
+  // tableTotal?: number // 表格数据总数
+  // tableShowTotal?: number // 表格显示的数据总数
+}

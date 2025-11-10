@@ -1,7 +1,8 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { IThunkState } from '../types/index'
 import { setLoading, setConversations, setFavorites } from '../modules/conversation'
-import { aiSessionListAPI, userFavoriteListAPI } from '@/api/chatMsg'
+import { aiSessionListAPI, updateMessageAPI, userFavoriteListAPI } from '@/api/chatMsg'
+import { setMessageIdAction, setMessageListAction } from '../modules/session'
 
 // 将API转换为Promise
 const aiSessionListPromise = (params: any): Promise<any> => {
@@ -99,3 +100,35 @@ export const getFavoriteListAsync = createAsyncThunk<void, void, IThunkState>(
     condition: undefined
   }
 )
+
+export const finalUpdateMessageAsync = createAsyncThunk<
+  void, // 返回的数据类型，你可以根据实际API返回类型调整
+  { messageId: number; isSuccess: boolean },
+  IThunkState
+>('session/updateFinalMessageAsync', async ({ messageId, isSuccess }, { dispatch, getState }) => {
+  console.log('finalUpdateMessageAsync', messageId)
+  // 在此请求接口获取数据
+  const {
+    session: { messageList }
+  } = getState()
+  const messageIndex = messageList.findIndex((message) => message.id == null)
+  const message = messageList[messageIndex]
+  console.log('finalUpdateMessageAsync', message)
+  await updateMessageAPI({
+    ...message,
+    aiResponse: isSuccess ? message.aiResponse : '回复失败，请稍后重试',
+    id: messageId
+  })
+  dispatch(
+    setMessageListAction({
+      id: null,
+      aiResponse: isSuccess ? message.aiResponse : '回复失败，请稍后重试'
+    })
+  )
+  dispatch(
+    setMessageIdAction({
+      oldId: null,
+      newId: messageId
+    })
+  )
+})

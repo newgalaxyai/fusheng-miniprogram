@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { View, Image, Text, RichText } from '@tarojs/components'
 import { ArrowRight, ArrowRightSmall } from '@nutui/icons-react-taro'
 import { marked } from 'marked'
 import Taro from '@tarojs/taro'
 import { ROUTE, ROUTE_PARAMS_NAME } from '@/constants'
 import MarkdownComponent from '../MarkDownComponent'
+import equal from 'fast-deep-equal'
 
 // 配置marked选项，适合小程序环境
 marked.setOptions({
@@ -232,6 +233,8 @@ const navigateToCompanyList = (msg: any) => {
 // 旧的“查看所有企业”入口依赖旧数据结构与跨页事件，已移除
 
 const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
+  // console.log('AiMessageComponent', msg);
+  
   const renderCorpList = () => {
     if (msg.tableType !== 'corp') return null
     const list = Array.isArray(msg.tableData) ? msg.tableData : []
@@ -250,7 +253,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
           return (
             <View key={idx}>
               <View className="chat_ai_company" onClick={clickCompany}>
-                <View className="company_left">
+                {/* <View className="company_left">
                   {logo && String(logo).includes('http') ? (
                     <Image src={logo} className="company_left_img" />
                   ) : logo ? (
@@ -287,7 +290,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
                       暂无
                     </Text>
                   )}
-                </View>
+                </View> */}
                 <View className="company_right">
                   <View className="company_right_top">
                     <Text className="company_right_top_text">{name}</Text>
@@ -321,7 +324,8 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
+            gap: '5rpx',
             padding: '12rpx 16rpx',
             background: '#f7faff',
             borderRadius: '12rpx',
@@ -329,8 +333,8 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
           }}
           onClick={() => navigateToCompanyList(msg)}
         >
-          <Text style={{ color: '#2B2B2B', fontSize: '32rpx', fontWeight: '600' }}>查看全部</Text>
-          <ArrowRightSmall color="#2B2B2B" size="32rpx" />
+          <Text style={{ color: '#1B5BFF', fontSize: '32rpx', fontWeight: '600' }}>查看更多</Text>
+          <ArrowRightSmall color="#1B5BFF" size="32rpx" />
         </View>
       </View>
     )
@@ -371,6 +375,9 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
       {msg.aiResponse ? (
         <MarkdownComponent content={msg.aiResponse} />
       ) : null}
+      {msg.id == null && !msg.aiResponse && !msg.reasoningProcess&& !msg.tableData ? (
+        <MarkdownComponent content='回答中断，请重试～' />
+      ) : null}
       {renderCorpList()}
       {renderPhoneList()}
       {msg.aiConclusion ? (
@@ -386,4 +393,6 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
   )
 }
 
-export default AiMessageComponent
+export default memo(AiMessageComponent, (prevProps, nextProps) => {
+  return equal(prevProps, nextProps)
+})

@@ -1,4 +1,4 @@
-import { taroPost, taroGet, taroPut, taroDelete } from '@/service'
+import { taroPost, taroGet, taroPut, taroDelete, taroRequest, } from '@/service'
 import {
   textStageURL,
   companyStageURL,
@@ -21,6 +21,8 @@ import {
 import type { IResponse } from '../types'
 import Taro from '@tarojs/taro'
 import { IStreamAIAnswerRequest, IStreamEvent, IStreamName } from '../types'
+import { IUpdateMessageRequest } from '../types/message'
+import { updateMessageURL } from '../url/session'
 
 export const textStageAPI = (data: any, callback: (res: IResponse<any>) => void) => {
   taroPost({
@@ -550,6 +552,8 @@ export const streamAIAnswerAPI = (
         const uint8Array = new Uint8Array(res.data as ArrayBuffer)
         chunkStr = decoder ? decoder.decode(uint8Array) : String.fromCharCode.apply(null, Array.from(uint8Array))
       }
+      // console.log('chunkStr', chunkStr);
+      
       let text = lastText + chunkStr
       lastText = ''
       let arr = text.split(/\r?\n\r?\n/).filter(Boolean)
@@ -611,4 +615,15 @@ export const streamAIAnswerAPI = (
   })
 
   return requestTask
+}
+
+// 更新消息
+export const updateMessageAPI = async (
+  data: IUpdateMessageRequest
+): Promise<IResponse<boolean>> => {
+  const response = await taroRequest.putAsync<IResponse<boolean>>({
+    url: updateMessageURL,
+    data
+  })
+  return response
 }

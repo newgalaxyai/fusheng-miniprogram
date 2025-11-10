@@ -26,6 +26,11 @@ import { Dialog, TextArea, BackTop } from '@nutui/nutui-react-taro'
 import { ArrowDownSize6, ArrowUpSize6 } from '@nutui/icons-react-taro'
 import { useAppDispatch } from '@/hooks/useAppStore'
 import { getSessionListAsync, getFavoriteListAsync } from '@/redux/asyncs/conversation'
+import {
+  setAllMessageListAction,
+  setMessageListAction
+} from '@/redux/modules/session'
+import { useSend } from '@/hooks/useSend'
 import AiMessageComponent from '@/components/AiMessageComponent'
 import { IMessage } from '@/api/types/message'
 
@@ -51,8 +56,8 @@ const TechLoadingAnimation = () => {
 const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
   ({ height }, ref) => {
     const dispatch = useAppDispatch()
-    // 会话消息按“轮次”保存，使用服务端结构：每项包含 userMessage / aiResponse / tableType / tableData 等
-    const [messages, setMessages] = useState<MessageUI[]>([])
+    // 使用 Redux 管理消息列表（参考 PC 端）
+    const messages = useAppSelector(state => state.session.messageList as MessageUI[])
     const [input, setInput] = useState('')
     const [isStreaming, setIsStreaming] = useState(false)
     const contentRef = useRef<any>(null)
@@ -80,8 +85,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
     const [yiJianVisible, setYiJianVisible] = useState(false)
     const [yiJianInput, setYiJianInput] = useState('')
     const [copyMessageId, setCopyMessageId] = useState<number | null>(null)
-    // 去除 apiStatus：以消息 id 是否存在判断是否完成并保存
-    const [saveQueue, setSaveQueue] = useState<Set<string>>(new Set())
+    // 消息列表已迁移至 Redux，不再维护本地 serverIdMap
 
     // 添加功能按钮状态管理
     const [buttonStates, setButtonStates] = useState<{
@@ -132,9 +136,8 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
       const handleGetChatItem = res => {
         setAiSessionId(res.id)
         setConversationId(res.conversationId)
-        // 直接使用服务端返回结构，不遍历改写
-        setMessages(Array.isArray(res.aiMessageDOS) ? res.aiMessageDOS : [])
-        // 历史消息默认已保存（id 非空），不再维护 apiStatus
+        // 使用 Redux 设置历史消息
+        dispatch(setAllMessageListAction(Array.isArray(res.aiMessageDOS) ? res.aiMessageDOS : []))
         setTimeout(() => {
           getChatMsgHeight()
         }, 100)
@@ -152,26 +155,23 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
     const isProcessingRef = useRef(false)
     const isSessionProcessingRef = useRef(false) // 新增：防止 continueWithSessionId 重复执行
     const isEventRegistered = useRef(false)
+    // 发送消息 Hook
+    const { sendMessage } = useSend()
 
     const handleSend = useCallback(
       (res: string) => {
         if (res && !isProcessingRef.current) {
           isProcessingRef.current = true
-
+          const sid = Taro.getStorageSync('aiSessionId')
+          const nowSid = sid ? Number(sid) : null
+          sendMessage(String(res).trim(), false, nowSid, conversationId || '', () => {})
+          // 延迟重置标志
           setTimeout(() => {
-            if (aiSessionIdRef.current) {
-              continueWithSessionId(aiSessionIdRef.current, res)
-            } else {
-            }
-
-            // 延迟重置标志
-            setTimeout(() => {
-              isProcessingRef.current = false
-            }, 1000)
-          }, 300)
+            isProcessingRef.current = false
+          }, 1000)
         }
       },
-      [] // 移除不必要的依赖
+      [conversationId]
     )
 
     useEffect(() => {
@@ -260,8 +260,11 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
           data: copyContent
         })
       } else if (buttonIndex === 1) {
-        setMessages(prev =>
-          prev.map(m => (m.id === messageId ? { ...m, isLike: m.isLike === 1 ? 0 : 1 } : m))
+        dispatch(
+          setMessageListAction({
+            id: messageId,
+            isLike: turn.isLike === 1 ? 0 : 1
+          })
         )
         aiMessageEvaluationCreateAPI(
           {
@@ -274,8 +277,11 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
           },
           res => {
             if (!res.success) {
-              setMessages(prev =>
-                prev.map(m => (m.id === messageId ? { ...m, isLike: turn.isLike } : m))
+              dispatch(
+                setMessageListAction({
+                  id: messageId,
+                  isLike: turn.isLike
+                })
               )
               Taro.showToast({ title: '点赞失败', icon: 'none' })
             } else {
@@ -284,14 +290,10 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
           }
         )
       } else if (buttonIndex === 2) {
-        setMessages(prevMessages =>
-          prevMessages.map(message => {
-            if (message.id === messageId) {
-              if (message.isLike === 0) {
-                setYiJianVisible(true)
-              } else {
-                const updatedMessage = { ...message, isLike: 0 }
-                aiMessageEvaluationCreateAPI(
+        if (turn.isLike === 0) {
+          setYiJianVisible(true)
+        } else {
+          aiMessageEvaluationCreateAPI(
                   {
                     userId: userInfo?.id,
                     messageId: messageId,
@@ -302,28 +304,16 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
                   },
                   res => {
                     if (!res.success) {
-                      setMessages(prevMsgs =>
-                        prevMsgs.map(msg =>
-                          msg.id === messageId ? { ...msg, isLike: message.isLike } : msg
-                        )
+                      dispatch(
+                        setMessageListAction({ id: messageId, isLike: turn.isLike })
                       )
                     }
                   }
                 )
-
-                return updatedMessage
-              }
-            }
-            return message
-          })
-        )
+          dispatch(setMessageListAction({ id: messageId, isLike: 0 }))
+        }
       } else if (buttonIndex === 3) {
-        // 更新messages状态，只修改特定messageId的消息
-        setMessages(prevMessages =>
-          prevMessages.map(message =>
-            message.id === messageId ? { ...message, isCollect: !message.isCollect } : message
-          )
-        )
+        dispatch(setMessageListAction({ id: messageId, isCollect: !turn.isCollect }))
         let contentSummary = JSON.stringify({
           content: turn.aiResponse,
           tableType: turn.tableType,
@@ -339,17 +329,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
           userFavoriteCreateAPI(queryParams, res => {
             if (res.success) {
               // dispatch(getFavoriteListAsync())
-              setMessages(prev => {
-                return prev.map(item => {
-                  if (item.id === messageId) {
-                    return {
-                      ...item,
-                      isCollect: true
-                    }
-                  }
-                  return item
-                })
-              })
+              dispatch(setMessageListAction({ id: messageId, isCollect: true }))
               Taro.showToast({ title: '收藏成功', icon: 'none' })
             }
           })
@@ -357,17 +337,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
           userFavoriteCreateAPI(queryParams, res => {
             if (res.success) {
               // dispatch(getFavoriteListAsync())
-              setMessages(prev => {
-                return prev.map(item => {
-                  if (item.id === messageId) {
-                    return {
-                      ...item,
-                      isCollect: false
-                    }
-                  }
-                  return item
-                })
-              })
+              dispatch(setMessageListAction({ id: messageId, isCollect: false }))
               Taro.showToast({ title: '已取消收藏', icon: 'none' })
             }
           })
@@ -400,14 +370,10 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
           if (res.success) {
             Taro.showToast({ title: '反馈成功', icon: 'none' })
             setYiJianInput('')
-            setMessages(prevMessages =>
-              prevMessages.map(message => {
-                if (message.id === copyMessageId) {
-                  const newDislikeStatus = message.isLike === 2 ? 0 : 2
-                  return { ...message, isLike: newDislikeStatus }
-                }
-                return message
-              })
+            const turn = messages.find(m => m.id === copyMessageId)
+            const newDislikeStatus = turn?.isLike === 2 ? 0 : 2
+            dispatch(
+              setMessageListAction({ id: copyMessageId, isLike: newDislikeStatus })
             )
           }
         }
@@ -417,60 +383,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
 
     // 移除 listenerInterface：保存逻辑改为仅在 complete / error 触发
 
-    const saveMessageToDatabase = async (turn: any, messageId: string) => {
-      try {
-        const answerTime = formatTime(new Date())
-        const questionTimestamp = new Date(questionTime).getTime()
-        const answerTimestamp = new Date(answerTime).getTime()
-        const responseDurationMs = answerTimestamp - questionTimestamp
-        const responseDuration = Number((responseDurationMs / 1000).toFixed(1))
-        const result = await new Promise((resolve, reject) => {
-          aiMessageCreateAPI(
-            {
-              // 新结构：与 PC 端 IMessage 对齐
-              sessionId: aiSessionIdRef.current ? Number(aiSessionIdRef.current) : null,
-              keyword: turn?.keyword || null,
-              userMessage: turn?.userMessage,
-              reasoningProcess: turn?.reasoningProcess || null,
-              aiResponse: turn?.aiResponse || turn?.content || '',
-              tableType: turn?.tableType || 'empty',
-              tableData: turn?.tableData || [],
-              // 保留原有时间与统计字段
-              questionTime,
-              answerTime,
-              responseDuration,
-              // 保留收藏与点赞状态
-              isCollect: turn.isCollect,
-              isLike: turn.isLike
-            },
-            res => {
-              if (res.success) {
-                resolve(res.data)
-              } else {
-                reject(res)
-              }
-            }
-          )
-        })
-
-        // 保存成功后更新消息ID
-        if (result) {
-          getChatMsgHeight()
-          setMessages(msgs =>
-            msgs.map(msg => (msg.clientId === messageId ? { ...msg, id: Number(result) } : msg))
-          )
-        }
-      } catch (error) {
-        console.error('保存消息失败:', error)
-      } finally {
-        // 从保存队列中移除
-        setSaveQueue(prev => {
-          const newSet = new Set(prev)
-          newSet.delete(messageId)
-          return newSet
-        })
-      }
-    }
 
     // 页面显示时重置键盘高度
     useDidShow(() => {
@@ -489,7 +401,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
           setAiSessionId(res.data)
           dispatch(getSessionListAsync())
           Taro.eventCenter.trigger('addSession', true)
-          setMessages([])
+          dispatch(setAllMessageListAction([]))
           setConversationId('')
         }
       })
@@ -503,7 +415,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
           dispatch(getSessionListAsync())
           Taro.eventCenter.trigger('addSession', true)
           setScrollTop(0)
-          setMessages([])
+          dispatch(setAllMessageListAction([]))
           setIsStreaming(false)
           Taro.showToast({ title: '会话创建成功', icon: 'none' })
           setConversationId('')
@@ -526,37 +438,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
       query.exec()
     }
 
-    // 流式输出AI回复
-    const streamAIReply = async (text: string, targetMessageId: string) => {
-      const STREAM_CONFIG = {
-        chunkSize: 10, // 每次输出的字符数量，控制打字机效果的速度
-        delay: 10, // 每次输出间隔时间（毫秒），数值越小输出越快
-        scrollCheckInterval: 2 // 滚动检查间隔次数，每输出多少次检查一次滚动位置
-      }
-
-      setIsStreaming(true)
-      let reply = ''
-      for (let i = 0; i < text.length; i += STREAM_CONFIG.chunkSize) {
-        const chunk = text.slice(i, i + STREAM_CONFIG.chunkSize)
-        reply += chunk
-
-        setMessages(msgs =>
-          msgs.map(msg => (msg.clientId === targetMessageId ? { ...msg, aiResponse: reply } : msg))
-        )
-
-        if (i % STREAM_CONFIG.scrollCheckInterval === 0) {
-          setTimeout(() => {
-            getChatMsgHeight()
-          }, 50)
-        }
-
-        await new Promise(res => setTimeout(res, STREAM_CONFIG.delay))
-      }
-
-      // 流式输出完成
-      setIsStreaming(false)
-      getChatMsgHeight()
-    }
+    // 流式输出逻辑已统一迁移到 useSend Hook 与 Redux
 
     // 格式化时间为 YYYY-M-D HH:mm:ss
     const formatTime = (date: Date) => {
@@ -571,269 +453,29 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
 
     // 发送消息
     const send = () => {
-      if (!Taro.getStorageSync('aiSessionId')) {
-        aiSessionCreateAPI({ userId: userInfo?.id }, res => {
-          if (res.success && res.data) {
-            Taro.setStorageSync('aiSessionId', res.data)
-            setAiSessionId(res.data)
-            dispatch(getSessionListAsync())
-
-            // 在这里使用新创建的 sessionId 继续执行后续逻辑
-            continueWithSessionId(res.data, input)
-          }
-        })
-      } else {
-        // 如果已有 sessionId，直接继续执行
-        continueWithSessionId(aiSessionId, input)
-      }
+      const text = String(input || '').trim()
+      if (!text || isStreaming) return
+      const sid = Taro.getStorageSync('aiSessionId')
+      const nowSid = sid ? Number(sid) : null
+      sendMessage(text, false, nowSid, conversationId || '', () => setInput(''))
     }
 
     // 重新生成：使用当前消息的用户问题重新发送给 AI
     const regenerate = (turn: MessageUI) => {
       const text = String(turn?.userMessage || '').trim()
       if (!text || isStreaming) return
-
-      const sessionIdInStorage = Taro.getStorageSync('aiSessionId')
-      if (!sessionIdInStorage) {
-        aiSessionCreateAPI({ userId: userInfo?.id }, res => {
-          if (res.success && res.data) {
-            Taro.setStorageSync('aiSessionId', res.data)
-            setAiSessionId(res.data)
-            dispatch(getSessionListAsync())
-            continueWithSessionId(res.data, text)
-          }
-        })
-      } else {
-        continueWithSessionId(aiSessionId, text)
-      }
+      const sid = Taro.getStorageSync('aiSessionId')
+      const nowSid = sid ? Number(sid) : null
+      sendMessage(text, false, nowSid, conversationId || '', () => {})
     }
 
-    // 提取公共逻辑到单独函数
-    const continueWithSessionId = (sessionId: string, text: string) => {
-      // 防止重复执行
-      if (isSessionProcessingRef.current) {
-        console.log('continueWithSessionId 正在处理中，跳过重复调用')
-        return
-      }
-
-      if (!Taro.getStorageSync('companyInfo')) {
-        Taro.eventCenter.trigger('companyShow', true)
-      }
-      if (!text.trim() || isStreaming) return
-
-      // 设置处理标志
-      isSessionProcessingRef.current = true
-
-      setQuestionTime(formatTime(new Date())) // 用户发送消息的时间
-
-      // 为该轮生成唯一ID（对应AI消息ID）
-      const aiMessageId = generateUniqueId()
-      const newMsg: MessageUI = {
-        id: null,
-        userId: userInfo?.id!,
-        // IMessage.sessionId 为 number | null，这里显式数值化
-        sessionId: sessionId ? Number(sessionId) : null,
-        clientId: aiMessageId,
-        userMessage: text,
-        // IMessage.aiResponse 为 string | null，初始空串即可
-        aiResponse: '',
-        aiConclusion: null,
-        keyword: null,
-        reasoningProcess: '',
-        tableType: 'empty',
-        // 避免被推断为 never[]，与 IMessage.tableData?: any 对齐
-        tableData: [] as any,
-        isCollect: false,
-        isLike: 0
-      }
-      setMessages(msgs => [...msgs, newMsg])
-      // 不再维护 apiStatus，等待 complete / error 保存生成 id
-
-      if (companyInfo?.customInput) {
-        companyInfo.expansionDomainKeywordsSelected = [
-          ...companyInfo.expansionDomainKeywordsSelected,
-          companyInfo.customInput
-        ]
-      }
-
-      // 重置处理标志的函数
-      const resetProcessingFlag = () => {
-        setTimeout(() => {
-          isSessionProcessingRef.current = false
-        }, 2000) // 2秒后允许下次执行
-      }
-
-      const doAll = () => {
-        try {
-          setIsStreaming(true)
-          const requestData = {
-            query: text,
-            response_mode: 'streaming' as const,
-            conversation_id: conversationId || '',
-            target_company_name: companyInfo?.companyName || '',
-            target_company_serve: companyInfo?.coreSellingPoints?.coreBusiness || ''
-          }
-
-          streamAIAnswerAPI(requestData, {
-            onMessage: ({ name, data }) => {
-              // 为兼容后端事件字面量类型差异，统一按字符串处理
-              const eventName = String((name as any) || '')
-              switch (eventName) {
-                case 'conversation_id': {
-                  const convId = String(data || '')
-                  setConversationId(convId)
-                  aiSessionUpdateAPI(
-                    { userId: userInfo?.id, id: sessionId, title: text, conversationId: convId },
-                    res => {
-                      if (res.success) {
-                        dispatch(getSessionListAsync())
-                      }
-                    }
-                  )
-                  break
-                }
-                case 'keywords': {
-                  const kws = String(data || '')
-                  setMessages(prev =>
-                    prev.map(msg => (msg.clientId === aiMessageId ? { ...msg, keyword: kws } : msg))
-                  )
-                  break
-                }
-                case 'start_text': {
-                  setIsStreaming(true)
-                  break
-                }
-                case 'text': {
-                  const chunk = String(data || '')
-                  setMessages(prev =>
-                    prev.map(msg =>
-                      msg.clientId === aiMessageId
-                        ? { ...msg, aiResponse: (msg.aiResponse || '') + chunk }
-                        : msg
-                    )
-                  )
-                  // 滚动到底部以跟随输出
-                  setTimeout(() => getChatMsgHeight(), 50)
-                  break
-                }
-                case 'end_text': {
-                  setIsStreaming(false)
-                  resetProcessingFlag()
-                  break
-                }
-                case 'start_thinking': {
-                  setIsStreaming(true)
-                  setMessages(prev =>
-                    prev.map(msg =>
-                      msg.clientId === aiMessageId ? { ...msg, reasoningProcess: '' } : msg
-                    )
-                  )
-                  break
-                }
-                case 'thinking': {
-                  const chunk = String(data || '')
-                  setMessages(prev =>
-                    prev.map(msg =>
-                      msg.clientId === aiMessageId
-                        ? { ...msg, reasoningProcess: (msg.reasoningProcess || '') + chunk }
-                        : msg
-                    )
-                  )
-                  break
-                }
-                case 'end_thinking': {
-                  setIsStreaming(false)
-                  break
-                }
-                case 'start_table': {
-                  const nextType =
-                    (String(data || 'empty') as 'empty' | 'corp' | 'phone') || 'empty'
-                  setMessages(prev =>
-                    prev.map(msg =>
-                      msg.clientId === aiMessageId
-                        ? { ...msg, tableType: nextType, tableData: [] }
-                        : msg
-                    )
-                  )
-                  break
-                }
-                case 'json': {
-                  const nextTableData: any[] = Array.isArray(data) ? (data as any[]) : []
-                  setMessages(prev =>
-                    prev.map(msg =>
-                      msg.clientId === aiMessageId ? { ...msg, tableData: nextTableData } : msg
-                    )
-                  )
-                  break
-                }
-                case 'end_table': {
-                  break
-                }
-                case 'done': {
-                  setIsStreaming(false)
-                  const turn = messages.find(item => item.clientId === aiMessageId)
-                  if (turn && !turn.id && !saveQueue.has(aiMessageId)) {
-                    setSaveQueue(prev => new Set([...prev, aiMessageId]))
-                    getChatMsgHeight()
-                    saveMessageToDatabase(turn, aiMessageId)
-                  }
-                  resetProcessingFlag()
-                  break
-                }
-                default:
-                  break
-              }
-            },
-            onError: error => {
-              setIsStreaming(false)
-              setMessages(prev =>
-                prev.map(msg =>
-                  msg.clientId === aiMessageId
-                    ? { ...msg, aiResponse: '抱歉，服务暂时不可用，请稍后再试。' }
-                    : msg
-                )
-              )
-              // 接口报错也视为本轮完成，直接保存并生成消息 id
-              // const turn = messages.find(item => item.clientId === aiMessageId)
-              // if (turn && !turn.id && !saveQueue.has(aiMessageId)) {
-              //   setSaveQueue(prev => new Set([...prev, aiMessageId]))
-              //   getChatMsgHeight()
-              //   saveMessageToDatabase(turn, aiMessageId)
-              // }
-              // resetProcessingFlag()
-            },
-            onComplete: () => {
-              console.log('结束')
-
-              // 若未触发 end_text，则确保结束标记并尝试保存
-              setIsStreaming(false)
-              // const turn = messages.find(item => item.clientId === aiMessageId)
-              // if (turn && !turn.id && !saveQueue.has(aiMessageId)) {
-              //   setSaveQueue(prev => new Set([...prev, aiMessageId]))
-              //   getChatMsgHeight()
-              //   saveMessageToDatabase(turn, aiMessageId)
-              // }
-            }
-          })
-        } catch (error) {
-          setIsStreaming(false)
-          resetProcessingFlag()
-        }
-      }
-      doAll()
-      setInput('')
-
-      // 发送消息后滚动到底部
-      setTimeout(() => {
-        getChatMsgHeight()
-      }, 100)
-    }
+    // 旧版 continueWithSessionId 流程已移除，发送逻辑统一走 useSend Hook
 
     const assignment = (val: any) => {
       setInput(val)
       // 自动发送推荐问题
       setTimeout(() => {
-        continueWithSessionId(aiSessionId, val)
+        send()
       }, 100)
     }
 
@@ -1066,7 +708,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
                 <View className="chatMsg ai">
                   <View className="chatMsg_ai">
                     <AiMessageComponent msg={turn} />
-                    {Boolean(turn.aiResponse) && Boolean(turn.id) ? (
+                    {Boolean(turn.id) ? (
                       <View className="chatMsg_ai_fun">
                         <Image
                           src="https://find-console.newgalaxyai.com/glks/assets/home/home10.png"

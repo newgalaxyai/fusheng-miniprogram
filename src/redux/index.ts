@@ -2,12 +2,14 @@ import { configureStore } from '@reduxjs/toolkit'
 import exampleReducer from './modules/example'
 import loginReducer from './modules/login'
 import conversationReducer from './modules/conversation'
+import sessionReducer from './modules/session'
 
 const store = configureStore({
   reducer: {
     example: exampleReducer,
     login: loginReducer,
-    conversation: conversationReducer
+    conversation: conversationReducer,
+    session: sessionReducer
   }
 })
 
