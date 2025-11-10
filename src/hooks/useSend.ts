@@ -13,7 +13,8 @@ import {
   streamAIAnswerAPI
 } from '@/api/chatMsg'
 import { IMessage } from '@/api/types/message'
-import { finalUpdateMessageAsync } from '@/redux/asyncs/conversation'
+import { finalUpdateMessageAsync, getSessionListAsync } from '@/redux/asyncs/conversation'
+import Taro from '@tarojs/taro'
 
 // 参考 PC 端实现的小程序端消息发送 Hook
 export const useSend = () => {
@@ -64,12 +65,17 @@ export const useSend = () => {
               conversationId: convId
             },
             () => {
-              // 可选：刷新会话列表
-              //     dispatch(
-              //   setMessageListAction({
-              //     id: null,
-              //   })
-              // )
+              // 刷新会话列表（确保前端会话信息持久化为最新）
+              dispatch(getSessionListAsync())
+              // 广播到页面，更新当前会话的 conversationId，便于后续发送携带上下文
+              try {
+                Taro.eventCenter.trigger('updateConversationId', {
+                  sessionId: nowSessionId,
+                  conversationId: convId
+                })
+              } catch (e) {
+                // ignore
+              }
             }
           )
         } else if (eventName === 'keywords') {

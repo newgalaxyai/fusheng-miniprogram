@@ -1,10 +1,13 @@
 export type ICorpInfoRequest = {
     gid: number
+    pageNum?: number
+    pageSize?: number
 }
 
 export type ICorpInfoResponse<T> = {
     total: number
     result: T[]
+    list: T[]
 }
 
 export type IPaginationRequest = {

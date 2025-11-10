@@ -2,16 +2,112 @@ import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { Checkbox, Popup, Tabs, TextArea } from '@nutui/nutui-react-taro'
 import { View, Image, Text, ScrollView } from '@tarojs/components'
 import { Add, ArrowDown } from '@nutui/icons-react-taro'
-import Taro from '@tarojs/taro'
+import Taro, { useLoad, showToast } from '@tarojs/taro'
 import './index.scss'
 import CustomDialog from '@/components/CustomDialog'
-import { companyFeedbackCreateAPI, enterpriseDetailAPI } from '@/api/company'
+import {
+  companyFeedbackCreateAPI,
+  enterpriseDetailAPI,
+  getBusinessInfoAPI,
+  getEnterpriseDynamicAPI,
+  getRiskScanAPI,
+  getSimilarCompaniesAPI
+} from '@/api/company'
 import { getCompanyWebNewsListApi } from '@/api/company'
 import { clueCreateAPI, clueDeleteAPI } from '@/api/clue'
 import ContactPopup from '@/components/ContactPopup'
-import { IMG, ROUTE_NAME, ROUTE } from '@/constants'
+import CorpContactComponent from '@/components/corp-contact'
+import { IMG, ROUTE_NAME, ROUTE, ROUTE_PARAMS_NAME } from '@/constants'
+import { IBusinessInfo, ICorpInfoResponse, IEnterpriseDynamic, IRiskScan } from '@/api/types'
 
 function Index() {
+  // 当前企业的信用代码
+  const [creditCode, setCreditCode] = useState('')
+  // 企业详情
+  const [corpDetail, setCorpDetail] = useState<IBusinessInfo>()
+  // 获取params
+  useLoad(options => {
+    setCreditCode(options[ROUTE_PARAMS_NAME.CREDIT_CODE])
+  })
+  // 获取企业详情
+  useEffect(() => {
+    if (creditCode && creditCode !== '') {
+      getBusinessInfoAPI(
+        {
+          keyword: creditCode
+        },
+        res => {
+          if (res.success) {
+            setCorpDetail(res.data)
+          }
+        }
+      )
+    }
+  }, [creditCode])
+
+  // 风险扫描
+  const [corpRisk, setCorpRisk] = useState<IRiskScan[]>()
+  // 处理查看全部风险点击
+  const toAllRisk = () => {
+    // Taro.showToast({ title: '企业风险暂未开放', icon: 'none' })
+    // let res = { enterpriseResponses: companyDetail?.enterpriseResponses, name: company.name }
+    // Taro.navigateTo({
+    //   url: `/subpackages/company/enterpriseDetail/detail/scanInfo/index?item=${JSON.stringify(res)}`
+    // })
+  }
+  // 企业动态
+  const [corpNews, setCorpNews] = useState<ICorpInfoResponse<IEnterpriseDynamic>>()
+  // 处理查看全部动态点击
+  const toAllDynamic = () => {
+    let res = { gid: corpDetail?.gid, name: corpDetail?.name, logo: corpDetail?.logo }
+    Taro.navigateTo({
+      url: `/subpackages/company/enterpriseDetail/detail/dynamicInfo/index?item=${JSON.stringify(
+        res
+      )}`
+    })
+  }
+  // 同行企业
+  const [similarCorps, setSimilarCorps] = useState<any[]>([])
+  useEffect(() => {
+    if (corpDetail?.gid) {
+      // 获取风险扫描
+      getRiskScanAPI(
+        {
+          gid: corpDetail?.gid
+        },
+        res => {
+          if (res.success) {
+            setCorpRisk(res.data)
+          }
+        }
+      )
+      // 获取企业动态
+      getEnterpriseDynamicAPI(
+        {
+          gid: corpDetail?.gid,
+          pageNum: 1,
+          pageSize: 1
+        },
+        res => {
+          if (res.success) {
+            setCorpNews(res.data)
+          }
+        }
+      )
+      // 获取同行企业
+      getSimilarCompaniesAPI(
+        {
+          gid: corpDetail?.gid
+        },
+        res => {
+          if (res.success) {
+            setSimilarCorps(res.data)
+          }
+        }
+      )
+    }
+  }, [corpDetail?.gid])
+
   // 企业信息数据，提取自图片（无children）
   const [enterpriseInfo, setEnterpriseInfo] = useState([
     {
@@ -396,24 +492,6 @@ function Index() {
     }
   }
 
-  // 处理查看全部动态点击
-  const toAllDynamic = () => {
-    let res = { gid: company?.gid, name: company.name, logo: company.logo }
-    Taro.navigateTo({
-      url: `/subpackages/company/enterpriseDetail/detail/dynamicInfo/index?item=${JSON.stringify(res)}`
-    })
-  }
-
-  // 处理查看全部风险点击
-  const toAllRisk = () => {
-    Taro.showToast({ title: '企业风险暂未开放', icon: 'none' })
-
-    // let res = { enterpriseResponses: companyDetail?.enterpriseResponses, name: company.name }
-    // Taro.navigateTo({
-    //   url: `/subpackages/company/enterpriseDetail/detail/scanInfo/index?item=${JSON.stringify(res)}`
-    // })
-  }
-
   // 处理取消弹窗
   const handleDialogCancel = () => {
     setShowCustomDialog(false)
@@ -490,7 +568,7 @@ function Index() {
 
   function toAiResearchReport(): void {
     Taro.navigateTo({
-      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.creditCode}&companyParameter=${company.enterpriseAnalysisBack}&name=${company.name}`
+      url: `${ROUTE.AI_RESEARCH_REPORT}?${ROUTE_PARAMS_NAME.CREDIT_CODE}=${creditCode}&${ROUTE_PARAMS_NAME.COMPANY_NAME}=${corpDetail?.name}`
     })
   }
 
@@ -499,74 +577,69 @@ function Index() {
     // 检测企业规模是否溢出
     if (companyScaleRef.current) {
       const element = companyScaleRef.current as HTMLElement
-      const isOverflow = element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth
+      const isOverflow =
+        element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth
       setIsCompanyScaleOverflow(isOverflow)
     }
 
     // 检测企业简介是否溢出
     if (companyIntroRef.current) {
       const element = companyIntroRef.current as HTMLElement
-      const isOverflow = element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth
+      const isOverflow =
+        element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth
       setIsCompanyIntroOverflow(true)
     }
   }, [])
 
   // 监听公司数据变化，重新检测溢出
   useEffect(() => {
-    if (company && (company.scale || company.businessScope)) {
+    if (corpDetail?.businessScope) {
       // 延迟检测，确保DOM已渲染
       setTimeout(() => {
         checkTextOverflow()
       }, 100)
     }
-  }, [company, checkTextOverflow])
-
-  Taro.useLoad(options => {
-    setNotDisplaying(options && options.notDisplaying ? Boolean(options.notDisplaying) : false)
-    let res = JSON.parse(options.company)
-    // 统计联系方式总数
-    const totalCount = Object.values(res.contactInfo || {}).reduce<number>((sum, arr: any) => {
-      return sum + (Array.isArray(arr) ? arr.length : 0)
-    }, 0)
-    setPhoneInfo(res.contactInfo?.phones || [])
-    setEmails(res.contactInfo?.emails || [])
-    setFixedLines(res.contactInfo?.fixedLines || [])
-    setAddress(res.contactInfo?.address || [])
-    setOthers(res.contactInfo?.others || [])
-    setAllContactInformation(totalCount)
-    Taro.showLoading({
-      title: '正在加载企业详情',
-      mask: true
-    })
-    enterpriseDetailAPI({ gid: res.gid, pageNum: 1, pageSize: 3 }, item => {
-      if (item.success) {
-        getCompanyWebNewsListApi({ gid: res.gid, pageNum: 1, pageSize: 3 }, val => {
-          if (val.success) {
-            setCompanyDetail({ ...item.data, newsList: val.data.list || [], newsListTotal: val.data.total })
-          }
-        })
-        Taro.hideLoading()
-      } else {
-        Taro.hideLoading()
-      }
-    })
-
-    setCompany(res)
-  })
+  }, [corpDetail])
 
   return (
-    <View className="searchEnterprisePage" style={showPopup ? { position: 'fixed', width: '100%', top: 0, left: 0 } : {}}>
+    <View
+      className="searchEnterprisePage"
+      style={showPopup ? { position: 'fixed', width: '100%', top: 0, left: 0 } : {}}
+    >
       {/* 自定义弹窗 */}
-      <CustomDialog visible={showCustomDialog} title={dialogType === 'add' ? '您确定要将该线索匹配吗？' : '您确定要将该线索移除线索池吗？'} content={dialogType === 'add' ? '标记后会自动转入线索池哦～' : '移除后会自动消失线索池，请谨慎操作'} onConfirm={handleDialogConfirm} onCancel={handleDialogCancel} />
+      <CustomDialog
+        visible={showCustomDialog}
+        title={dialogType === 'add' ? '您确定要将该线索匹配吗？' : '您确定要将该线索移除线索池吗？'}
+        content={
+          dialogType === 'add' ? '标记后会自动转入线索池哦～' : '移除后会自动消失线索池，请谨慎操作'
+        }
+        onConfirm={handleDialogConfirm}
+        onCancel={handleDialogCancel}
+      />
 
       {/* 恢复弹窗 */}
-      <CustomDialog visible={showRestoreDialog} title="您确定要恢复该线索吗？" content="恢复后该线索可以重新选择匹配与不匹配" onConfirm={handleRestoreConfirm} onCancel={handleRestoreCancel} />
+      <CustomDialog
+        visible={showRestoreDialog}
+        title="您确定要恢复该线索吗？"
+        content="恢复后该线索可以重新选择匹配与不匹配"
+        onConfirm={handleRestoreConfirm}
+        onCancel={handleRestoreCancel}
+      />
 
       {/* 无效线索原因 */}
-      <Popup position="bottom" style={{ height: '50%' }} visible={isShowInvalid} onClose={() => setIsShowInvalid(false)}>
+      <Popup
+        position="bottom"
+        style={{ height: '50%' }}
+        visible={isShowInvalid}
+        onClose={() => setIsShowInvalid(false)}
+      >
         <View className="popup_header">
           <View className="popup_header_title">无效线索原因</View>
-          <Image onClick={() => setIsShowInvalid(false)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+          <Image
+            onClick={() => setIsShowInvalid(false)}
+            src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png"
+            className="popup_header_img"
+          />
         </View>
         <View className="invalid_content">{company.commentContent || '与我的业务无关'}</View>
         <View onClick={() => setShowRestoreDialog(true)} className="invalid_content_button">
@@ -575,15 +648,32 @@ function Index() {
       </Popup>
 
       {/* 反馈 */}
-      <Popup position="bottom" style={{ maxHeight: '95%', minHeight: '95%' }} visible={isShowFeedback} onClose={() => setIsShowFeedback(false)}>
+      <Popup
+        position="bottom"
+        style={{ maxHeight: '95%', minHeight: '95%' }}
+        visible={isShowFeedback}
+        onClose={() => setIsShowFeedback(false)}
+      >
         <View className="popup_header">
-          <View className="popup_header_title" style={{ fontSize: '40rpx', color: '#333333', textAlign: 'left', paddingLeft: '24rpx' }}>
+          <View
+            className="popup_header_title"
+            style={{ fontSize: '40rpx', color: '#333333', textAlign: 'left', paddingLeft: '24rpx' }}
+          >
             反馈-不匹配/不合适
           </View>
-          <Image onClick={() => setIsShowFeedback(false)} src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png" className="popup_header_img" />
+          <Image
+            onClick={() => setIsShowFeedback(false)}
+            src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise14.png"
+            className="popup_header_img"
+          />
         </View>
         <View className="feedBack_content">
-          <Checkbox.Group defaultValue={['1']} value={checked} style={{ width: '100%', padding: '24rpx', boxSizing: 'border-box' }} onChange={CheckedChange}>
+          <Checkbox.Group
+            defaultValue={['1']}
+            value={checked}
+            style={{ width: '100%', padding: '24rpx', boxSizing: 'border-box' }}
+            onChange={CheckedChange}
+          >
             <Checkbox value="1" label="产品不匹配" />
             <Checkbox value="2" label="公司与信息匹配不上" />
             <Checkbox value="3" label="公司类型错误" />
@@ -593,7 +683,16 @@ function Index() {
           <View className="feedBack_content_footer">
             <View className="feedBack_content_footer_text">其他原因（选填）</View>
             <View className="feedBack_content_footer_input">
-              <TextArea cursorSpacing={100} value={feedBackValue} onChange={changeTextArea} placeholder="请输入备注" autoSize maxLength={500} showCount={false} adjustPosition={true} />
+              <TextArea
+                cursorSpacing={100}
+                value={feedBackValue}
+                onChange={changeTextArea}
+                placeholder="请输入备注"
+                autoSize
+                maxLength={500}
+                showCount={false}
+                adjustPosition={true}
+              />
             </View>
           </View>
           <View className="feedBack_content_footer_text">您的反馈有助于我们改进数据更精准</View>
@@ -609,37 +708,75 @@ function Index() {
       </Popup>
 
       {/* 联系人 */}
-      <ContactPopup visible={isShowPhone} onClose={() => setIsShowPhone(false)} contactData={{ phoneInfo, fixedLines, emails, address, others }} tabValue={tabValue} onTabChange={(value: number) => setTabValue(value)} />
+      {/* <ContactPopup
+        visible={isShowPhone}
+        onClose={() => setIsShowPhone(false)}
+        contactData={{ phoneInfo, fixedLines, emails, address, others }}
+        tabValue={tabValue}
+        onTabChange={(value: number) => setTabValue(value)}
+      /> */}
+      <CorpContactComponent
+        visible={isShowPhone}
+        setVisible={setIsShowPhone}
+        creditCode={creditCode}
+      />
 
       <View className="enterpriseContent_item">
         <View className="enterpriseContent_item_top">
-          {company.logo ? (
+          {corpDetail?.logo ? (
             // 判断是否为图片链接（包含http或https）
-            company.logo.includes('http') ? (
-              <Image src={company.logo} className="enterpriseContent_item_Img" />
+            corpDetail.logo.includes('http') ? (
+              <Image src={corpDetail.logo} className="enterpriseContent_item_Img" />
             ) : (
               // 如果是文字，显示文字
-              <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="enterpriseContent_item_Img">
-                {company.logo}
+              <Text
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: '#1B5BFF',
+                  color: '#fff',
+                  borderRadius: '8rpx',
+                  fontSize: '32rpx',
+                  textAlign: 'center',
+                  padding: '8rpx',
+                  boxSizing: 'border-box'
+                }}
+                className="enterpriseContent_item_Img"
+              >
+                {corpDetail.logo}
               </Text>
             )
           ) : (
             // 如果为空，显示"暂无"
-            <Text className="enterpriseContent_item_Img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx' }}>
+            <Text
+              className="enterpriseContent_item_Img"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: '#1B5BFF',
+                color: '#fff',
+                borderRadius: '8rpx',
+                fontSize: '32rpx'
+              }}
+            >
               暂无
             </Text>
           )}
           <View className="enterpriseContent_item_Text">
-            <View className="title">{company.name}</View>
+            <View className="title">{corpDetail?.name || '- -'}</View>
             <View className="enterpriseContent_item_tag">
               {/* <View className="enterpriseContent_item_tag_item">{company.regStatus}</View> */}
-              {company.regStatus != 'null' && <Text className="enterpriseContent_item_tag_item">{company.regStatus || '- -'}</Text>}
-              {company.tags?.map((item: any, index: number) => {
+              {corpDetail?.regStatus && (
+                <Text className="enterpriseContent_item_tag_item">{corpDetail.regStatus}</Text>
+              )}
+              {corpDetail?.tagList?.map((item, index: number) => {
                 // 过滤掉"曾用名"标签
-                if (item === '曾用名') return null
+                if (item.title === '曾用名') return null
                 return (
                   <View key={index} className="enterpriseContent_item_tag_item">
-                    {item}
+                    {item.title}
                   </View>
                 )
               })}
@@ -648,23 +785,37 @@ function Index() {
         </View>
         <View className="enterpriseContent_item_info">
           <View className="enterpriseContent_item_info_item">
-            <View style={{ justifyContent: 'flex-start' }} className="enterpriseContent_item_info_item_title">
+            <View
+              style={{ justifyContent: 'flex-start' }}
+              className="enterpriseContent_item_info_item_title"
+            >
               法定代表人
             </View>
-            <View style={{ color: '#3094FF', justifyContent: 'flex-start' }} className="enterpriseContent_item_info_item_value">
-              {company.legalPerson}
+            <View
+              style={{ color: '#3094FF', justifyContent: 'flex-start' }}
+              className="enterpriseContent_item_info_item_value"
+            >
+              {corpDetail?.legalPerson || '- -'}
             </View>
           </View>
           <View className="enterpriseContent_item_info_item">
             <View className="enterpriseContent_item_info_item_title">注册资本</View>
-            <View className="enterpriseContent_item_info_item_value">{company.regCapital}</View>
+            <View className="enterpriseContent_item_info_item_value">
+              {corpDetail?.regCapital || '- -'}
+            </View>
           </View>
           <View className="enterpriseContent_item_info_item">
-            <View style={{ justifyContent: 'flex-end' }} className="enterpriseContent_item_info_item_title">
+            <View
+              style={{ justifyContent: 'flex-end' }}
+              className="enterpriseContent_item_info_item_title"
+            >
               成立日期
             </View>
-            <View style={{ justifyContent: 'flex-end' }} className="enterpriseContent_item_info_item_value">
-              {company.establishTime}
+            <View
+              style={{ justifyContent: 'flex-end' }}
+              className="enterpriseContent_item_info_item_value"
+            >
+              {corpDetail?.establishTime || '- -'}
             </View>
           </View>
         </View>
@@ -681,68 +832,106 @@ function Index() {
         </View> */}
 
         <View className="enterpriseContent_item_product">
-          <View ref={companyIntroRef} className={`enterpriseContent_item_product_left${expandedCompanyIntro ? ' expanded' : ''}`}>
-            企业简介：<Text style={{ color: '#7B7B7B' }}>{company.businessScope}</Text>
+          <View
+            ref={companyIntroRef}
+            className={`enterpriseContent_item_product_left${
+              expandedCompanyIntro ? ' expanded' : ''
+            }`}
+          >
+            企业简介：<Text style={{ color: '#7B7B7B' }}>{corpDetail?.businessScope || '- -'}</Text>
           </View>
           {isCompanyIntroOverflow && (
-            <View className="enterpriseContent_item_product_right" onClick={() => setExpandedCompanyIntro(!expandedCompanyIntro)}>
+            <View
+              className="enterpriseContent_item_product_right"
+              onClick={() => setExpandedCompanyIntro(!expandedCompanyIntro)}
+            >
               {expandedCompanyIntro ? '收起' : '展开'}
             </View>
           )}
         </View>
 
+        {/* 公司联系方式 */}
         <View className="enterpriseContent_item_product_phone">
           <View className="phone_left">
-            <Image src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail20.png" className="phone_left_img" />
-            <View className="phone_text" onClick={() => Taro.makePhoneCall({ phoneNumber: phoneInfo[0] })}>
+            <Image
+              src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail20.png"
+              className="phone_left_img"
+            />
+            {/* <View
+              className="phone_text"
+              onClick={() => Taro.makePhoneCall({ phoneNumber: phoneInfo[0] })}
+            >
               {phoneInfo[0]}
-            </View>
-            {/* <View className="phone_more" onClick={() => setIsShowPhone(true)}>
-              全部{allContactInformation}
             </View> */}
+            <View className="phone_more" onClick={() => setIsShowPhone(true)}>
+              查看联系方式
+            </View>
           </View>
-          {/* <View className="phone_right">
-            <View className="phone_right_item" onClick={() => openWebsite(company.websites)}>
-              <Image src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail21.png" className="phone_right_img" />
+          <View className="phone_right">
+            <View className="phone_right_item" onClick={() => openWebsite(corpDetail?.websites)}>
+              <Image
+                src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail21.png"
+                className="phone_right_img"
+              />
               <View className="phone_right_text">官网</View>
             </View>
-            <View className="phone_right_item">
-              <Image src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail22.png" className="phone_right_img" />
+            {/* <View className="phone_right_item">
+              <Image
+                src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail22.png"
+                className="phone_right_img"
+              />
               <View className="phone_right_text">邮箱</View>
             </View>
             <View className="phone_right_item">
-              <Image src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail23.png" className="phone_right_img" />
+              <Image
+                src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail23.png"
+                className="phone_right_img"
+              />
               <View className="phone_right_text">产品应用</View>
-            </View>
-          </View> */}
-        </View>
-
-        <View className="enterpriseContent_item_product_phone">
-          <View className="phone_left">
-            <Image src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail24.png" className="phone_left_img" />
-            <View className="phone_more">{company.location}</View>
+            </View> */}
           </View>
         </View>
 
-        <View className="enterpriseContent_analyze">
+        {/* 公司地址 */}
+        <View className="enterpriseContent_item_product_phone">
+          <View className="phone_left">
+            <Image
+              src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail24.png"
+              className="phone_left_img"
+            />
+            <View className="phone_more">{corpDetail?.regLocation || '— —'}</View>
+          </View>
+        </View>
+        {/* <View className="enterpriseContent_analyze">
           <View className="enterpriseContent_report">企业分析报告</View>
           <View className="enterpriseContent_branch">分支机构</View>
-          <View className="enterpriseContent_contact"  onClick={() => setIsShowPhone(true)}>联系方式</View>
-        </View>
-
-        {/* <Image onClick={() => toAiResearchReport()} src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail18.png" className="enterpriseContent_Img" /> */}
+          <View className="enterpriseContent_contact" onClick={() => setIsShowPhone(true)}>
+            联系方式
+          </View>
+        </View> */}
+        <Image
+          onClick={() => toAiResearchReport()}
+          src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail18.png"
+          className="enterpriseContent_Img"
+        />
       </View>
 
       {/* 智能分析结果 */}
-      {company.score && (
+      {/* {company.score && (
         <View className="analysis">
           <View className="analysis_content">
             <View className="analysis_top">
-              <Image src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail25.png" className="analysis_top_Img" />
+              <Image
+                src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail25.png"
+                className="analysis_top_Img"
+              />
               <View className="analysis_top_left">
                 匹配度：<Text className="analysis_top_left_text">{Math.floor(company.score)}%</Text>
               </View>
-              <Image src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail19.png" className="analysis_top_leftImg" />
+              <Image
+                src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail19.png"
+                className="analysis_top_leftImg"
+              />
             </View>
             <View className="analysis_bottom">
               <View className="analysis_bottom_item">
@@ -757,7 +946,7 @@ function Index() {
             </View>
           </View>
         </View>
-      )}
+      )} */}
 
       {/* 商机情报 */}
       {/* <View
@@ -789,7 +978,7 @@ function Index() {
       </View> */}
 
       {/* 商机情报弹窗 */}
-      <Popup
+      {/* <Popup
         position="bottom"
         style={{ maxHeight: '95%', minHeight: '60%' }}
         visible={showBusinessIntelligence}
@@ -827,15 +1016,24 @@ function Index() {
           <ScrollView scrollX>
             <View className="businessItem-tags">
               <View className="enterprise_graph_content_item">
-                <Image src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail17.png" className="enterprise_graph_content_item_img" />
+                <Image
+                  src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail17.png"
+                  className="enterprise_graph_content_item_img"
+                />
                 <View className="enterprise_graph_content_item_text">企业图谱</View>
               </View>
               <View className="enterprise_graph_content_item">
-                <Image src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail17.png" className="enterprise_graph_content_item_img" />
+                <Image
+                  src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail17.png"
+                  className="enterprise_graph_content_item_img"
+                />
                 <View className="enterprise_graph_content_item_text">企业图谱</View>
               </View>
               <View className="enterprise_graph_content_item">
-                <Image src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail17.png" className="enterprise_graph_content_item_img" />
+                <Image
+                  src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail17.png"
+                  className="enterprise_graph_content_item_img"
+                />
                 <View className="enterprise_graph_content_item_text">企业图谱</View>
               </View>
             </View>
@@ -859,13 +1057,13 @@ function Index() {
             </View>
           </ScrollView>
         </View>
-      </Popup>
+      </Popup> */}
 
       {/* 风险扫描 */}
       <View className="risk_scan">
         <View className="risk_scan_title">风险扫描</View>
         <View className="risk_scan_content">
-          {companyDetail?.enterpriseResponses?.map((item: any, index: any) => (
+          {corpRisk?.map((item, index: number) => (
             <View className="risk_scan_content_item" onClick={toAllRisk} key={index}>
               <View className="risk_scan_content_item_title">
                 {item?.name} <Text className="texts">{item?.count}</Text>
@@ -877,14 +1075,16 @@ function Index() {
       </View>
 
       {/* 企业动态 */}
-      {companyDetail.newsList?.length > 0 && (
+      {corpNews && corpNews.total > 0 && (
         <View className="enterprise_dynamic">
           <View className="enterprise_dynamic_title">企业动态</View>
           <View className="enterprise_dynamic_content">
-            <View className="enterprise_dynamic_content_one">{companyDetail.newsList?.[0]?.rtm ? formatTimestamp(companyDetail.newsList[0].rtm) : '--'}</View>
-            <View className="enterprise_dynamic_content_two">{companyDetail.newsList?.[0]?.title || '--'}</View>
+            <View className="enterprise_dynamic_content_one">
+              {corpNews.list[0].rtm ? formatTimestamp(corpNews.list[0].rtm) : '--'}
+            </View>
+            <View className="enterprise_dynamic_content_two">{corpNews.list[0].title || '--'}</View>
             <View className="enterprise_dynamic_content_three">
-              该企业存在 <Text style={{ color: '#629EE7' }}>{companyDetail.newsListTotal || 0}条</Text> 相关动态{' '}
+              该企业存在 <Text style={{ color: '#629EE7' }}>{corpNews.total || 0}条</Text> 相关动态{' '}
               <Text style={{ color: '#1B5BFF' }} onClick={toAllDynamic}>
                 查看全部
               </Text>
@@ -908,7 +1108,22 @@ function Index() {
         <View className="enterprise_info_title">基本信息</View>
         <View className="enterprise_info_content">
           {enterpriseInfo.map((item, index) => (
-            <View className="enterprise_info_content_item" onClick={() => Taro.navigateTo({ url: item.router + `?company=${JSON.stringify({ ...company })}` })} key={index}>
+            <View
+              className="enterprise_info_content_item"
+              onClick={() => {
+                if (corpDetail?.gid == null) {
+                  showToast({
+                    title: '获取失败',
+                    icon: 'error'
+                  })
+                  return
+                }
+                Taro.navigateTo({
+                  url: item.router + `?company=${JSON.stringify({ ...corpDetail })}`
+                })
+              }}
+              key={index}
+            >
               <View className="enterprise_info_content_item_title">{item.title}</View>
               <View className="enterprise_info_content_item_value">点击查看</View>
               <Image src={item.img} className="info_Img" />
@@ -921,14 +1136,26 @@ function Index() {
       <View className="enterprise_peer">
         <View className="peer_title">
           同行企业
-          <View className="peer_title_right" onClick={() => Taro.navigateTo({ url: '/subpackages/company/enterpriseDetail/detail/peerInfo/index?list=' + JSON.stringify(companyDetail.similarCompanies) })}>
+          <View
+            className="peer_title_right"
+            onClick={() =>
+              Taro.navigateTo({
+                url:
+                  '/subpackages/company/enterpriseDetail/detail/peerInfo/index?list=' +
+                  JSON.stringify(similarCorps)
+              })
+            }
+          >
             <Text className="peer_title_right_text">查看更多</Text>
-            <Image src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail19.png" className="peer_title_right_img" />
+            <Image
+              src="https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail19.png"
+              className="peer_title_right_img"
+            />
           </View>
         </View>
         <View className="peer_content">
-          {companyDetail?.similarCompanies?.length > 0 &&
-            companyDetail?.similarCompanies?.slice(0, 3).map((item: any, simIndex: number) => {
+          {similarCorps?.length > 0 &&
+            similarCorps?.slice(0, 3).map((item: any, simIndex: number) => {
               return (
                 <View className="peer_content_item" key={simIndex}>
                   <View className="peer_content_item_top">
@@ -938,13 +1165,38 @@ function Index() {
                         <Image src={item.logo} className="peer_content_item_img" />
                       ) : (
                         // 如果是文字，显示文字
-                        <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="peer_content_item_img">
+                        <Text
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: '#1B5BFF',
+                            color: '#fff',
+                            borderRadius: '8rpx',
+                            fontSize: '32rpx',
+                            textAlign: 'center',
+                            padding: '8rpx',
+                            boxSizing: 'border-box'
+                          }}
+                          className="peer_content_item_img"
+                        >
                           {item.logo}
                         </Text>
                       )
                     ) : (
                       // 如果为空，显示"暂无"
-                      <Text className="peer_content_item_img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '32rpx' }}>
+                      <Text
+                        className="peer_content_item_img"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: '#1B5BFF',
+                          color: '#fff',
+                          borderRadius: '8rpx',
+                          fontSize: '32rpx'
+                        }}
+                      >
                         暂无
                       </Text>
                     )}
@@ -958,26 +1210,56 @@ function Index() {
       </View>
 
       {/* 底部操作按钮 */}
-      {company.regStatus != 'null' && (
-        <View className="enterpriseContent_item_bottom">
-          <View className="enterpriseContent_item_bottom_left">
-            {(company.hasFeedback === 0 || company.hasFeedback === 1) && (
-              <View onClick={e => handleLike(e)} className={`enterpriseContent_item_bottom_left_good ${company.hasFeedback === 1 ? 'liked' : ''} ${showHeartbeat ? 'heartbeat' : ''}`}>
-                <Image src={company.hasFeedback === 1 ? 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise6.png' : 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise8.png'} className="enterpriseContent_item_bottom_left_good_img" />
-                <Text className="enterpriseContent_item_bottom_left_good_text">有效</Text>
-              </View>
-            )}
-            {(company.hasFeedback === 0 || company.hasFeedback === 2) && (
-              <View onClick={e => handleDislike(e)} className={`enterpriseContent_item_bottom_left_bad ${company.hasFeedback === 2 ? 'disliked' : ''} ${showShake ? 'shake' : ''}`}>
-                <Image src={company.hasFeedback === 2 ? 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise7.png' : 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise9.png'} className="enterpriseContent_item_bottom_left_bad_img" />
-                <Text className="enterpriseContent_item_bottom_left_bad_text">无效线索</Text>
-                {company.hasFeedback === 2 && <ArrowDown color="#8E8E8E" style={{ width: '28rpx', height: '28rpx', marginLeft: '6rpx' }} />}
-              </View>
-            )}
-          </View>
-          {/* 获取当前线索的状态，默认为 true（显示加入线索按钮） */}
-          {!company.isJoinClue ? (
-            <View onClick={e => handleAddToLeads(e)} className="enterpriseContent_item_bottom_right">
+      {/* <View className="enterpriseContent_item_bottom">
+        <View className="enterpriseContent_item_bottom_left">
+          {(company.hasFeedback === 0 || company.hasFeedback === 1) && (
+            <View
+              onClick={e => handleLike(e)}
+              className={`enterpriseContent_item_bottom_left_good ${
+                company.hasFeedback === 1 ? 'liked' : ''
+              } ${showHeartbeat ? 'heartbeat' : ''}`}
+            >
+              <Image
+                src={
+                  company.hasFeedback === 1
+                    ? 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise6.png'
+                    : 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise8.png'
+                }
+                className="enterpriseContent_item_bottom_left_good_img"
+              />
+              <Text className="enterpriseContent_item_bottom_left_good_text">有效</Text>
+            </View>
+          )}
+          {(company.hasFeedback === 0 || company.hasFeedback === 2) && (
+            <View
+              onClick={e => handleDislike(e)}
+              className={`enterpriseContent_item_bottom_left_bad ${
+                company.hasFeedback === 2 ? 'disliked' : ''
+              } ${showShake ? 'shake' : ''}`}
+            >
+              <Image
+                src={
+                  company.hasFeedback === 2
+                    ? 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise7.png'
+                    : 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise9.png'
+                }
+                className="enterpriseContent_item_bottom_left_bad_img"
+              />
+              <Text className="enterpriseContent_item_bottom_left_bad_text">无效线索</Text>
+              {company.hasFeedback === 2 && (
+                <ArrowDown
+                  color="#8E8E8E"
+                  style={{ width: '28rpx', height: '28rpx', marginLeft: '6rpx' }}
+                />
+              )}
+            </View>
+          )}
+        </View>
+        {!company.isJoinClue ? (
+            <View
+              onClick={e => handleAddToLeads(e)}
+              className="enterpriseContent_item_bottom_right"
+            >
               <Add color="#fff" style={{ marginRight: '12rpx', width: '32rpx', height: '32rpx' }} />
               <Text className="enterpriseContent_item_bottom_right_add_text">加入线索</Text>
             </View>
@@ -987,8 +1269,7 @@ function Index() {
               <View className="remove_icon"></View>
             </View>
           )}
-        </View>
-      )}
+      </View> */}
     </View>
   )
 }

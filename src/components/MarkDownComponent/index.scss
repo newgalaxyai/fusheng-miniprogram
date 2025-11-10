@@ -1,30 +1,30 @@
 .markdown-container {
-  font-size: 32rpx;
+  font-size: 28rpx;
   word-break: break-all;
   overflow-wrap: break-word;
 
-  // 使用属性选择器匹配包含特定字符串的类名
-  [class*="h1"] {
-    font-size: 32rpx !important;
-    font-weight: bold !important;
-    margin: 20rpx 0 !important;
-  }
+  // // 使用属性选择器匹配包含特定字符串的类名
+  // [class*="h1"] {
+  //   font-size: 24rpx !important;
+  //   font-weight: bold !important;
+  //   margin: 16rpx 0 !important;
+  // }
 
-  [class*="h2"] {
-    font-size: 28rpx !important;
-    font-weight: bold !important;
-    margin: 15rpx 0 !important;
-  }
+  // [class*="h2"] {
+  //   font-size: 28rpx !important;
+  //   font-weight: bold !important;
+  //   margin: 16rpx 0 !important;
+  // }
 
-  [class*="paragraph"] {
-    font-size: 28rpx !important;
-    line-height: 1.6 !important;
-    margin: 10rpx 0 !important;
-  }
+  // [class*="paragraph"] {
+  //   font-size: 28rpx !important;
+  //   line-height: 1.6 !important;
+  //   margin: 10rpx 0 !important;
+  // }
 
-  [class*="li"] {
-    font-size: 28rpx !important;
-    margin: 5rpx 0 !important;
-    padding-left: 20rpx !important;
-  }
+  // [class*="li"] {
+  //   font-size: 28rpx !important;
+  //   margin: 5rpx 0 !important;
+  //   padding-left: 20rpx !important;
+  // }
 }

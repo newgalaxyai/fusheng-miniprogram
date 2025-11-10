@@ -43,6 +43,8 @@ export const ROUTE = {
     FOLLOW_RECORD: '/subpackages/cluePage/followList/index',
     // AI企业搜索结果
     ENTERPRISE_SEARCH_RESULT: '/subpackages/company/enterpriseSearch/index',
+    // 企业详情
+    ENTERPRISE_DETAIL: '/subpackages/company/enterpriseDetail/index',
 }
 
 export const ROUTE_NAME = {

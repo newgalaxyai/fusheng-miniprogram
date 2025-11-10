@@ -216,9 +216,8 @@ const navigateToCompanyDetail = (company: any, e?: any) => {
     e.stopPropagation()
     e.preventDefault()
   }
-
   Taro.navigateTo({
-    url: `/subpackages/company/enterpriseDetail/index?company=${JSON.stringify(company)}`
+    url: `${ROUTE.ENTERPRISE_DETAIL}?${ROUTE_PARAMS_NAME.CREDIT_CODE}=${company.creditCode}`
   })
 }
 
@@ -234,7 +233,7 @@ const navigateToCompanyList = (msg: any) => {
 
 const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
   // console.log('AiMessageComponent', msg);
-  
+
   const renderCorpList = () => {
     if (msg.tableType !== 'corp') return null
     const list = Array.isArray(msg.tableData) ? msg.tableData : []
@@ -296,7 +295,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
                     <Text className="company_right_top_text">{name}</Text>
                     <ArrowRightSmall color="#2B2B2B" size="24rpx" />
                   </View>
-                  <View className="company_right_tabs">
+                  {/* <View className="company_right_tabs">
                     <View
                       className="company_right_tab"
                       onClick={e => toBranch({ creditCode, name }, e)}
@@ -311,7 +310,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
                       <View style={{ marginRight: 4 }}>近期动态</View>
                       <ArrowRightSmall color="#ffffff" size="24rpx" />
                     </View>
-                  </View>
+                  </View> */}
                 </View>
               </View>
             </View>
@@ -369,22 +368,18 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
 
   return (
     <View>
-      {msg.reasoningProcess ? (
-        <MarkdownComponent content={msg.reasoningProcess} />
-      ) : null}
-      {msg.aiResponse ? (
-        <MarkdownComponent content={msg.aiResponse} />
-      ) : null}
-      {msg.id == null && !msg.aiResponse && !msg.reasoningProcess&& !msg.tableData ? (
-        <MarkdownComponent content='回答中断，请重试～' />
+      {msg.reasoningProcess ? <MarkdownComponent content={msg.reasoningProcess} /> : null}
+      {msg.aiResponse ? <MarkdownComponent content={msg.aiResponse} /> : null}
+      {msg.id != null &&
+      msg.aiResponse == null &&
+      msg.reasoningProcess == null &&
+      (msg.tableData == null || msg.tableData.length === 0) ? (
+        <MarkdownComponent content="回答中断，请重试～" />
       ) : null}
       {renderCorpList()}
       {renderPhoneList()}
       {msg.aiConclusion ? (
-        <View
-          style={{ marginTop: '16rpx' }}
-          className="chatMsg_ai_text"
-        >
+        <View style={{ marginTop: '16rpx' }} className="chatMsg_ai_text">
           <MarkdownComponent content={msg.aiConclusion} />
         </View>
       ) : null}

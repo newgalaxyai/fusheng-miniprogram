@@ -41,7 +41,7 @@
   .chatPage_inputs {
     width: 100%;
     height: 100%;
-    background: #F7F7F7;
+    background: #f7f7f7;
     border-radius: 32rpx;
     box-sizing: border-box;
     padding: 16rpx;
@@ -54,7 +54,7 @@
   }
 
   .nut-dialog-footer .nut-dialog-footer-cancel {
-    background: #F8F8F8;
+    background: #f8f8f8;
     border: none;
     border-radius: 12rpx;
     box-sizing: border-box;
@@ -67,7 +67,7 @@
   }
 
   .nut-dialog-footer .nut-dialog-footer-ok {
-    background: #2156FE;
+    background: #2156fe;
     border: none;
     border-radius: 12rpx;
     box-sizing: border-box;
@@ -76,7 +76,7 @@
     font-family: PingFang SC, PingFang SC;
     font-weight: 500;
     font-size: 28rpx;
-    color: #FFFFFF;
+    color: #ffffff;
   }
 
   .chatPage_default {
@@ -126,7 +126,7 @@
             font-family: PingFang SC, PingFang SC;
             font-weight: 400;
             font-size: 28rpx;
-            color: #8190A4;
+            color: #8190a4;
           }
         }
 
@@ -144,7 +144,7 @@
             font-family: PingFang SC, PingFang SC;
             font-weight: 400;
             font-size: 28rpx;
-            color: #8190A4;
+            color: #8190a4;
           }
         }
       }
@@ -166,7 +166,7 @@
           display: inline-block;
           max-width: 100%;
           min-width: 10rpx;
-          background: #EAF6FE;
+          background: #eaf6fe;
           border-radius: 200rpx;
           margin-bottom: 24rpx;
           padding: 0 20rpx;
@@ -218,12 +218,12 @@
     .chatMsg_user {
       min-width: 10rpx;
       min-height: 76rpx;
-      background: #49A7FF;
+      background: #49a7ff;
       box-sizing: border-box;
       font-family: PingFang SC, PingFang SC;
       font-weight: 500;
       font-size: 32rpx;
-      color: #FFFFFF;
+      color: #ffffff;
       padding: 16rpx 24rpx;
       border-radius: 32rpx 32rpx 0 32rpx;
       max-width: 70%;
@@ -231,16 +231,16 @@
       margin-top: 50rpx;
     }
 
-      .chatMsg_ai {
-        width: 100%;
-        height: 100%;
-        background: #fff;
-        border-radius: 32rpx;
-        padding: 16rpx 0;
-        box-sizing: border-box;
-        color: #333;
-        font-size: 32rpx;
-        word-break: break-all;
+    .chatMsg_ai {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      border-radius: 32rpx;
+      padding: 16rpx 0;
+      box-sizing: border-box;
+      color: #333;
+      font-size: 32rpx;
+      word-break: break-all;
 
       .chatMsg_ai_fun_line {
         width: 100%;
@@ -250,7 +250,7 @@
         font-family: PingFang SC, PingFang SC;
         font-weight: 500;
         font-size: 32rpx;
-        color: #1B5BFF;
+        color: #1b5bff;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -258,10 +258,68 @@
         box-sizing: border-box;
       }
 
+      // 联系人列表（phone 表格类型）
+      .contact_list {
+        width: 100%;
+        background: #f7f7f7;
+        border-radius: 24rpx;
+        padding: 16rpx;
+        box-sizing: border-box;
+        margin-top: 16rpx;
+        display: flex;
+        flex-direction: column;
+        gap: 16rpx;
+      }
+
+      .contact_item {
+        width: 100%;
+        background: #fff;
+        border-radius: 16rpx;
+        padding: 16rpx;
+        box-sizing: border-box;
+      }
+
+      .contact_main {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8rpx;
+      }
+
+      .contact_phone {
+        font-weight: 600;
+        color: #2b2b2b;
+      }
+
+      .contact_recommend {
+        height: 40rpx;
+        border-radius: 8rpx;
+        background: #e6edff;
+        color: #1b5bff;
+        font-size: 24rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 12rpx;
+      }
+
+      .contact_sub {
+        display: flex;
+        align-items: center;
+        gap: 16rpx;
+        color: #6e6e6e;
+        font-size: 28rpx;
+      }
+
+      .contact_name {
+      }
+      .contact_position {
+      }
+
       .chat_ai_company {
         width: 100%;
         // min-height: 324rpx;
-        background: #F7F7F7;
+        background: #f7f7f7;
         border-radius: 24rpx;
         padding: 24rpx;
         box-sizing: border-box;
@@ -278,27 +336,27 @@
           border-radius: 24rpx 0 24rpx 0;
 
           &:nth-child(1) {
-            background: #FFCE53;
+            background: #ffce53;
             font-family: DIN Alternate, DIN Alternate;
             font-weight: bold;
             font-size: 32rpx;
-            color: #C67E0A;
+            color: #c67e0a;
           }
 
           &:nth-child(2) {
-            background: #D2DDE9;
+            background: #d2dde9;
             font-family: DIN Alternate, DIN Alternate;
             font-weight: bold;
             font-size: 32rpx;
-            color: #7B8D9F;
+            color: #7b8d9f;
           }
 
           &:nth-child(3) {
-            background: #E2BE99;
+            background: #e2be99;
             font-family: DIN Alternate, DIN Alternate;
             font-weight: bold;
             font-size: 32rpx;
-            color: #C4792C;
+            color: #c4792c;
           }
         }
 
@@ -326,7 +384,7 @@
             font-family: PingFang SC, PingFang SC;
             font-weight: 500;
             font-size: 32rpx;
-            color: #2B2B2B;
+            color: #2b2b2b;
             margin-bottom: 10rpx;
             display: flex;
             align-items: center;
@@ -345,11 +403,11 @@
               min-width: 50rpx;
               height: 44rpx;
               border-radius: 8rpx;
-              border: 2rpx solid #1B5BFF;
+              border: 2rpx solid #1b5bff;
               font-family: PingFang SC, PingFang SC;
               font-weight: 500;
               font-size: 24rpx;
-              color: #1B5BFF;
+              color: #1b5bff;
               display: flex;
               align-items: center;
               justify-content: center;
@@ -381,9 +439,9 @@
               font-family: PingFang SC, PingFang SC;
               font-weight: 500;
               font-size: 24rpx;
-              color: #6E6E6E;
+              color: #6e6e6e;
               padding-right: 16rpx;
-              border-right: 2rpx solid #BACDFF;
+              border-right: 2rpx solid #bacdff;
               margin-right: 22rpx;
               line-height: 1;
             }
@@ -391,7 +449,7 @@
             .website {
               width: 92rpx;
               height: 44rpx;
-              background: #E6EDFF;
+              background: #e6edff;
               border-radius: 8rpx;
               display: flex;
               align-items: center;
@@ -401,7 +459,7 @@
               font-family: PingFang SC, PingFang SC;
               font-weight: 400;
               font-size: 24rpx;
-              color: #1B5BFF;
+              color: #1b5bff;
 
               .website_img {
                 width: 24rpx;
@@ -428,12 +486,12 @@
             .company_right_tab {
               min-width: 50;
               height: 46rpx;
-              background: #49A7FF;
+              background: #49a7ff;
               border-radius: 10rpx;
               font-family: PingFang SC, PingFang SC;
               font-weight: 500;
               font-size: 24rpx;
-              color: #FFFFFF;
+              color: #ffffff;
               display: flex;
               align-items: center;
               justify-content: center;
@@ -450,7 +508,7 @@
         font-family: PingFang SC, PingFang SC;
         font-weight: 500;
         font-size: 32rpx;
-        color: #2B2B2B;
+        color: #2b2b2b;
         line-height: 1.6;
 
         // Markdown样式
@@ -462,7 +520,7 @@
         h6 {
           margin: 16rpx 0 8rpx 0;
           font-weight: 600;
-          color: #2B2B2B;
+          color: #2b2b2b;
         }
 
         h1 {
@@ -514,7 +572,7 @@
           border-radius: 12rpx;
           margin: 16rpx 0;
           overflow-x: auto;
-          border-left: 4rpx solid #49A7FF;
+          border-left: 4rpx solid #49a7ff;
 
           code {
             background: none;
@@ -525,7 +583,7 @@
         }
 
         blockquote {
-          border-left: 4rpx solid #49A7FF;
+          border-left: 4rpx solid #49a7ff;
           padding-left: 16rpx;
           margin: 16rpx 0;
           color: #666;
@@ -534,7 +592,7 @@
 
         strong {
           font-weight: 600;
-          color: #2B2B2B;
+          color: #2b2b2b;
         }
 
         em {
@@ -543,7 +601,7 @@
         }
 
         a {
-          color: #49A7FF;
+          color: #49a7ff;
           text-decoration: none;
         }
 
@@ -573,16 +631,16 @@
         }
       }
 
-        .chatMsg_ai_fun {
-          width: 100%;
-          height: 100%;
-          background: #fff;
-          border-radius: 32rpx;
-          box-sizing: border-box;
-          display: flex;
-          align-items: center;
-          gap: 40rpx;
-          margin-top: 42rpx;
+      .chatMsg_ai_fun {
+        width: 100%;
+        height: 100%;
+        background: #fff;
+        border-radius: 32rpx;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        gap: 40rpx;
+        margin-top: 42rpx;
 
         .chatMsg_ai_fun_img {
           width: 32rpx;
@@ -615,60 +673,6 @@
             transition: transform 0.05s ease-in-out;
           }
         }
-
-        // 联系人列表（phone 表格类型）
-        .contact_list {
-          width: 100%;
-          background: #F7F7F7;
-          border-radius: 24rpx;
-          padding: 16rpx;
-          box-sizing: border-box;
-          margin-top: 24rpx;
-        }
-
-        .contact_item {
-          width: 100%;
-          background: #fff;
-          border-radius: 16rpx;
-          padding: 16rpx;
-          box-sizing: border-box;
-          margin-bottom: 16rpx;
-        }
-
-        .contact_main {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 8rpx;
-        }
-
-        .contact_phone {
-          font-weight: 600;
-          color: #2B2B2B;
-        }
-
-        .contact_recommend {
-          height: 40rpx;
-          border-radius: 8rpx;
-          background: #E6EDFF;
-          color: #1B5BFF;
-          font-size: 24rpx;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 0 12rpx;
-        }
-
-        .contact_sub {
-          display: flex;
-          align-items: center;
-          gap: 16rpx;
-          color: #6E6E6E;
-          font-size: 28rpx;
-        }
-
-        .contact_name {}
-        .contact_position {}
       }
     }
   }
@@ -683,7 +687,7 @@
       width: 80rpx;
       height: 80rpx;
       border-radius: 50%;
-      border: 2rpx solid #F0F3FF;
+      border: 2rpx solid #f0f3ff;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -695,7 +699,7 @@
       width: 80rpx;
       height: 80rpx;
       border-radius: 50%;
-      border: 2rpx solid #F0F3FF;
+      border: 2rpx solid #f0f3ff;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -706,7 +710,7 @@
   .chatPage_bottom {
     width: 100%;
     height: 314rpx;
-    background: linear-gradient(180deg, rgba(240, 243, 255, 0) 0%, #F0F3FF 100%);
+    background: linear-gradient(180deg, rgba(240, 243, 255, 0) 0%, #f0f3ff 100%);
     position: fixed;
     /* 改为 fixed 定位 */
     bottom: 0;
@@ -744,11 +748,9 @@
         padding: 0;
         z-index: 2;
         pointer-events: none;
-        background: linear-gradient(90deg, #83FFDF 0%, #6881FF 100%);
+        background: linear-gradient(90deg, #83ffdf 0%, #6881ff 100%);
         /* 只显示内边框线条 */
-        -webkit-mask:
-          linear-gradient(#fff 0 0) content-box,
-          linear-gradient(#fff 0 0);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
         -webkit-mask-composite: xor;
         mask-composite: exclude;
         /* 线宽2rpx */
@@ -783,7 +785,7 @@
           .chatPage_fun_left2 {
             width: 184rpx;
             height: 60rpx;
-            background: #F4F4F4;
+            background: #f4f4f4;
             border-radius: 16rpx;
             font-family: PingFang SC, PingFang SC;
             font-weight: 500;
@@ -833,7 +835,6 @@
 }
 
 @keyframes loading-bounce {
-
   0%,
   80%,
   100% {
@@ -868,7 +869,7 @@
 .tech-dot {
   width: 16rpx;
   height: 16rpx;
-  background: linear-gradient(135deg, #49A7FF 0%, #6881FF 100%);
+  background: linear-gradient(135deg, #49a7ff 0%, #6881ff 100%);
   border-radius: 50%;
   position: relative;
   animation: tech-pulse 1.4s ease-in-out infinite both;
@@ -914,7 +915,7 @@
   font-family: PingFang SC, PingFang SC;
   font-weight: 500;
   font-size: 28rpx;
-  color: #8190A4;
+  color: #8190a4;
   text-align: center;
   position: relative;
   animation: tech-text-fade 2s ease-in-out infinite;
@@ -927,13 +928,12 @@
     transform: translateX(-50%);
     width: 0;
     height: 2rpx;
-    background: linear-gradient(90deg, #49A7FF 0%, #6881FF 100%);
+    background: linear-gradient(90deg, #49a7ff 0%, #6881ff 100%);
     animation: tech-line-expand 2s ease-in-out infinite;
   }
 }
 
 @keyframes tech-pulse {
-
   0%,
   80%,
   100% {
@@ -948,7 +948,6 @@
 }
 
 @keyframes tech-glow {
-
   0%,
   80%,
   100% {
@@ -963,7 +962,6 @@
 }
 
 @keyframes tech-text-fade {
-
   0%,
   100% {
     opacity: 0.7;

@@ -6,26 +6,80 @@ export type IBusinessInfoRequest = {
 }
 
 // 工商信息
+type ICorpTag = {
+  type: string // 标签类型
+  title: string // 标签名称
+}
 export type IBusinessInfo = {
-  legalPerson: string // 法人
-  establishTime: string // 成立时间
-  regStatus: string // 注册状态
+  // 企业基本信息
+  gid: number // 企业gid
+  name: string // 公司名称
+  alias: string // 公司别名
+  logo: string // 企业logo
+  tagList: ICorpTag[] // 标签列表
+  // 工商信息
+  legalPerson: string // 法定代表人
+  establishTime: string // 成立日期
+  regStatus: string // 企业经营状态
   regCapital: string // 注册资本
   regCapitalForList: string // 实缴资本
-  categoryNameLv1: string // 一级分类
-  categoryNameLv2: string // 二级分类
-  categoryNameLv3: string // 三级分类
-  creditCode: string // 信用代码
-  regNumber: string // 注册号
-  orgType: string // 组织类型
-  orgNumber: string // 组织编号
-  socialSecurityStaffNum: string // 参保人数
-  businessTerm: string // 经营期限
   approveDate: string // 核准日期
-  registerInstitute: string // 注册机构
+  categoryNameLv1: string // 一级行业分类
+  categoryNameLv2: string // 二级行业分类
+  categoryNameLv3: string // 三级行业分类
+  categoryNameLv4: string // 四级行业分类
+  creditCode: string // 社会信用代码
+  regNumber: string // 工商注册号
+  regLocation: string // 注册地址
+  orgType: string // 企业类型
+  orgNumber: string // 组织机构代码
+  socialSecurityStaffNum: string // 参保人数
+  taxId: string // 纳税人识别号
+  taxQualification: string // 纳税人资质
+  importExportCode: string // 进出口代码
+  seaRegisterCode: string // 海关注册编码
+  businessTerm: string // 营业期限
+  approvedDate: string // 核准日期
+  registerInstitute: string // 登记机关
+  historyNames: string // 曾用名
   englishName: string // 英文名称
-  historyNames: string // 历史名称
   businessScope: string // 经营范围
+  // 联系信息
+  showEmail: string // 显示邮箱
+  emailList: string[] // 邮箱列表
+  showPhone: string // 显示手机号
+  phoneList: string[] // 手机号列表
+  websites: string // 网址
+}
+
+// 风险扫描
+export type IRiskDetail = {
+  id: number // 风险id
+  riskCount: number // 风险数量
+  title: string // 风险标题
+  riskType: number // 风险类型
+  description: string // 描述
+  graphId: number // 图标id
+  companyName: string // 公司名称
+  orderNum: number // 排序
+}
+export type IRiskScan = {
+  type: number // 风险类型
+  name: string // 风险名称
+  count: number // 风险总数量
+  otherCount: number // 其他数量
+  importantCount: number // 重要数量
+  details: IRiskDetail[] // 风险详情列表
+}
+
+// 企业动态
+export type IEnterpriseDynamic = {
+  sentiment: string // 情感
+  website: string  // 网址
+  docid: string // 文档id
+  title: string // 标题
+  uri: string // uri
+  rtm: string // rtm
 }
 
 // 股东信息

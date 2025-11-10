@@ -1,7 +1,62 @@
 import { taroPost, taroGet, taroPut, taroDelete, taroRequest } from '@/service'
-import { getCompanyInfoURL, searchCompaniesURL, getProductSellingPointsURL, generateReportURL, enterpriseDetailURL, companyFeedbackCreateURL, enterpriseGraphURL, getCompanyWebNewsListURL, getCompanyWebNewsDetailURL } from '@/service/config'
-import type { IBusinessInfo, ICorpInfoRequest, ICorpInfoResponse, IPersonInfo, IResponse, IShareholderInfo, IAnnualReport, IAnnualReportDetailRequest, IAnnualReportDetail, IBusinessInfoRequest, IOutsideInvestment, IBranchOffice, IActualController, IDirectControl, IBusibessPublicity, ISuspectedRelation, IGenerateCorpReportRequest, IAPIResponse, IGenerateCorpReportResponse, IGetCorpContactInfoRequest, IGetCorpContactInfoResponse, IClue, IGetCorpListRequest, IPaginationResponse, ICorp } from '../types'
-import { getBusinessInfoURL, getPersonInfoURL, getShareholderInfoURL, getAnnualReportURL, getAnnualReportDetailURL, getOutsideInvestmentURL, getBranchOfficeURL, getActualControllerURL, getDirectControlURL, getBusinessSelfPublicationURL, getSuspectedRelationURL, getCorpContactInfoURL, getCorpListURL } from '../url'
+import {
+  getCompanyInfoURL,
+  searchCompaniesURL,
+  getProductSellingPointsURL,
+  generateReportURL,
+  enterpriseDetailURL,
+  companyFeedbackCreateURL,
+  enterpriseGraphURL,
+  getCompanyWebNewsListURL,
+  getCompanyWebNewsDetailURL
+} from '@/service/config'
+import type {
+  IBusinessInfo,
+  ICorpInfoRequest,
+  ICorpInfoResponse,
+  IPersonInfo,
+  IResponse,
+  IShareholderInfo,
+  IAnnualReport,
+  IAnnualReportDetailRequest,
+  IAnnualReportDetail,
+  IBusinessInfoRequest,
+  IOutsideInvestment,
+  IBranchOffice,
+  IActualController,
+  IDirectControl,
+  IBusibessPublicity,
+  ISuspectedRelation,
+  IGenerateCorpReportRequest,
+  IAPIResponse,
+  IGenerateCorpReportResponse,
+  IGetCorpContactInfoRequest,
+  IGetCorpContactInfoResponse,
+  IClue,
+  IGetCorpListRequest,
+  IPaginationResponse,
+  ICorp,
+  IRiskScan,
+  IEnterpriseDynamic
+} from '../types'
+import {
+  getBusinessInfoURL,
+  getPersonInfoURL,
+  getShareholderInfoURL,
+  getAnnualReportURL,
+  getAnnualReportDetailURL,
+  getOutsideInvestmentURL,
+  getBranchOfficeURL,
+  getActualControllerURL,
+  getDirectControlURL,
+  getBusinessSelfPublicationURL,
+  getSuspectedRelationURL,
+  getCorpContactInfoURL,
+  getCorpListURL,
+  getRiskScanURL,
+  getEnterpriseDynamicURL,
+  getSimilarCompaniesURL
+} from '../url'
 
 // 获取产品卖点
 export const getProductSellingPointsAPI = (data: any, callback: (res: IResponse<any>) => void) => {
@@ -179,7 +234,10 @@ export const searchCompaniesAPI = (data: any, callback: (res: IResponse<any>) =>
 }
 
 // 生成报告
-export const generateReportAPI = (data: IGenerateCorpReportRequest, callback: (res: IResponse<IGenerateCorpReportResponse>) => void) => {
+export const generateReportAPI = (
+  data: IGenerateCorpReportRequest,
+  callback: (res: IResponse<IGenerateCorpReportResponse>) => void
+) => {
   taroPost({
     url: generateReportURL,
     data,
@@ -266,7 +324,10 @@ export const companyFeedbackCreateAPI = (data: any, callback: (res: IResponse<an
 }
 
 // 获取工商信息
-export const getBusinessInfoAPI = (data: IBusinessInfoRequest, callback: (res: IResponse<IBusinessInfo>) => void) => {
+export const getBusinessInfoAPI = (
+  data: IBusinessInfoRequest,
+  callback: (res: IResponse<IBusinessInfo>) => void
+) => {
   taroGet({
     url: getBusinessInfoURL,
     data,
@@ -294,8 +355,107 @@ export const getBusinessInfoAPI = (data: IBusinessInfoRequest, callback: (res: I
   }).catch(() => {})
 }
 
+// 获取风险扫描
+export const getRiskScanAPI = (
+  data: ICorpInfoRequest,
+  callback: (res: IResponse<IRiskScan[]>) => void
+) => {
+  taroGet({
+    url: getRiskScanURL,
+    data,
+    success: (res: IAPIResponse<IRiskScan[]>) => {
+      callback({
+        success: true,
+        data: res.data
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => {})
+}
+
+// 获取企业动态
+export const getEnterpriseDynamicAPI = (
+  data: ICorpInfoRequest,
+  callback: (res: IResponse<ICorpInfoResponse<IEnterpriseDynamic>>) => void
+) => {
+  taroGet({
+    url: getEnterpriseDynamicURL,
+    data,
+    success: (res: IAPIResponse<ICorpInfoResponse<IEnterpriseDynamic>>) => {
+      callback({
+        success: true,
+        data: res.data
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => {})
+}
+
+// 获取相似企业
+export const getSimilarCompaniesAPI = (
+  data: ICorpInfoRequest,
+  callback: (res: IResponse<any[]>) => void
+) => {
+  taroPost({
+    url: getSimilarCompaniesURL,
+    data,
+    success: (res: IAPIResponse<any[]>) => {
+      callback({
+        success: true,
+        data: res.data
+      })
+    },
+    fail: (err: any) => {
+      if (err instanceof Promise) {
+        err.catch(errMsg => {
+          callback({
+            success: false,
+            data: errMsg
+          })
+        })
+      } else {
+        callback({
+          success: false,
+          data: err
+        })
+      }
+    }
+  }).catch(() => {})
+}
+
 // 获取股东信息
-export const getShareholderInfoAPI = (data: ICorpInfoRequest, callback: (res: IResponse<ICorpInfoResponse<IShareholderInfo>>) => void) => {
+export const getShareholderInfoAPI = (
+  data: ICorpInfoRequest,
+  callback: (res: IResponse<ICorpInfoResponse<IShareholderInfo>>) => void
+) => {
   taroGet({
     url: getShareholderInfoURL,
     data,
@@ -324,7 +484,10 @@ export const getShareholderInfoAPI = (data: ICorpInfoRequest, callback: (res: IR
 }
 
 // 获取人员信息
-export const getPersonInfoAPI = (data: ICorpInfoRequest, callback: (res: IResponse<ICorpInfoResponse<IPersonInfo>>) => void) => {
+export const getPersonInfoAPI = (
+  data: ICorpInfoRequest,
+  callback: (res: IResponse<ICorpInfoResponse<IPersonInfo>>) => void
+) => {
   taroGet({
     url: getPersonInfoURL,
     data,
@@ -353,7 +516,10 @@ export const getPersonInfoAPI = (data: ICorpInfoRequest, callback: (res: IRespon
 }
 
 // 获取企业年报
-export const getAnnualReportAPI = (data: ICorpInfoRequest, callback: (res: IResponse<IAnnualReport[]>) => void) => {
+export const getAnnualReportAPI = (
+  data: ICorpInfoRequest,
+  callback: (res: IResponse<IAnnualReport[]>) => void
+) => {
   taroGet({
     url: getAnnualReportURL,
     data,
@@ -382,7 +548,10 @@ export const getAnnualReportAPI = (data: ICorpInfoRequest, callback: (res: IResp
 }
 
 // 获取企业年报详情
-export const getAnnualReportDetailAPI = (data: IAnnualReportDetailRequest, callback: (res: IResponse<IAnnualReportDetail>) => void) => {
+export const getAnnualReportDetailAPI = (
+  data: IAnnualReportDetailRequest,
+  callback: (res: IResponse<IAnnualReportDetail>) => void
+) => {
   taroGet({
     url: getAnnualReportDetailURL,
     data,
@@ -411,7 +580,10 @@ export const getAnnualReportDetailAPI = (data: IAnnualReportDetailRequest, callb
 }
 
 // 获取对外投资
-export const getOutsideInvestmentAPI = (data: ICorpInfoRequest, callback: (res: IResponse<IOutsideInvestment[]>) => void) => {
+export const getOutsideInvestmentAPI = (
+  data: ICorpInfoRequest,
+  callback: (res: IResponse<IOutsideInvestment[]>) => void
+) => {
   taroGet({
     url: getOutsideInvestmentURL,
     data,
@@ -440,7 +612,10 @@ export const getOutsideInvestmentAPI = (data: ICorpInfoRequest, callback: (res: 
 }
 
 // 获取分支机构
-export const getBranchOfficeAPI = (data: ICorpInfoRequest, callback: (res: IResponse<IBranchOffice[]>) => void) => {
+export const getBranchOfficeAPI = (
+  data: ICorpInfoRequest,
+  callback: (res: IResponse<IBranchOffice[]>) => void
+) => {
   taroGet({
     url: getBranchOfficeURL,
     data,
@@ -469,7 +644,10 @@ export const getBranchOfficeAPI = (data: ICorpInfoRequest, callback: (res: IResp
 }
 
 // 获取受益人
-export const getActualControllerAPI = (data: ICorpInfoRequest, callback: (res: IResponse<IActualController>) => void) => {
+export const getActualControllerAPI = (
+  data: ICorpInfoRequest,
+  callback: (res: IResponse<IActualController>) => void
+) => {
   taroGet({
     url: getActualControllerURL,
     data,
@@ -498,7 +676,10 @@ export const getActualControllerAPI = (data: ICorpInfoRequest, callback: (res: I
 }
 
 // 获取直接控制企业
-export const getDirectControlAPI = (data: ICorpInfoRequest, callback: (res: IResponse<IDirectControl[]>) => void) => {
+export const getDirectControlAPI = (
+  data: ICorpInfoRequest,
+  callback: (res: IResponse<IDirectControl[]>) => void
+) => {
   taroGet({
     url: getDirectControlURL,
     data,
@@ -527,7 +708,10 @@ export const getDirectControlAPI = (data: ICorpInfoRequest, callback: (res: IRes
 }
 
 // 获取工商自主公示
-export const getBusinessSelfPublicationAPI = (data: ICorpInfoRequest, callback: (res: IResponse<IBusibessPublicity[]>) => void) => {
+export const getBusinessSelfPublicationAPI = (
+  data: ICorpInfoRequest,
+  callback: (res: IResponse<IBusibessPublicity[]>) => void
+) => {
   taroGet({
     url: getBusinessSelfPublicationURL,
     data,
@@ -556,7 +740,10 @@ export const getBusinessSelfPublicationAPI = (data: ICorpInfoRequest, callback: 
 }
 
 // 获取疑似关系
-export const getSuspectedRelationAPI = (data: ICorpInfoRequest, callback: (res: IResponse<ISuspectedRelation[]>) => void) => {
+export const getSuspectedRelationAPI = (
+  data: ICorpInfoRequest,
+  callback: (res: IResponse<ISuspectedRelation[]>) => void
+) => {
   taroGet({
     url: getSuspectedRelationURL,
     data,
@@ -585,7 +772,10 @@ export const getSuspectedRelationAPI = (data: ICorpInfoRequest, callback: (res: 
 }
 
 // 获取企业联系方式
-export const getCorpContactInfoAPI = (data: IGetCorpContactInfoRequest, callback: (res: IResponse<IGetCorpContactInfoResponse>) => void) => {
+export const getCorpContactInfoAPI = (
+  data: IGetCorpContactInfoRequest,
+  callback: (res: IResponse<IGetCorpContactInfoResponse>) => void
+) => {
   taroGet({
     url: getCorpContactInfoURL,
     data,

@@ -23,7 +23,7 @@ import {
 } from '@/api/chatMsg'
 import { useAppSelector } from '@/hooks/useAppStore'
 import { Dialog, TextArea, BackTop } from '@nutui/nutui-react-taro'
-import { ArrowDownSize6, ArrowUpSize6 } from '@nutui/icons-react-taro'
+import { ArrowDownSize6, ArrowUpSize6, Reload } from '@nutui/icons-react-taro'
 import { useAppDispatch } from '@/hooks/useAppStore'
 import { getSessionListAsync, getFavoriteListAsync } from '@/redux/asyncs/conversation'
 import {
@@ -149,6 +149,27 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
       return () => {
         Taro.eventCenter.off('addMsg')
         Taro.eventCenter.off('getChatItem', handleGetChatItem)
+      }
+    }, [])
+
+    // 监听 Hook 广播的会话 conversationId 更新事件
+    useEffect(() => {
+      const handleUpdateConversationId = (payload: any) => {
+        try {
+          const { sessionId, conversationId: convId } = payload || {}
+          const sid = Taro.getStorageSync('aiSessionId')
+          const nowSid = sid ? Number(sid) : null
+          if (nowSid && sessionId && Number(sessionId) === nowSid) {
+            setConversationId(String(convId || ''))
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      Taro.eventCenter.on('updateConversationId', handleUpdateConversationId)
+      return () => {
+        Taro.eventCenter.off('updateConversationId', handleUpdateConversationId)
       }
     }, [])
 
@@ -834,13 +855,14 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
                 <Text>深度思考</Text>
               </View> */}
               </View>
-              <Image
+              {/* <Image
                 src="https://find-console.newgalaxyai.com/glks/assets/home/home9.png"
                 onClick={() => {
                   send()
                 }}
                 className="chatPage_fun_right"
               />
+              <Reload /> */}
             </View>
           </View>
           <View

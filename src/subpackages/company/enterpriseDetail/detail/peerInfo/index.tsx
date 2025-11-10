@@ -6,6 +6,7 @@ import Taro, { useLoad } from '@tarojs/taro'
 import './index.scss'
 import CustomDialog from '@/components/CustomDialog'
 import ContactPopup from '@/components/ContactPopup'
+import { ROUTE, ROUTE_PARAMS_NAME } from '@/constants'
 
 function Index() {
   // ==================== 搜索相关状态 ====================
@@ -134,8 +135,8 @@ function Index() {
 
   function toAiResearchReport(company: any): void {
     Taro.navigateTo({
-      url: `/subpackages/company/aiResearchReport/index?creditCode=${company.creditCode}&companyParameter=${company.enterpriseAnalysisBack}&name=${company.name}`
-    })
+          url: `${ROUTE.AI_RESEARCH_REPORT}?${ROUTE_PARAMS_NAME.CREDIT_CODE}=${company.creditCode}&${ROUTE_PARAMS_NAME.COMPANY_NAME}=${company.name}`
+        })
   }
 
   // 企业详情

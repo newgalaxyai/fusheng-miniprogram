@@ -24,3 +24,9 @@ export const getSuspectedRelationURL = '/fs/basic/getSuspectedList'
 export const getCorpContactInfoURL = '/fs/qzd-company-info/getCompanyTypeInfo'
 // 获取企业报告
 export const getCorpListURL = '/fs/qzd-company-info/getList'
+// 获取风险扫描
+export const getRiskScanURL = '/fs/ai/enterprise-risk'
+// 获取企业动态
+export const getEnterpriseDynamicURL = '/fs/ai/getCompanyWebNewsList'
+// 获取相似企业
+export const getSimilarCompaniesURL = '/fs/ai/similar-company'
