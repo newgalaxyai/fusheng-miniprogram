@@ -534,6 +534,7 @@ export const streamAIAnswerAPI = (
       // 完整接收由 onChunkReceived 驱动，无需处理
     },
     fail: (error) => {
+      console.log('streamAIAnswerAPI fail', error);
       handlers.onError?.(error)
     },
     complete: () => {

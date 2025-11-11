@@ -776,7 +776,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
                             data-button-index={2}
                           />
                         )}
-                        <Image
+                        {/* <Image
                           src={
                             !turn.isCollect
                               ? 'https://find-console.newgalaxyai.com/glks/assets/home/home13.png'
@@ -790,13 +790,13 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
                           onClick={() => handleButtonClick(turn.id, 3)}
                           data-message-id={turn.id}
                           data-button-index={3}
-                        />
+                        /> */}
                         {/* 重新生成：使用 redo 图标，点击重新发送当前用户问题 */}
-                        <Image
+                        {/* <Image
                           src="https://find-console.newgalaxyai.com/glks/assets/home/home6.png"
                           className="chatMsg_ai_fun_img"
                           onClick={() => regenerate(turn)}
-                        />
+                        /> */}
                       </View>
                     ) : null}
                   </View>
@@ -855,14 +855,13 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
                 <Text>深度思考</Text>
               </View> */}
               </View>
-              {/* <Image
+              <Image
                 src="https://find-console.newgalaxyai.com/glks/assets/home/home9.png"
                 onClick={() => {
                   send()
                 }}
                 className="chatPage_fun_right"
               />
-              <Reload /> */}
             </View>
           </View>
           <View

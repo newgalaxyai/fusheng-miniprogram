@@ -98,6 +98,7 @@ export const useSend = () => {
         }
       },
       onError: error => {
+        console.log('流式回答error', error)
         dispatch(setStreamStatusAction('idle'))
         // 完成：将占位消息 id:null 更新为真实 id
         dispatch(

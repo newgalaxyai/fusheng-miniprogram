@@ -340,138 +340,55 @@ function Index() {
             </View>
           </View>
           <View className="setting_content_list">
-            <Tabs
-              value={tabvalue}
-              onChange={value => {
-                setTabvalue(value as number)
-              }}
-            >
-              <Tabs.TabPane title="问答记录">
-                <ScrollView enhanced showScrollbar={false} scrollY className="scrollView">
-                  {conversations &&
-                    conversations.length > 0 &&
-                    conversations.map((item: IConversation, index) => (
-                      <View className="setting_content_list_item" key={index}>
-                        <View className="item-date">{item.name}</View>
-                        {item.list &&
-                          item.list.length > 0 &&
-                          item.list.map((chatItem: any, index: number) => {
-                            const swipeKey = `${item.name}-${chatItem.id}`
-                            return (
-                              <Cell
-                                key={index}
-                                className="list_item"
-                                onClick={() => getChatItem(chatItem)}
-                              >
-                                <Swipe
-                                  ref={ref => {
-                                    if (ref) {
-                                      swipeRefs.current[swipeKey] = ref
-                                    }
-                                  }}
-                                  rightAction={<Del color="#FF1818" />}
-                                  onActionClick={() => deleteChatItem(chatItem)}
-                                  onOpen={() => handleSwipeOpen(swipeKey)}
-                                  onClose={handleSwipeClose}
-                                >
-                                  <View className="list-item-title">{chatItem.title}</View>
-                                </Swipe>
-                              </Cell>
-                            )
-                          })}
-                      </View>
-                    ))}
-                  {(!conversations || conversations.length === 0) && (
-                    <Empty
-                      description="暂无问答记录"
-                      image={
-                        <Image
-                          style={{
-                            width: '100%',
-                            height: '100%'
-                          }}
-                          src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png"
-                        />
-                      }
-                    />
-                  )}
-                </ScrollView>
-              </Tabs.TabPane>
-              <Tabs.TabPane title="我的收藏">
-                <ScrollView enhanced showScrollbar={false} scrollY className="scrollView">
-                  {favorites &&
-                    favorites.length > 0 &&
-                    favorites.map((item: any, index: any) => {
-                      const isExpanded = expandedItems[index] || false
-                      return (
-                        <View key={index}>
-                          <View className="item-date" style={{ marginBottom: '52rpx' }}>
-                            {formatTimestamp(item.createTime)}
-                          </View>
-                          <View className="list-item">
-                            <View className="item-title">
-                              <View className="item-title-text">
-                                <Star color="#888596" size={'30rpx'} />
-                                <View className="item-title-text-text">{item.title}</View>
-                              </View>
-                              <View className="item-title-des" onClick={() => toggleExpand(index)}>
-                                <View className="item-title-des-text">
-                                  {isExpanded ? '收起' : '展开'}
-                                </View>
-                                <View
-                                  style={{
-                                    transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
-                                  }}
-                                >
-                                  <TriangleDown color="#8A93A2" size={'26rpx'} />
-                                </View>
-                              </View>
-                            </View>
-                            {/* 设置容器高度，收起时显示部分内容，展开时显示全部 */}
-                            <View
-                              className="ai-message-container"
-                              style={{
-                                height: isExpanded ? 'auto' : '80rpx', // 收起时固定高度200rpx
-                                overflow: 'hidden',
-                                transition: 'height 0.3s ease' // 添加过渡动画
+            <ScrollView enhanced showScrollbar={false} scrollY className="scrollView">
+              {conversations &&
+                conversations.length > 0 &&
+                conversations.map((item: IConversation, index) => (
+                  <View className="setting_content_list_item" key={index}>
+                    <View className="item-date">{item.name}</View>
+                    {item.list &&
+                      item.list.length > 0 &&
+                      item.list.map((chatItem: any, index: number) => {
+                        const swipeKey = `${item.name}-${chatItem.id}`
+                        return (
+                          <Cell
+                            key={index}
+                            className="list_item"
+                            onClick={() => getChatItem(chatItem)}
+                          >
+                            <Swipe
+                              ref={ref => {
+                                if (ref) {
+                                  swipeRefs.current[swipeKey] = ref
+                                }
                               }}
+                              rightAction={<Del color="#FF1818" />}
+                              onActionClick={() => deleteChatItem(chatItem)}
+                              onOpen={() => handleSwipeOpen(swipeKey)}
+                              onClose={handleSwipeClose}
                             >
-                              <AiMessageComponent msg={item} />
-                            </View>
-                            {/* 如果是收起状态，添加渐变遮罩效果 */}
-                            {!isExpanded && (
-                              <View
-                                className="fade-mask"
-                                style={{
-                                  position: 'relative',
-                                  height: '60rpx',
-                                  marginTop: '-60rpx',
-                                  background: 'linear-gradient(transparent, rgba(255,255,255,0.9))',
-                                  pointerEvents: 'none'
-                                }}
-                              />
-                            )}
-                          </View>
-                        </View>
-                      )
-                    })}
-                  {(!favorites || favorites.length === 0) && (
-                    <Empty
-                      description="暂无收藏记录"
-                      image={
-                        <Image
-                          style={{
-                            width: '100%',
-                            height: '100%'
-                          }}
-                          src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png"
-                        />
-                      }
+                              <View className="list-item-title">{chatItem.title}</View>
+                            </Swipe>
+                          </Cell>
+                        )
+                      })}
+                  </View>
+                ))}
+              {(!conversations || conversations.length === 0) && (
+                <Empty
+                  description="暂无问答记录"
+                  image={
+                    <Image
+                      style={{
+                        width: '100%',
+                        height: '100%'
+                      }}
+                      src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png"
                     />
-                  )}
-                </ScrollView>
-              </Tabs.TabPane>
-            </Tabs>
+                  }
+                />
+              )}
+            </ScrollView>
           </View>
         </View>
       </Popup>
@@ -516,3 +433,135 @@ function Index() {
 }
 
 export default Index
+// <Tabs
+//   value={tabvalue}
+//   onChange={value => {
+//     setTabvalue(value as number)
+//   }}
+// >
+//   <Tabs.TabPane title="问答记录">
+//     <ScrollView enhanced showScrollbar={false} scrollY className="scrollView">
+//       {conversations &&
+//         conversations.length > 0 &&
+//         conversations.map((item: IConversation, index) => (
+//           <View className="setting_content_list_item" key={index}>
+//             <View className="item-date">{item.name}</View>
+//             {item.list &&
+//               item.list.length > 0 &&
+//               item.list.map((chatItem: any, index: number) => {
+//                 const swipeKey = `${item.name}-${chatItem.id}`
+//                 return (
+//                   <Cell
+//                     key={index}
+//                     className="list_item"
+//                     onClick={() => getChatItem(chatItem)}
+//                   >
+//                     <Swipe
+//                       ref={ref => {
+//                         if (ref) {
+//                           swipeRefs.current[swipeKey] = ref
+//                         }
+//                       }}
+//                       rightAction={<Del color="#FF1818" />}
+//                       onActionClick={() => deleteChatItem(chatItem)}
+//                       onOpen={() => handleSwipeOpen(swipeKey)}
+//                       onClose={handleSwipeClose}
+//                     >
+//                       <View className="list-item-title">{chatItem.title}</View>
+//                     </Swipe>
+//                   </Cell>
+//                 )
+//               })}
+//           </View>
+//         ))}
+//       {(!conversations || conversations.length === 0) && (
+//         <Empty
+//           description="暂无问答记录"
+//           image={
+//             <Image
+//               style={{
+//                 width: '100%',
+//                 height: '100%'
+//               }}
+//               src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png"
+//             />
+//           }
+//         />
+//       )}
+//     </ScrollView>
+//   </Tabs.TabPane>
+//   <Tabs.TabPane title="我的收藏">
+//     <ScrollView enhanced showScrollbar={false} scrollY className="scrollView">
+//       {favorites &&
+//         favorites.length > 0 &&
+//         favorites.map((item: any, index: any) => {
+//           const isExpanded = expandedItems[index] || false
+//           return (
+//             <View key={index}>
+//               <View className="item-date" style={{ marginBottom: '52rpx' }}>
+//                 {formatTimestamp(item.createTime)}
+//               </View>
+//               <View className="list-item">
+//                 <View className="item-title">
+//                   <View className="item-title-text">
+//                     <Star color="#888596" size={'30rpx'} />
+//                     <View className="item-title-text-text">{item.title}</View>
+//                   </View>
+//                   <View className="item-title-des" onClick={() => toggleExpand(index)}>
+//                     <View className="item-title-des-text">
+//                       {isExpanded ? '收起' : '展开'}
+//                     </View>
+//                     <View
+//                       style={{
+//                         transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
+//                       }}
+//                     >
+//                       <TriangleDown color="#8A93A2" size={'26rpx'} />
+//                     </View>
+//                   </View>
+//                 </View>
+//                 {/* 设置容器高度，收起时显示部分内容，展开时显示全部 */}
+//                 <View
+//                   className="ai-message-container"
+//                   style={{
+//                     height: isExpanded ? 'auto' : '80rpx', // 收起时固定高度200rpx
+//                     overflow: 'hidden',
+//                     transition: 'height 0.3s ease' // 添加过渡动画
+//                   }}
+//                 >
+//                   <AiMessageComponent msg={item} />
+//                 </View>
+//                 {/* 如果是收起状态，添加渐变遮罩效果 */}
+//                 {!isExpanded && (
+//                   <View
+//                     className="fade-mask"
+//                     style={{
+//                       position: 'relative',
+//                       height: '60rpx',
+//                       marginTop: '-60rpx',
+//                       background: 'linear-gradient(transparent, rgba(255,255,255,0.9))',
+//                       pointerEvents: 'none'
+//                     }}
+//                   />
+//                 )}
+//               </View>
+//             </View>
+//           )
+//         })}
+//       {(!favorites || favorites.length === 0) && (
+//         <Empty
+//           description="暂无收藏记录"
+//           image={
+//             <Image
+//               style={{
+//                 width: '100%',
+//                 height: '100%'
+//               }}
+//               src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png"
+//             />
+//           }
+//         />
+//       )}
+//     </ScrollView>
+//   </Tabs.TabPane>
+// </Tabs>
