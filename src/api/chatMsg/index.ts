@@ -543,17 +543,91 @@ export const streamAIAnswerAPI = (
   })
 
   const decoder = typeof TextDecoder !== 'undefined' ? new TextDecoder('utf-8') : null
+  let leftoverBytes: Uint8Array | null = null
+
+  const decodeUTF8 = (bytes: Uint8Array): string => {
+    if (leftoverBytes && leftoverBytes.length) {
+      const merged = new Uint8Array(leftoverBytes.length + bytes.length)
+      merged.set(leftoverBytes, 0)
+      merged.set(bytes, leftoverBytes.length)
+      bytes = merged
+      leftoverBytes = null
+    }
+
+    let out = ''
+    let i = 0
+    const len = bytes.length
+
+    while (i < len) {
+      const b0 = bytes[i]
+      if (b0 < 0x80) {
+        out += String.fromCharCode(b0)
+        i += 1
+        continue
+      }
+
+      let needed = 0
+      let codePoint = 0
+
+      if ((b0 & 0xe0) === 0xc0) {
+        needed = 2
+        codePoint = b0 & 0x1f
+      } else if ((b0 & 0xf0) === 0xe0) {
+        needed = 3
+        codePoint = b0 & 0x0f
+      } else if ((b0 & 0xf8) === 0xf0) {
+        needed = 4
+        codePoint = b0 & 0x07
+      } else {
+        // invalid start byte, skip
+        i += 1
+        continue
+      }
+
+      if (i + needed > len) {
+        leftoverBytes = bytes.slice(i)
+        break
+      }
+
+      let valid = true
+      for (let j = 1; j < needed; j++) {
+        const bx = bytes[i + j]
+        if ((bx & 0xc0) !== 0x80) {
+          valid = false
+          break
+        }
+        codePoint = (codePoint << 6) | (bx & 0x3f)
+      }
+
+      if (!valid) {
+        // skip invalid byte and continue
+        i += 1
+        continue
+      }
+
+      out += String.fromCodePoint(codePoint)
+      i += needed
+    }
+
+    if (out.charCodeAt(0) === 0xfeff) {
+      out = out.slice(1)
+    }
+    return out
+  }
 
   requestTask.onChunkReceived((res) => {
     try {
       let chunkStr = ''
       if (typeof res.data === 'string') {
+        console.log('typeof string');
+        
         chunkStr = res.data as string
       } else {
+        console.log('typeof ArrayBuffer');
         const uint8Array = new Uint8Array(res.data as ArrayBuffer)
-        chunkStr = decoder ? decoder.decode(uint8Array) : String.fromCharCode.apply(null, Array.from(uint8Array))
+        chunkStr = decoder ? decoder.decode(uint8Array, { stream: true }) : decodeUTF8(uint8Array)
       }
-      // console.log('chunkStr', chunkStr);
+      console.log('chunkStr', chunkStr);
       
       let text = lastText + chunkStr
       lastText = ''

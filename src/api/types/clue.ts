@@ -20,7 +20,7 @@ export type IGetClueListRequest = IPaginationRequest & {
   userId: number // 用户id
   isImportantClue: boolean // 是否重要线索
   status?: number // 线索状态 1-跟进中 2-未跟进
-  name?: string // 客户公司名称
+  customerCompanyName?: string // 客户公司名称
 }
 
 // 更新线索请求参数
@@ -50,7 +50,7 @@ export type IFile = {
 // 新增跟进
 export type IAddFollowUpRequest = {
   leadId: number // 线索id
-  contactInfo: string // 联系信息
+  contactInfo?: string // 联系信息
   type?: string // 跟进类型
   method?: string // 跟进方式
   followUpTime?: string // 跟进时间

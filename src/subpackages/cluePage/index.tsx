@@ -153,7 +153,10 @@ const CluePage = forwardRef<
         if (res.confirm) {
           clueUpdateAPI({ id: clueItem.id, isImportantClue: true }, res => {
             if (res.success) {
-              setClueList(prevList => prevList.splice(clueIndex, 1))
+              setClueList(prevList => [
+                ...prevList.slice(0, clueIndex),
+                ...prevList.slice(clueIndex + 1)
+              ])
               Taro.showToast({
                 title: '转为重要线索成功',
                 icon: 'none',
@@ -913,9 +916,9 @@ const CluePage = forwardRef<
                   onChange={setSearchInputValue}
                   onClear={() => {
                     console.log('onClear')
-                    if (clueFilterForm.name) {
+                    if (clueFilterForm.customerCompanyName) {
                       const newClueFilterForm = { ...clueFilterForm }
-                      delete newClueFilterForm.name
+                      delete newClueFilterForm.customerCompanyName
                       setClueFilterForm(newClueFilterForm)
                     }
                   }}
@@ -927,7 +930,7 @@ const CluePage = forwardRef<
                   onClick={() => {
                     setClueFilterForm({
                       ...clueFilterForm,
-                      name: searchInputValue
+                      customerCompanyName: searchInputValue
                     })
                   }}
                 >
@@ -1098,15 +1101,17 @@ const CluePage = forwardRef<
                               className="cluePage_item_contact_item_img"
                             />
                           </View>
-                          <View
-                            className="cluePage_item_contact_item"
-                            onClick={e => {
-                              e.stopPropagation()
-                              handleToImportantClue(item, index)
-                            }}
-                          >
-                            转为重要线索
-                          </View>
+                          {!item.isImportantClue && (
+                            <View
+                              className="cluePage_item_contact_item"
+                              onClick={e => {
+                                e.stopPropagation()
+                                handleToImportantClue(item, index)
+                              }}
+                            >
+                              转为重要线索
+                            </View>
+                          )}
                           <View
                             onClick={e => {
                               e.stopPropagation()

@@ -790,13 +790,13 @@ function AddFollowPage() {
     //   })
     //   return
     // }
-    if (!formData.contactInfo) {
-      Taro.showToast({
-        title: '请选择关联线索联系人',
-        icon: 'none'
-      })
-      return
-    }
+    // if (!formData.contactInfo) {
+    //   Taro.showToast({
+    //     title: '请选择关联线索联系人',
+    //     icon: 'none'
+    //   })
+    //   return
+    // }
     // if (!formData.type) {
     //   Taro.showToast({
     //     title: '请选择跟进类型',
@@ -825,8 +825,10 @@ function AddFollowPage() {
         if (res.confirm) {
           let queryData: IAddFollowUpRequest = {
             leadId: clueDetail?.id!,
-            contactInfo: formData.contactInfo,
             content: formData.content
+          }
+          if (formData.contactInfo && formData.contactInfo !== '') {
+            queryData.contactInfo = formData.contactInfo
           }
           if (formData.type && formData.type !== '') {
             queryData.type = formData.type
@@ -837,8 +839,8 @@ function AddFollowPage() {
           if (formData.followUpTime && formData.followUpTime !== '') {
             queryData.followUpTime = formData.followUpTime
           }
-          if (formData.followUpFileList && formData.followUpFileList.length > 0) {
-            queryData.followUpFileList = formData.followUpFileList.map(
+          if (followUpFileList && followUpFileList.length > 0) {
+            queryData.followUpFileList = followUpFileList.map(
               item =>
                 ({
                   name: item.name,
@@ -847,6 +849,7 @@ function AddFollowPage() {
                 } as IFile)
             )
           }
+          // console.log('queryData', queryData);
           clueFollowUpCreateAPI(queryData, res => {
             if (res.success) {
               Taro.showToast({
@@ -902,11 +905,11 @@ function AddFollowPage() {
         </View>
 
         {/* 关联线索联系人 - 水平布局 */}
-        {renderFormField(
+        {contactInfoOptions.length > 0 && renderFormField(
           '关联线索联系人',
           'associateLeadContact',
           '请选择',
-          true,
+          false,
           false,
           false,
           false,

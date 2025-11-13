@@ -52,14 +52,15 @@ const FollowListPage = () => {
     initialFilterFollowUpListForm
   )
   // ==================== 跟进列表 ====================
-  const [loading, setLoading] = useState(false)
   const [followUpList, setFollowUpList] = useState<IFollowUp[]>([])
   // 获取跟进列表
   const getFollowUpList = useCallback(async () => {
-    setLoading(true)
     if (filterFollowUpListForm.leadId === 0) {
       return
     }
+    Taro.showLoading({
+      title: '加载中...'
+    })
     setFollowUpCursor(1)
     const followUpRes = await getFollowUpListAsyncAPI(filterFollowUpListForm)
     if (followUpRes.code == 0) {
@@ -72,7 +73,7 @@ const FollowListPage = () => {
         icon: 'none'
       })
     }
-    setLoading(false)
+    Taro.hideLoading()
   }, [filterFollowUpListForm])
   useEffect(() => {
     getFollowUpList()
@@ -241,9 +242,9 @@ const FollowListPage = () => {
       </View>
 
       {/* 跟进记录列表 */}
-      <View className="follow_scroll_container">
-        <ScrollView scrollY id="followUpScrollList" className="follow_scroll_list">
-          {followUpList.length > 0 && (
+      {followUpList.length > 0 && (
+        <View className="follow_scroll_container">
+          <ScrollView scrollY id="followUpScrollList" className="follow_scroll_list">
             <InfiniteLoading
               target="followUpScrollList"
               hasMore={hasMore}
@@ -290,18 +291,18 @@ const FollowListPage = () => {
                 )
               })}
             </InfiniteLoading>
-          )}
-        </ScrollView>
-        {(!followUpList || followUpList.length === 0) && !loading && (
-          <View className="empty_container">
-            <Image
-              className="empty_image"
-              src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png"
-            />
-            <Text className="empty_text">暂无跟进记录</Text>
-          </View>
-        )}
-      </View>
+          </ScrollView>
+        </View>
+      )}
+      {followUpList.length === 0 && (
+        <View className="empty_container">
+          <Image
+            className="empty_image"
+            src="https://find-console.newgalaxyai.com/glks/assets/emptyImg.png"
+          />
+          <Text className="empty_text">暂无跟进记录</Text>
+        </View>
+      )}
     </View>
   )
 }

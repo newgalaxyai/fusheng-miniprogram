@@ -100,8 +100,7 @@ function Index() {
 
     if (
       !Taro.getStorageSync('companyInfo') ||
-      !Taro.getStorageSync('companyInfo').expansionDomainKeywordsSelected ||
-      Taro.getStorageSync('companyInfo').expansionDomainKeywordsSelected.length === 0
+      !Taro.getStorageSync('companyInfo').companyName
     ) {
       setCompanyShow(true)
     }

@@ -196,7 +196,10 @@ function Index() {
         // enterpriseAnalysisBack: options.companyParameter || '',
         enterpriseAnalysisBack: null,
         targetCompanyName: companyInfo.companyName,
-        targetCompanyServe: JSON.stringify(companyInfo.expansionDomainKeywordsSelected)
+        targetCompanyServe: JSON.stringify({
+          coreSellingPoints: companyInfo.coreSellingPoints,
+          expansionDomainKeywords: companyInfo.expansionDomainKeywordsSelected.concat(companyInfo.customInput.split(',')),
+        })
       },
       res => {
         if (res.success) {
@@ -255,7 +258,7 @@ function Index() {
               <View className="progress_fill" style={{ width: `${Math.min(progress, 100)}%` }} />
             </View>
           </View>
-          <View className="loading_title">AI企业分析报告生产中{Math.floor(progress)}%</View>
+          <View className="loading_title">AI企业分析报告生成中{Math.floor(progress)}%</View>
           <View className="loading_subtitle">此报告为New Galaxy AI生产的专属报告重点信息，迅速了解</View>
         </View>
       </View>

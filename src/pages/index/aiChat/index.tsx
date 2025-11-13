@@ -509,7 +509,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
             if (companyInfo?.customInput) {
               companyInfo.expansionDomainKeywordsSelected = [
                 ...companyInfo.expansionDomainKeywordsSelected,
-                companyInfo.customInput
+                ...companyInfo.customInput.split(',')
               ]
             }
             guessYouWantAPI(companyInfo.expansionDomainKeywordsSelected || [], res => {
@@ -562,7 +562,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
         if (companyInfo?.customInput) {
           companyInfo.expansionDomainKeywordsSelected = [
             ...companyInfo.expansionDomainKeywordsSelected,
-            companyInfo.customInput
+            ...companyInfo.customInput.split(',')
           ]
         }
         // 异步调用新的API，补充队列到三条

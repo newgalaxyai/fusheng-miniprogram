@@ -156,7 +156,7 @@ function BusinessProfile() {
           {tags && tags.length > 0 ? (
             tags.map((tag: string, index: number) => (
               <View key={index} className={`bp-tag${selectedTags.includes(tag) ? ' bp-tag-selected' : ''}`} onClick={() => handleTagClick(tag)}>
-                {tag}
+                <Text className="bp-tag-text">{tag}</Text>
               </View>
             ))
           ) : (
