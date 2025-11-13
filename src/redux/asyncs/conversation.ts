@@ -103,9 +103,9 @@ export const getFavoriteListAsync = createAsyncThunk<void, void, IThunkState>(
 
 export const finalUpdateMessageAsync = createAsyncThunk<
   void, // 返回的数据类型，你可以根据实际API返回类型调整
-  { messageId: number; isSuccess: boolean },
+  { messageId: number;sessionId: number; isSuccess: boolean },
   IThunkState
->('session/updateFinalMessageAsync', async ({ messageId, isSuccess }, { dispatch, getState }) => {
+>('session/updateFinalMessageAsync', async ({ messageId, sessionId, isSuccess }, { dispatch, getState }) => {
   console.log('finalUpdateMessageAsync', messageId)
   // 在此请求接口获取数据
   const {

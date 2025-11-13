@@ -92,6 +92,7 @@ export const useSend = () => {
           dispatch(
             finalUpdateMessageAsync({
               messageId: nowMessageId,
+              sessionId: nowSessionId,
               isSuccess: true
             })
           )
@@ -103,6 +104,7 @@ export const useSend = () => {
         // 完成：将占位消息 id:null 更新为真实 id
         dispatch(
           finalUpdateMessageAsync({
+            sessionId: nowSessionId!,
             messageId: nowMessageId,
             isSuccess: false
           })
@@ -113,6 +115,7 @@ export const useSend = () => {
         // 完成：将占位消息 id:null 更新为真实 id
         dispatch(
           finalUpdateMessageAsync({
+            sessionId: nowSessionId!,
             messageId: nowMessageId,
             isSuccess: true
           })

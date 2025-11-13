@@ -26,10 +26,7 @@ import { Dialog, TextArea, BackTop } from '@nutui/nutui-react-taro'
 import { ArrowDownSize6, ArrowUpSize6, Reload } from '@nutui/icons-react-taro'
 import { useAppDispatch } from '@/hooks/useAppStore'
 import { getSessionListAsync, getFavoriteListAsync } from '@/redux/asyncs/conversation'
-import {
-  setAllMessageListAction,
-  setMessageListAction
-} from '@/redux/modules/session'
+import { setAllMessageListAction, setMessageListAction, setStreamStatusAction } from '@/redux/modules/session'
 import { useSend } from '@/hooks/useSend'
 import AiMessageComponent from '@/components/AiMessageComponent'
 import { IMessage } from '@/api/types/message'
@@ -134,10 +131,14 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
       }
 
       const handleGetChatItem = res => {
+        // 切换会话时，停止当前流式输出并允许替换消息列表
+        dispatch(setStreamStatusAction('idle'))
         setAiSessionId(res.id)
         setConversationId(res.conversationId)
         // 使用 Redux 设置历史消息
         dispatch(setAllMessageListAction(Array.isArray(res.aiMessageDOS) ? res.aiMessageDOS : []))
+        // 切换会话后，重置本地状态
+        setIsStreaming(false)
         setTimeout(() => {
           getChatMsgHeight()
         }, 100)
@@ -315,22 +316,20 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
           setYiJianVisible(true)
         } else {
           aiMessageEvaluationCreateAPI(
-                  {
-                    userId: userInfo?.id,
-                    messageId: messageId,
-                    entryPoint: 'ai_chat',
-                    isLiked: 0,
-                    questionContent: currentAnswerContent.userInput,
-                    answerContent: JSON.stringify(currentAnswerContent)
-                  },
-                  res => {
-                    if (!res.success) {
-                      dispatch(
-                        setMessageListAction({ id: messageId, isLike: turn.isLike })
-                      )
-                    }
-                  }
-                )
+            {
+              userId: userInfo?.id,
+              messageId: messageId,
+              entryPoint: 'ai_chat',
+              isLiked: 0,
+              questionContent: currentAnswerContent.userInput,
+              answerContent: JSON.stringify(currentAnswerContent)
+            },
+            res => {
+              if (!res.success) {
+                dispatch(setMessageListAction({ id: messageId, isLike: turn.isLike }))
+              }
+            }
+          )
           dispatch(setMessageListAction({ id: messageId, isLike: 0 }))
         }
       } else if (buttonIndex === 3) {
@@ -393,9 +392,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
             setYiJianInput('')
             const turn = messages.find(m => m.id === copyMessageId)
             const newDislikeStatus = turn?.isLike === 2 ? 0 : 2
-            dispatch(
-              setMessageListAction({ id: copyMessageId, isLike: newDislikeStatus })
-            )
+            dispatch(setMessageListAction({ id: copyMessageId, isLike: newDislikeStatus }))
           }
         }
       )
@@ -403,7 +400,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
     }
 
     // 移除 listenerInterface：保存逻辑改为仅在 complete / error 触发
-
 
     // 页面显示时重置键盘高度
     useDidShow(() => {
@@ -422,6 +418,8 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
           setAiSessionId(res.data)
           dispatch(getSessionListAsync())
           Taro.eventCenter.trigger('addSession', true)
+          // 新建会话时，停止当前流式输出并清空消息
+          dispatch(setStreamStatusAction('idle'))
           dispatch(setAllMessageListAction([]))
           setConversationId('')
         }
@@ -435,9 +433,11 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
           setAiSessionId(res.data)
           dispatch(getSessionListAsync())
           Taro.eventCenter.trigger('addSession', true)
-          setScrollTop(0)
+          // 新建会话时，停止当前流式输出并清空消息
+          dispatch(setStreamStatusAction('idle'))
           dispatch(setAllMessageListAction([]))
           setIsStreaming(false)
+          setScrollTop(0)
           Taro.showToast({ title: '会话创建成功', icon: 'none' })
           setConversationId('')
         }

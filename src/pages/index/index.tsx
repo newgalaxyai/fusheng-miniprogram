@@ -56,7 +56,9 @@ function Index() {
   //   })
   // })
   const dispatch = useAppDispatch()
-  const userInfo = useAppSelector(state => state.login.userInfo)
+  const {
+    login: { userInfo },
+  } = useAppSelector(state => state)
   // 获取conversation相关状态
   const {
     conversations, // 会话列表数据
@@ -98,10 +100,7 @@ function Index() {
     // 获取系统信息
     const systemInfo = Taro.getSystemInfoSync()
 
-    if (
-      !Taro.getStorageSync('companyInfo') ||
-      !Taro.getStorageSync('companyInfo').companyName
-    ) {
+    if (!Taro.getStorageSync('companyInfo') || !Taro.getStorageSync('companyInfo').companyName) {
       setCompanyShow(true)
     }
 
