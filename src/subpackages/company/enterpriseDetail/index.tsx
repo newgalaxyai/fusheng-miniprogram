@@ -9,6 +9,7 @@ import {
   companyFeedbackCreateAPI,
   enterpriseDetailAPI,
   getBusinessInfoAPI,
+  getCorpBasicInfoAsyncApi,
   getEnterpriseDynamicAPI,
   getRiskScanAPI,
   getSimilarCompaniesAPI
@@ -18,11 +19,19 @@ import { clueCreateAPI, clueDeleteAPI } from '@/api/clue'
 import ContactPopup from '@/components/ContactPopup'
 import CorpContactComponent from '@/components/corp-contact'
 import { IMG, ROUTE_NAME, ROUTE, ROUTE_PARAMS_NAME } from '@/constants'
-import { IBusinessInfo, ICorpInfoResponse, IEnterpriseDynamic, IRiskScan } from '@/api/types'
+import {
+  IBusinessInfo,
+  ICorpBasicInfo,
+  ICorpInfoResponse,
+  IEnterpriseDynamic,
+  IRiskScan
+} from '@/api/types'
 
 function Index() {
   // 当前企业的信用代码
   const [creditCode, setCreditCode] = useState('')
+  // 企业基本信息
+  const [corpBasicInfo, setCorpBasicInfo] = useState<ICorpBasicInfo>()
   // 企业详情
   const [corpDetail, setCorpDetail] = useState<IBusinessInfo>()
   // 获取params
@@ -42,6 +51,14 @@ function Index() {
           }
         }
       )
+      // 获取企业基本信息
+      getCorpBasicInfoAsyncApi({
+        creditCode: creditCode
+      }).then(res => {
+        if (res.code === 0) {
+          setCorpBasicInfo(res.data)
+        }
+      })
     }
   }, [creditCode])
 
@@ -214,14 +231,14 @@ function Index() {
     // }
   ])
 
-  const [company, setCompany] = useState<any>({})
-  const [companyDetail, setCompanyDetail] = useState<any>({
-    similarCompanies: [],
-    enterpriseResponses: [],
-    companyHotResultResponse: [],
-    newsList: [],
-    newsListTotal: 0
-  })
+  // const [company, setCompany] = useState<any>({})
+  // const [companyDetail, setCompanyDetail] = useState<any>({
+  //   similarCompanies: [],
+  //   enterpriseResponses: [],
+  //   companyHotResultResponse: [],
+  //   newsList: [],
+  //   newsListTotal: 0
+  // })
   // ==================== 弹窗显示状态 ====================
   const [isShowFeedback, setIsShowFeedback] = useState(false) // 反馈弹窗
   const [isShowInvalid, setIsShowInvalid] = useState(false) // 无效线索原因弹窗
@@ -275,11 +292,11 @@ function Index() {
   const handleLike = (e: any) => {
     e.stopPropagation()
 
-    const newFeedbackStatus = company.hasFeedback === 0 ? 1 : 0
+    const newFeedbackStatus = corpBasicInfo?.hasFeedback === 0 ? 1 : 0
 
     companyFeedbackCreateAPI(
       {
-        creditCode: company.creditCode,
+        creditCode: corpDetail?.creditCode,
         isLiked: newFeedbackStatus,
         commentContent: '有效'
       },
@@ -291,7 +308,7 @@ function Index() {
             duration: 500
           })
 
-          setCompany((prevCompany: any) => ({
+          setCorpBasicInfo((prevCompany: any) => ({
             ...prevCompany,
             hasFeedback: newFeedbackStatus
           }))
@@ -316,8 +333,8 @@ function Index() {
 
   Taro.useUnload(() => {
     console.log('useUnload')
-    Taro.eventCenter.trigger('enterpriseDetailUnload', company)
-    Taro.eventCenter.trigger('enterpriseDetailUnloadAi', company)
+    Taro.eventCenter.trigger('enterpriseDetailUnload', corpDetail)
+    Taro.eventCenter.trigger('enterpriseDetailUnloadAi', corpDetail)
   })
 
   Taro.useDidHide(() => {
@@ -335,7 +352,7 @@ function Index() {
     }, 500)
 
     // 如果已经是点踩状态，显示无效原因
-    if (company.hasFeedback === 2) {
+    if (corpBasicInfo?.hasFeedback === 2) {
       setIsShowInvalid(true)
     } else {
       // 否则显示反馈弹窗
@@ -345,7 +362,7 @@ function Index() {
 
   // 处理提交反馈
   const handleSubmitFeedback = () => {
-    if (!company?.creditCode) {
+    if (!corpDetail?.creditCode) {
       Taro.showToast({
         title: '企业信息错误',
         icon: 'none',
@@ -356,7 +373,7 @@ function Index() {
 
     companyFeedbackCreateAPI(
       {
-        creditCode: company.creditCode,
+        creditCode: corpDetail.creditCode,
         isLiked: 2,
         feedbackType: parseInt(checked[0]),
         commentContent: feedBackValue || '不符合我的业务'
@@ -369,11 +386,16 @@ function Index() {
             duration: 500
           })
 
-          setCompany(prevList => ({
-            ...prevList,
-            hasFeedback: 2,
-            commentContent: feedBackValue || '不符合我的业务'
-          }))
+          setCorpBasicInfo(prevList => {
+            if (prevList) {
+              return {
+                ...prevList,
+                hasFeedback: 2,
+                commentContent: feedBackValue || '不符合我的业务'
+              }
+            }
+            return prevList
+          })
 
           // 重置状态
           setFeedBackValue('')
@@ -429,9 +451,9 @@ function Index() {
   const handleDialogConfirm = () => {
     setShowCustomDialog(false)
     if (dialogType === 'add') {
-      clueCreateAPI({ unifiedSocialCreditCodes: company.creditCode }, res => {
+      clueCreateAPI({ unifiedSocialCreditCodes: corpDetail?.creditCode }, res => {
         if (res.success) {
-          setCompany((prevCompany: any) => ({
+          setCorpBasicInfo((prevCompany: any) => ({
             ...prevCompany,
             isJoinClue: true
           }))
@@ -451,9 +473,9 @@ function Index() {
       })
     } else if (dialogType === 'remove') {
       // 移除线索
-      clueDeleteAPI({ unifiedSocialCreditCode: company.creditCode }, res => {
+      clueDeleteAPI({ unifiedSocialCreditCode: corpDetail?.creditCode }, res => {
         if (res.success) {
-          setCompany((prevCompany: any) => ({
+          setCorpBasicInfo((prevCompany: any) => ({
             ...prevCompany,
             isJoinClue: false
           }))
@@ -528,7 +550,7 @@ function Index() {
   const handleRestoreConfirm = () => {
     companyFeedbackCreateAPI(
       {
-        creditCode: company?.creditCode || '',
+        creditCode: corpDetail?.creditCode || '',
         isLiked: 0,
         commentContent: ''
       },
@@ -541,11 +563,16 @@ function Index() {
             icon: 'none',
             duration: 500
           })
-          setCompany(prevList => ({
-            ...prevList,
-            hasFeedback: 0,
-            commentContent: ''
-          }))
+          setCorpBasicInfo(prevList => {
+            if (prevList) {
+              return {
+                ...prevList,
+                hasFeedback: 0,
+                commentContent: ''
+              }
+            }
+            return prevList
+          })
         }
       }
     )
@@ -641,7 +668,7 @@ function Index() {
             className="popup_header_img"
           />
         </View>
-        <View className="invalid_content">{company.commentContent || '与我的业务无关'}</View>
+        <View className="invalid_content">{corpBasicInfo?.commentContent || '与我的业务无关'}</View>
         <View onClick={() => setShowRestoreDialog(true)} className="invalid_content_button">
           恢复
         </View>
@@ -1210,18 +1237,18 @@ function Index() {
       </View>
 
       {/* 底部操作按钮 */}
-      {/* <View className="enterpriseContent_item_bottom">
+      <View className="enterpriseContent_item_bottom">
         <View className="enterpriseContent_item_bottom_left">
-          {(company.hasFeedback === 0 || company.hasFeedback === 1) && (
+          {(corpBasicInfo?.hasFeedback === 0 || corpBasicInfo?.hasFeedback === 1) && (
             <View
               onClick={e => handleLike(e)}
               className={`enterpriseContent_item_bottom_left_good ${
-                company.hasFeedback === 1 ? 'liked' : ''
+                corpBasicInfo?.hasFeedback === 1 ? 'liked' : ''
               } ${showHeartbeat ? 'heartbeat' : ''}`}
             >
               <Image
                 src={
-                  company.hasFeedback === 1
+                  corpBasicInfo?.hasFeedback === 1
                     ? 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise6.png'
                     : 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise8.png'
                 }
@@ -1230,23 +1257,23 @@ function Index() {
               <Text className="enterpriseContent_item_bottom_left_good_text">有效</Text>
             </View>
           )}
-          {(company.hasFeedback === 0 || company.hasFeedback === 2) && (
+          {(corpBasicInfo?.hasFeedback === 0 || corpBasicInfo?.hasFeedback === 2) && (
             <View
               onClick={e => handleDislike(e)}
               className={`enterpriseContent_item_bottom_left_bad ${
-                company.hasFeedback === 2 ? 'disliked' : ''
+                corpBasicInfo?.hasFeedback === 2 ? 'disliked' : ''
               } ${showShake ? 'shake' : ''}`}
             >
               <Image
                 src={
-                  company.hasFeedback === 2
+                  corpBasicInfo?.hasFeedback === 2
                     ? 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise7.png'
                     : 'https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise9.png'
                 }
                 className="enterpriseContent_item_bottom_left_bad_img"
               />
               <Text className="enterpriseContent_item_bottom_left_bad_text">无效线索</Text>
-              {company.hasFeedback === 2 && (
+              {corpBasicInfo?.hasFeedback === 2 && (
                 <ArrowDown
                   color="#8E8E8E"
                   style={{ width: '28rpx', height: '28rpx', marginLeft: '6rpx' }}
@@ -1255,21 +1282,18 @@ function Index() {
             </View>
           )}
         </View>
-        {!company.isJoinClue ? (
-            <View
-              onClick={e => handleAddToLeads(e)}
-              className="enterpriseContent_item_bottom_right"
-            >
-              <Add color="#fff" style={{ marginRight: '12rpx', width: '32rpx', height: '32rpx' }} />
-              <Text className="enterpriseContent_item_bottom_right_add_text">加入线索</Text>
-            </View>
-          ) : (
-            <View onClick={e => handleRemoveFromLeads(e)} className="remove">
-              <Text className="remove_text">移除</Text>
-              <View className="remove_icon"></View>
-            </View>
-          )}
-      </View> */}
+        {!corpBasicInfo?.isJoinClue ? (
+          <View onClick={e => handleAddToLeads(e)} className="enterpriseContent_item_bottom_right">
+            <Add color="#fff" style={{ marginRight: '12rpx', width: '32rpx', height: '32rpx' }} />
+            <Text className="enterpriseContent_item_bottom_right_add_text">加入线索</Text>
+          </View>
+        ) : (
+          <View onClick={e => handleRemoveFromLeads(e)} className="remove">
+            <Text className="remove_text">移除</Text>
+            <View className="remove_icon"></View>
+          </View>
+        )}
+      </View>
     </View>
   )
 }

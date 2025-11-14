@@ -6,6 +6,7 @@ import './index.scss'
 import { getProductSellingPointsAPI } from '@/api/company'
 import { loginInfoUpdateAPI } from '@/api/setting'
 import { useAppSelector } from '@/hooks/useAppStore'
+import { validateTextAndCommaDetailed } from '@/utils/reg'
 
 function BusinessProfile() {
   // 选中标签的状态
@@ -70,6 +71,14 @@ function BusinessProfile() {
   }
 
   const handleNext = () => {
+    // 校验自定义输入
+    if (customInput.trim() !== '') {
+      const regResult = validateTextAndCommaDetailed(customInput)
+      if (!regResult.isValid) {
+        Taro.showToast({ title: regResult.errors[0], icon: 'none' })
+        return
+      }
+    }
     if (selectedTags.concat(customInput.trim().split(',').filter((item: string) => item.trim() !== '')).length > 3) {
       Taro.showToast({ title: '包括自定义输入，最多拥有三个标签', icon: 'none' })
       return
@@ -181,7 +190,7 @@ function BusinessProfile() {
 
       {/* 自定义输入区 */}
       <View className="bp-custom-section">
-        <Text className="bp-custom-title">自定义输入，用英文逗号(,)隔开</Text>
+        <Text className="bp-custom-title">自定义输入标签，多个中间用英文逗号(,)隔开，只能输入文字、数字、英文字母，以及英文逗号</Text>
         <Input
           className="bp-custom-input"
           value={customInput}

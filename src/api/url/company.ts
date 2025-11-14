@@ -30,3 +30,5 @@ export const getRiskScanURL = '/fs/ai/enterprise-risk'
 export const getEnterpriseDynamicURL = '/fs/ai/getCompanyWebNewsList'
 // 获取相似企业
 export const getSimilarCompaniesURL = '/fs/ai/similar-company'
+// 获取企业基本信息
+export const getCorpBasicInfoURL = '/fs/qzd-company-info/getCompanyInfo'

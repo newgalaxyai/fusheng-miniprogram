@@ -1,5 +1,16 @@
 import { IPaginationRequest } from './common'
 
+// 获取企业基础信息请求参数
+export type IGetCorpBasicInfoRequest = {
+  creditCode: string // 统一社会信用代码
+}
+// 公司基础信息
+export type ICorpBasicInfo = {
+  isJoinClue: boolean // 是否加入线索
+  hasFeedback: number // 是否有反馈 0 无反馈 1 有效 2 无效
+  commentContent?: string // 反馈内容
+}
+
 // 请求参数
 export type IBusinessInfoRequest = {
   keyword: string // 企业名称

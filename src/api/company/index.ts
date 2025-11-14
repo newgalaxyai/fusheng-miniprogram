@@ -37,7 +37,9 @@ import type {
   IPaginationResponse,
   ICorp,
   IRiskScan,
-  IEnterpriseDynamic
+  IEnterpriseDynamic,
+  IGetCorpBasicInfoRequest,
+  ICorpBasicInfo
 } from '../types'
 import {
   getBusinessInfoURL,
@@ -55,7 +57,8 @@ import {
   getCorpListURL,
   getRiskScanURL,
   getEnterpriseDynamicURL,
-  getSimilarCompaniesURL
+  getSimilarCompaniesURL,
+  getCorpBasicInfoURL
 } from '../url'
 
 // 获取产品卖点
@@ -810,6 +813,17 @@ export const getCorpListAsyncApi = async (
 ): Promise<IAPIResponse<IPaginationResponse<ICorp>>> => {
   const response = await taroRequest.getAsync<IAPIResponse<IPaginationResponse<ICorp>>>({
     url: getCorpListURL,
+    data
+  })
+  return response
+}
+
+// 获取企业基本信息
+export const getCorpBasicInfoAsyncApi = async (
+  data: IGetCorpBasicInfoRequest
+): Promise<IAPIResponse<ICorpBasicInfo>> => {
+  const response = await taroRequest.getAsync<IAPIResponse<ICorpBasicInfo>>({
+    url: getCorpBasicInfoURL,
     data
   })
   return response

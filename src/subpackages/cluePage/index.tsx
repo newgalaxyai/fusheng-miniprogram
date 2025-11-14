@@ -1076,13 +1076,15 @@ const CluePage = forwardRef<
                             </View>
                             <View className="item_description">
                               未跟进：
-                              <Text style={{ color: '#EA6835' }}>{item.followUpDays || 0}天</Text>
+                              <Text style={{ color: '#EA6835' }}>
+                                {item.followUpDays ? item.followUpDays + '天' : '--'}
+                              </Text>
                               <Divider direction="vertical"></Divider>
                               最后跟进：
                               <Text style={{ color: '#EA6835' }}>
                                 {item.lastFollowUpTime
                                   ? dayjs(item.lastFollowUpTime).format('YYYY-MM-DD HH:mm:ss')
-                                  : '- -'}
+                                  : '--'}
                               </Text>
                             </View>
                           </View>
