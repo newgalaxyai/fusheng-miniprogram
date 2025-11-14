@@ -33,6 +33,7 @@ import { filterHTMLString } from '@/utils/filterString'
 import { useAppSelector } from '@/hooks/useAppStore'
 import { ROUTE, ROUTE_PARAMS_NAME } from '@/constants'
 import { CLUE_EVENT } from '@/constants/event'
+import dayjs from 'dayjs'
 
 type IFilterClueForm = Omit<IGetClueListRequest, 'pageNo' | 'pageSize' | 'userId'>
 
@@ -105,6 +106,12 @@ const CluePage = forwardRef<
       filterClueList()
     }
   }, [filterClueList, userInfo])
+  // 每次显示页面时重新获取线索列表
+  useDidShow(() => {
+    if (userInfo?.id) {
+      filterClueList()
+    }
+  })
   // ==================== 线索操作 ====================
   // 添加跟进
   function addFollow(e: any, item: IClue) {
@@ -1031,11 +1038,9 @@ const CluePage = forwardRef<
                           )}
                           <View className="cluePage_item_Text">
                             <View className="item_title">
-                              <View
-                                dangerouslySetInnerHTML={{
-                                  __html: filterHTMLString(item.customerCompanyName || '')
-                                }}
-                              ></View>
+                              <View className="item_title_name">
+                                {filterHTMLString(item.customerCompanyName || '')}
+                              </View>
                               <View
                                 className="item_title_text"
                                 onClick={e => {
@@ -1070,8 +1075,15 @@ const CluePage = forwardRef<
                               </View>
                             </View>
                             <View className="item_description">
-                              已跟进：
+                              未跟进：
                               <Text style={{ color: '#EA6835' }}>{item.followUpDays || 0}天</Text>
+                              <Divider direction="vertical"></Divider>
+                              最后跟进：
+                              <Text style={{ color: '#EA6835' }}>
+                                {item.lastFollowUpTime
+                                  ? dayjs(item.lastFollowUpTime).format('YYYY-MM-DD HH:mm:ss')
+                                  : '- -'}
+                              </Text>
                             </View>
                           </View>
                         </View>

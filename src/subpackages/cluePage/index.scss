@@ -577,25 +577,28 @@
       border-bottom: none;
     }
 
-    .cluePage_item_top {
-      width: 100%;
-      height: 94rpx;
-      display: flex;
-      align-items: center;
-
-      .cluePage_item_Img {
-        width: 88rpx;
-        height: 92rpx;
-        border-radius: 10rpx;
-        border: 2rpx solid #e9e9e9;
-      }
-
-      .company-avatar {
-        background: linear-gradient(135deg, #1b5bff 0%, #4981f8 100%);
+      .cluePage_item_top {
+        width: 100%;
+        height: 94rpx;
         display: flex;
         align-items: center;
-        justify-content: center;
-        border: none;
+        gap: 12rpx;
+
+        .cluePage_item_Img {
+          width: 88rpx;
+          height: 92rpx;
+          border-radius: 10rpx;
+          border: 2rpx solid #e9e9e9;
+          flex-shrink: 0; // 防止头像被压缩
+        }
+
+        .company-avatar {
+          background: linear-gradient(135deg, #1b5bff 0%, #4981f8 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: none;
+          flex-shrink: 0; // 防止头像被压缩
 
         .company-avatar-text {
           font-family: PingFang SC, PingFang SC;
@@ -607,12 +610,13 @@
       }
 
       .cluePage_item_Text {
+        padding-left: 10rpx;
         height: 100%;
         flex: 1;
+        min-width: 0;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        padding-left: 10rpx;
 
         .item_title {
           font-family: PingFang SC, PingFang SC;
@@ -622,14 +626,19 @@
           display: flex;
           align-items: center;
           justify-content: space-between;
+          gap: 10rpx;
 
-          // 限制左侧公司名称占位，避免挤压右侧操作按钮
-          > view:first-child {
+          .item_title_name {
             flex: 1;
             min-width: 0; // 允许内容缩进
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            // 防止内部富文本产生块级元素导致不省略
+            * {
+              display: inline;
+              white-space: nowrap;
+            }
           }
 
           .item_title_text {

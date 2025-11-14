@@ -508,8 +508,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
           new Promise<any[]>(resolve => {
             if (companyInfo?.customInput) {
               companyInfo.expansionDomainKeywordsSelected = [
-                ...companyInfo.expansionDomainKeywordsSelected,
-                ...companyInfo.customInput.split(',')
+                ...companyInfo.expansionDomainKeywordsSelected.concat(companyInfo.customInput.trim().split(',').filter((item: string) => item.trim() !== '')),
               ]
             }
             guessYouWantAPI(companyInfo.expansionDomainKeywordsSelected || [], res => {
@@ -561,8 +560,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
         setCurrentBatchIndex(0)
         if (companyInfo?.customInput) {
           companyInfo.expansionDomainKeywordsSelected = [
-            ...companyInfo.expansionDomainKeywordsSelected,
-            ...companyInfo.customInput.split(',')
+            ...companyInfo.expansionDomainKeywordsSelected.concat(companyInfo.customInput.trim().split(',').filter((item: string) => item.trim() !== '')),
           ]
         }
         // 异步调用新的API，补充队列到三条

@@ -55,7 +55,7 @@ function BusinessProfile() {
       if (prev.includes(tag)) {
         return prev.filter((t: string) => t !== tag)
       }
-      if (prev.length >= 3) {
+      if (prev.concat(customInput.trim() !== '' ? customInput.split(',') : []).length >= 3) {
         Taro.showToast({ title: '最多选择三个', icon: 'none' })
         return prev
       }
@@ -70,6 +70,10 @@ function BusinessProfile() {
   }
 
   const handleNext = () => {
+    if (selectedTags.concat(customInput.trim().split(',').filter((item: string) => item.trim() !== '')).length > 3) {
+      Taro.showToast({ title: '包括自定义输入，最多拥有三个标签', icon: 'none' })
+      return
+    }
     // 获取现有的用户信息，保留公司名称和名字
     const existingUserInfo = Taro.getStorageSync('companyInfo') || {}
 
@@ -94,7 +98,9 @@ function BusinessProfile() {
       },
       res => {}
     )
-    Taro.navigateTo({ url: '/pages/index/index?text=' + `请推荐国内10家生产/主营“${defaultProduct()}”的潜在客户。` })
+    Taro.navigateTo({
+      url: '/pages/index/index?text=' + `请推荐国内10家生产/主营“${defaultProduct()}”的潜在客户。`
+    })
   }
 
   const handleCustomInputChange = (e: any) => {
@@ -111,7 +117,9 @@ function BusinessProfile() {
       {/* 顶部标题和返回按钮 */}
       <View className="bp-header">
         <Text className="bp-title">AI为您梳理的产品/服务核心卖点</Text>
-        <Text className="bp-desc">系统基于企业信息分析出以下内容，您可以直接用或修改，让线索匹配更精准～</Text>
+        <Text className="bp-desc">
+          系统基于企业信息分析出以下内容，您可以直接用或修改，让线索匹配更精准～
+        </Text>
       </View>
 
       {/* 核心卖点内容区 */}
@@ -151,11 +159,17 @@ function BusinessProfile() {
       {/* 重点领域选择区 */}
       <View className="bp-focus-section">
         <Text className="bp-focus-title">想重点拓展哪些领域的客户？</Text>
-        <Text className="bp-focus-desc">选填常用场景，AI优先为您匹配对应线索；也可补充其他需求～</Text>
+        <Text className="bp-focus-desc">
+          选填常用场景，AI优先为您匹配对应线索；也可补充其他需求～
+        </Text>
         <View className="bp-tags">
           {tags && tags.length > 0 ? (
             tags.map((tag: string, index: number) => (
-              <View key={index} className={`bp-tag${selectedTags.includes(tag) ? ' bp-tag-selected' : ''}`} onClick={() => handleTagClick(tag)}>
+              <View
+                key={index}
+                className={`bp-tag${selectedTags.includes(tag) ? ' bp-tag-selected' : ''}`}
+                onClick={() => handleTagClick(tag)}
+              >
                 <Text className="bp-tag-text">{tag}</Text>
               </View>
             ))
@@ -167,8 +181,13 @@ function BusinessProfile() {
 
       {/* 自定义输入区 */}
       <View className="bp-custom-section">
-        <Text className="bp-custom-title">自定义输入</Text>
-        <Input className="bp-custom-input" value={customInput} onChange={handleCustomInputChange} placeholder="输入框(如“新能源汽车电池绝缘件客户”)" />
+        <Text className="bp-custom-title">自定义输入，用英文逗号(,)隔开</Text>
+        <Input
+          className="bp-custom-input"
+          value={customInput}
+          onChange={handleCustomInputChange}
+          placeholder="输入框(如“新能源汽车电池绝缘件客户”)"
+        />
       </View>
 
       <Button className="bp-next-btn" onClick={handleNext}>

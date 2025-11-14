@@ -198,11 +198,11 @@ function Index() {
         targetCompanyName: companyInfo.companyName,
         targetCompanyServe: JSON.stringify({
           coreSellingPoints: companyInfo.coreSellingPoints,
-          expansionDomainKeywords: companyInfo.expansionDomainKeywordsSelected.concat(companyInfo.customInput.split(',')),
+          expansionDomainKeywords: companyInfo.expansionDomainKeywordsSelected.concat(companyInfo.customInput.trim().split(',').filter((item: string) => item.trim() !== '')),
         })
       },
       res => {
-        if (res.success) {
+        if (res.success && res.data && res.data.content) {
           Taro.setStorageSync('report', JSON.parse(res.data.content))
           setReport(JSON.parse(res.data.content))
           console.log(JSON.parse(res.data.content))
