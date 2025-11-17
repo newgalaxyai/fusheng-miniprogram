@@ -16,6 +16,7 @@ import type {
   IAPIResponse,
   IClue,
   ICorpContactInfo,
+  ICreateClueRequest,
   IFollowUp,
   IGetAllClueListRequest,
   IGetAllClueListResponse,
@@ -136,32 +137,43 @@ export const clueContactSelectAPI = (
 }
 
 // 创建线索
-export const clueCreateAPI = (data: any, callback: (res: IResponse<any>) => void) => {
-  taroPost({
+// export const clueCreateAPI = (data: any, callback: (res: IResponse<any>) => void) => {
+//   taroPost({
+//     url: clueCreateURL,
+//     data,
+//     success: (res: any) => {
+//       callback({
+//         success: true,
+//         data: res.data
+//       })
+//     },
+//     fail: (err: any) => {
+//       if (err instanceof Promise) {
+//         err.catch(errMsg => {
+//           callback({
+//             success: false,
+//             data: errMsg
+//           })
+//         })
+//       } else {
+//         callback({
+//           success: false,
+//           data: err
+//         })
+//       }
+//     }
+//   }).catch(() => {})
+// }
+
+// 创建线索
+export const clueCreateAPI = async (
+  data: ICreateClueRequest
+): Promise<IResponse<boolean>> => {
+  const response = await taroRequest.postAsync<IResponse<boolean>>({
     url: clueCreateURL,
-    data,
-    success: (res: any) => {
-      callback({
-        success: true,
-        data: res.data
-      })
-    },
-    fail: (err: any) => {
-      if (err instanceof Promise) {
-        err.catch(errMsg => {
-          callback({
-            success: false,
-            data: errMsg
-          })
-        })
-      } else {
-        callback({
-          success: false,
-          data: err
-        })
-      }
-    }
-  }).catch(() => {})
+    data
+  })
+  return response
 }
 
 // 更新线索

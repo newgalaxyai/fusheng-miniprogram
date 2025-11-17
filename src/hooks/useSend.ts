@@ -15,6 +15,7 @@ import {
 import { IMessage } from '@/api/types/message'
 import { finalUpdateMessageAsync, getSessionListAsync } from '@/redux/asyncs/conversation'
 import Taro from '@tarojs/taro'
+import { Dispatch, SetStateAction } from 'react'
 
 // 参考 PC 端实现的小程序端消息发送 Hook
 export const useSend = () => {
@@ -130,7 +131,8 @@ export const useSend = () => {
     isThinking: boolean,
     sessionId: number | null,
     conversationId: string,
-    clearInputValue: () => void
+    clearInputValue: () => void,
+    setAiSessionId: Dispatch<SetStateAction<string>>
   ) => {
     let newMessage: IMessage = {
       id: null,
@@ -154,7 +156,9 @@ export const useSend = () => {
         nowSessionId = sessionId
       } else {
         const newSessionRes = await new Promise<{ success: boolean; data?: number }>(resolve => {
-          aiSessionCreateAPI({ userId: userInfo?.id }, res => resolve(res as any))
+          aiSessionCreateAPI({ userId: userInfo?.id, title: userMessage }, res =>
+            resolve(res as any)
+          )
         })
         if (newSessionRes.success && newSessionRes.data) {
           nowSessionId = newSessionRes.data
@@ -162,6 +166,10 @@ export const useSend = () => {
           return
         }
       }
+      Taro.setStorageSync('aiSessionId', nowSessionId)
+      setAiSessionId(String(nowSessionId))
+      dispatch(getSessionListAsync())
+      Taro.eventCenter.trigger('addSession', true)
 
       // 清空输入框
       clearInputValue()

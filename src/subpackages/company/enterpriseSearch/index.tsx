@@ -62,15 +62,19 @@ function Index() {
   const [filterFormData, setFilterFormData] = useState<IGetCorpListRequest>(initialFilter)
   // 获取企业列表
   const getCorpList = useCallback(async () => {
+    Taro.showLoading({
+      title: '加载中',
+      mask: true
+    })
     if (filterFormData.messageId != null) {
       // console.log('messageId', filterFormData)
-
       const res = await getCorpListAsyncApi(filterFormData)
       if (res.code === 0) {
         setCustomList(res.data.list)
         setTotal(res.data.total)
         setCustomHasMore(corpListCursor < 6)
       }
+      Taro.hideLoading()
     }
   }, [filterFormData])
   useEffect(() => {
@@ -436,7 +440,9 @@ function Index() {
   // AI研究报告
   const handleAiResearchReport = (company: ICorp) => {
     Taro.navigateTo({
-      url: `${ROUTE.AI_RESEARCH_REPORT}?${ROUTE_PARAMS_NAME.CREDIT_CODE}=${filterHTMLString(company.creditCode)}&${ROUTE_PARAMS_NAME.COMPANY_NAME}=${company.name}`
+      url: `${ROUTE.AI_RESEARCH_REPORT}?${ROUTE_PARAMS_NAME.CREDIT_CODE}=${filterHTMLString(
+        company.creditCode
+      )}&${ROUTE_PARAMS_NAME.COMPANY_NAME}=${company.name}`
     })
   }
 
@@ -692,79 +698,20 @@ function Index() {
   const handleDialogConfirm = (currentOperatingItem: any, type: string) => {
     if (currentOperatingItem) {
       if (type === 'add') {
-        clueCreateAPI({ unifiedSocialCreditCodes: filterHTMLString(currentOperatingItem.creditCode) }, res => {
-          if (res.success) {
-            setCustomList(prevList => {
-              const newList = [...prevList]
-              const targetIndex = newList.findIndex(
-                item => item.creditCode === currentOperatingItem.creditCode
-              )
-              if (targetIndex !== -1) {
-                newList[targetIndex] = {
-                  ...newList[targetIndex],
-                  isJoinClue: true
-                }
-              }
-              return newList
-            })
-
-            Taro.showToast({
-              title: '已添加线索',
-              icon: 'none',
-              duration: 500
-            })
-          } else {
-            Taro.showToast({
-              title: res.data.msg || '添加失败',
-              icon: 'none',
-              duration: 1000
-            })
-          }
-        })
-      } else if (type === 'remove') {
-        clueDeleteAPI({ unifiedSocialCreditCode: filterHTMLString(currentOperatingItem.creditCode) }, res => {
+        clueCreateAPI({
+          companyInfos: [
+            {
+              unifiedSocialCreditCode: currentOperatingItem.creditCode,
+              name: currentOperatingItem.name
+            }
+          ],
+          userId: userInfo?.id!,
+          source: '小程序'
+        }).then(res => {
           if (res.success) {
             setCustomList(prevList =>
               prevList.map(item => {
                 if (item.creditCode === currentOperatingItem.creditCode) {
-                  return {
-                    ...item,
-                    isJoinClue: false
-                  }
-                }
-                return item
-              })
-            )
-
-            Taro.showToast({
-              title: '已移除线索',
-              icon: 'none',
-              duration: 500
-            })
-          } else {
-            Taro.showToast({
-              title: res.data.msg || '移除失败',
-              icon: 'none',
-              duration: 1000
-            })
-          }
-        })
-      } else if (type === 'batchAdd') {
-        // 批量添加线索
-        if (currentOperatingItem.length === 0) {
-          Taro.showToast({
-            title: '没有可添加的企业',
-            icon: 'none',
-            duration: 1000
-          })
-          return
-        }
-        const creditCodes = currentOperatingItem.map((item: any) => item.creditCode).join(',')
-        clueCreateAPI({ unifiedSocialCreditCodes: creditCodes }, res => {
-          if (res.success) {
-            setCustomList(prevList =>
-              prevList.map((item: any) => {
-                if (currentOperatingItem.some((i: any) => i.creditCode === item.creditCode)) {
                   return {
                     ...item,
                     isJoinClue: true
@@ -774,19 +721,88 @@ function Index() {
               })
             )
             Taro.showToast({
-              title: '批量添加成功',
+              title: '已添加线索',
               icon: 'none',
               duration: 500
             })
           } else {
             Taro.showToast({
-              title: res.data.msg || '批量添加失败',
+              title: res.errMsg || '添加失败',
               icon: 'none',
               duration: 1000
             })
           }
         })
+      } else if (type === 'remove') {
+        clueDeleteAPI(
+          { unifiedSocialCreditCode: filterHTMLString(currentOperatingItem.creditCode) },
+          res => {
+            if (res.success) {
+              setCustomList(prevList =>
+                prevList.map(item => {
+                  if (item.creditCode === currentOperatingItem.creditCode) {
+                    return {
+                      ...item,
+                      isJoinClue: false
+                    }
+                  }
+                  return item
+                })
+              )
+
+              Taro.showToast({
+                title: '已移除线索',
+                icon: 'none',
+                duration: 500
+              })
+            } else {
+              Taro.showToast({
+                title: res.data.msg || '移除失败',
+                icon: 'none',
+                duration: 1000
+              })
+            }
+          }
+        )
       }
+      // else if (type === 'batchAdd') {
+      //   // 批量添加线索
+      //   if (currentOperatingItem.length === 0) {
+      //     Taro.showToast({
+      //       title: '没有可添加的企业',
+      //       icon: 'none',
+      //       duration: 1000
+      //     })
+      //     return
+      //   }
+      //   const creditCodes = currentOperatingItem.map((item: any) => item.creditCode).join(',')
+      //   clueCreateAPI({ unifiedSocialCreditCodes: creditCodes }, res => {
+      //     if (res.success) {
+      //       setCustomList(prevList =>
+      //         prevList.map((item: any) => {
+      //           if (currentOperatingItem.some((i: any) => i.creditCode === item.creditCode)) {
+      //             return {
+      //               ...item,
+      //               isJoinClue: true
+      //             }
+      //           }
+      //           return item
+      //         })
+      //       )
+      //       Taro.showToast({
+      //         title: '批量添加成功',
+      //         icon: 'none',
+      //         duration: 500
+      //       })
+      //     } else {
+      //       Taro.showToast({
+      //         title: res.data.msg || '批量添加失败',
+      //         icon: 'none',
+      //         duration: 1000
+      //       })
+      //     }
+      //   })
+      // }
     } else {
       Taro.showToast({
         title: '请选择要操作的企业',

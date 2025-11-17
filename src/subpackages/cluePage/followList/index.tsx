@@ -272,7 +272,9 @@ const FollowListPage = () => {
               loadMoreText="没有啦～"
             >
               {followUpList.map((followItem, index) => {
-                const contactInfo = JSON.parse(followItem.contactInfo) as ICorpContactInfo
+                const contactInfo = followItem.contactInfo
+                  ? (JSON.parse(followItem.contactInfo) as ICorpContactInfo)
+                  : null
                 return (
                   <View key={index} className="followList_item">
                     <View className="timeline_dot"></View>
@@ -282,8 +284,12 @@ const FollowListPage = () => {
                         {dayjs(followItem.createTime).format('YYYY-MM-DD HH:mm:ss')}
                       </View>
                       <View className="timeline_content_desc">
-                        跟进方式:&nbsp;{followItem.method || '-'}，{contactInfo.name}&nbsp;(
-                        {contactInfo.position})&nbsp;{contactInfo.phone}
+                        跟进方式:&nbsp;{followItem.method || '-'}
+                        {contactInfo &&
+                          `，${contactInfo?.name || '-'} (
+                        ${contactInfo?.position || '-'}
+                        ) ${contactInfo?.phone || '-'}
+                        `}
                       </View>
                       <View className="timeline_content_content">{followItem.content}</View>
                     </View>

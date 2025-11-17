@@ -26,7 +26,11 @@ import { Dialog, TextArea, BackTop } from '@nutui/nutui-react-taro'
 import { ArrowDownSize6, ArrowUpSize6, Reload } from '@nutui/icons-react-taro'
 import { useAppDispatch } from '@/hooks/useAppStore'
 import { getSessionListAsync, getFavoriteListAsync } from '@/redux/asyncs/conversation'
-import { setAllMessageListAction, setMessageListAction, setStreamStatusAction } from '@/redux/modules/session'
+import {
+  setAllMessageListAction,
+  setMessageListAction,
+  setStreamStatusAction
+} from '@/redux/modules/session'
 import { useSend } from '@/hooks/useSend'
 import AiMessageComponent from '@/components/AiMessageComponent'
 import { IMessage } from '@/api/types/message'
@@ -52,6 +56,125 @@ const TechLoadingAnimation = () => {
 
 const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
   ({ height }, ref) => {
+    // 预加载五次推荐数据
+    const loadFiveBatches = async () => {
+      const promises: Promise<any[]>[] = []
+      for (let i = 0; i < 1; i++) {
+        promises.push(
+          new Promise<any[]>(resolve => {
+            if (companyInfo?.customInput) {
+              companyInfo.expansionDomainKeywordsSelected = [
+                ...companyInfo.expansionDomainKeywordsSelected.concat(
+                  companyInfo.customInput
+                    .trim()
+                    .split(',')
+                    .filter((item: string) => item.trim() !== '')
+                )
+              ]
+            }
+            guessYouWantAPI(companyInfo.expansionDomainKeywordsSelected || [], res => {
+              if (res && res.success && res.data) {
+                let batches: any[] = []
+                if (Array.isArray(res.data)) {
+                  batches = res.data
+                } else if (typeof res.data === 'object' && res.data.batches) {
+                  batches = res.data.batches
+                }
+                resolve(batches)
+              } else {
+                resolve([])
+              }
+            })
+          })
+        )
+      }
+
+      try {
+        const results = await Promise.all(promises)
+        const validResults = results.filter(
+          (batch: any[]) => Array.isArray(batch) && batch.length > 0
+        )
+        if (validResults.length > 0) {
+          setRecommendQueue(validResults)
+          setRecommendBatches(validResults[0])
+          setCurrentBatchIndex(0)
+          setLoadFailed(true)
+        } else {
+          setLoadFailed(false)
+        }
+      } catch (error) {
+        setLoadFailed(false)
+      }
+    }
+    // 换一批
+    const handleChangeBatch = () => {
+      if (recommendQueue.length > 1) {
+        // 删除当前显示的第一条，显示队列中的下一条
+        const newQueue = [...recommendQueue.slice(1)]
+
+        setRecommendQueue(newQueue)
+        setRecommendBatches(newQueue[0] || [])
+        setCurrentBatchIndex(0)
+        if (companyInfo?.customInput) {
+          companyInfo.expansionDomainKeywordsSelected = [
+            ...companyInfo.expansionDomainKeywordsSelected.concat(
+              companyInfo.customInput
+                .trim()
+                .split(',')
+                .filter((item: string) => item.trim() !== '')
+            )
+          ]
+        }
+        // 异步调用新的API，补充队列到三条
+        guessYouWantAPI(companyInfo.expansionDomainKeywordsSelected || [], res => {
+          if (res && res.success && res.data) {
+            let batches: any[] = []
+            if (Array.isArray(res.data)) {
+              batches = res.data
+            } else if (typeof res.data === 'object' && res.data.batches) {
+              batches = res.data.batches
+            }
+
+            if (batches.length > 0) {
+              setRecommendQueue(prevQueue => [...prevQueue, batches])
+            }
+          }
+        })
+      } else {
+        loadFiveBatches()
+      }
+    }
+    // 初始化获取推荐问题
+    const getRecommendBatches = () => {
+      loadFiveBatches()
+    }
+    // 初始化获取会话列表
+    const getAiSession = () => {
+      dispatch(getSessionListAsync())
+      Taro.removeStorageSync('aiSessionId')
+      // 新建会话时，停止当前流式输出并清空消息
+      dispatch(setStreamStatusAction('idle'))
+      setIsStreaming(false)
+      dispatch(setAllMessageListAction([]))
+      setConversationId('')
+      // aiSessionCreateAPI({ userId: userInfo?.id }, res => {
+      //   if (res.success && res.data) {
+      //     Taro.setStorageSync('aiSessionId', res.data)
+      //     setAiSessionId(res.data)
+      //     dispatch(getSessionListAsync())
+      //     Taro.eventCenter.trigger('addSession', true)
+      //     // 新建会话时，停止当前流式输出并清空消息
+      //     dispatch(setStreamStatusAction('idle'))
+      //     dispatch(setAllMessageListAction([]))
+      //     setConversationId('')
+      //   }
+      // })
+    }
+    useEffect(() => {
+      // 初始化推荐批次和AI会话
+      getRecommendBatches()
+      getAiSession()
+    }, [])
     const dispatch = useAppDispatch()
     // 使用 Redux 管理消息列表（参考 PC 端）
     const messages = useAppSelector(state => state.session.messageList as MessageUI[])
@@ -122,14 +245,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
         })
       }
 
-      // 2. 初始化推荐批次和AI会话
-      getRecommendBatches()
-      if (Taro.getStorageSync('aiSessionId')) {
-        setAiSessionId(Taro.getStorageSync('aiSessionId'))
-      } else {
-        getAiSession()
-      }
-
       const handleGetChatItem = res => {
         // 切换会话时，停止当前流式输出并允许替换消息列表
         dispatch(setStreamStatusAction('idle'))
@@ -186,7 +301,14 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
           isProcessingRef.current = true
           const sid = Taro.getStorageSync('aiSessionId')
           const nowSid = sid ? Number(sid) : null
-          sendMessage(String(res).trim(), false, nowSid, conversationId || '', () => {})
+          sendMessage(
+            String(res).trim(),
+            false,
+            nowSid,
+            conversationId || '',
+            () => {},
+            setAiSessionId
+          )
           // 延迟重置标志
           setTimeout(() => {
             isProcessingRef.current = false
@@ -227,11 +349,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
     useEffect(() => {
       console.log('组件重新渲染，时间:', new Date().toISOString())
     }, [])
-
-    // 暴露方法给父组件
-    useImperativeHandle(ref, () => ({
-      getAiSessionCopy
-    }))
 
     // 处理功能按钮点击
     const handleButtonClick = (messageId: number | null, buttonIndex: number) => {
@@ -411,38 +528,36 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
       setKeyboardHeight(0)
     })
 
-    const getAiSession = () => {
-      aiSessionCreateAPI({ userId: userInfo?.id }, res => {
-        if (res.success && res.data) {
-          Taro.setStorageSync('aiSessionId', res.data)
-          setAiSessionId(res.data)
-          dispatch(getSessionListAsync())
-          Taro.eventCenter.trigger('addSession', true)
-          // 新建会话时，停止当前流式输出并清空消息
-          dispatch(setStreamStatusAction('idle'))
-          dispatch(setAllMessageListAction([]))
-          setConversationId('')
-        }
-      })
-    }
-
+    // 新建会话按钮点击
     const getAiSessionCopy = () => {
-      aiSessionCreateAPI({ userId: userInfo?.id }, res => {
-        if (res.success && res.data) {
-          Taro.setStorageSync('aiSessionId', res.data)
-          setAiSessionId(res.data)
-          dispatch(getSessionListAsync())
-          Taro.eventCenter.trigger('addSession', true)
-          // 新建会话时，停止当前流式输出并清空消息
-          dispatch(setStreamStatusAction('idle'))
-          dispatch(setAllMessageListAction([]))
-          setIsStreaming(false)
-          setScrollTop(0)
-          Taro.showToast({ title: '会话创建成功', icon: 'none' })
-          setConversationId('')
-        }
-      })
+      dispatch(getSessionListAsync())
+      Taro.removeStorageSync('aiSessionId')
+      // 新建会话时，停止当前流式输出并清空消息
+      dispatch(setStreamStatusAction('idle'))
+      dispatch(setAllMessageListAction([]))
+      setIsStreaming(false)
+      setScrollTop(0)
+      setConversationId('')
+      // aiSessionCreateAPI({ userId: userInfo?.id }, res => {
+      //   if (res.success && res.data) {
+      //     Taro.setStorageSync('aiSessionId', res.data)
+      //     setAiSessionId(res.data)
+      //     dispatch(getSessionListAsync())
+      //     Taro.eventCenter.trigger('addSession', true)
+      //     // 新建会话时，停止当前流式输出并清空消息
+      //     dispatch(setStreamStatusAction('idle'))
+      //     dispatch(setAllMessageListAction([]))
+      //     setIsStreaming(false)
+      //     setScrollTop(0)
+      //     Taro.showToast({ title: '会话创建成功', icon: 'none' })
+      //     setConversationId('')
+      //   }
+      // })
     }
+    // 暴露方法给父组件
+    useImperativeHandle(ref, () => ({
+      getAiSessionCopy
+    }))
 
     // 获取聊天消息高度
     const getChatMsgHeight = () => {
@@ -478,7 +593,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
       if (!text || isStreaming) return
       const sid = Taro.getStorageSync('aiSessionId')
       const nowSid = sid ? Number(sid) : null
-      sendMessage(text, false, nowSid, conversationId || '', () => setInput(''))
+      sendMessage(text, false, nowSid, conversationId || '', () => setInput(''), setAiSessionId)
     }
 
     // 重新生成：使用当前消息的用户问题重新发送给 AI
@@ -487,7 +602,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
       if (!text || isStreaming) return
       const sid = Taro.getStorageSync('aiSessionId')
       const nowSid = sid ? Number(sid) : null
-      sendMessage(text, false, nowSid, conversationId || '', () => {})
+      sendMessage(text, false, nowSid, conversationId || '', () => {}, setAiSessionId)
     }
 
     // 旧版 continueWithSessionId 流程已移除，发送逻辑统一走 useSend Hook
@@ -498,89 +613,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(
       setTimeout(() => {
         send()
       }, 100)
-    }
-
-    // 预加载五次推荐数据
-    const loadFiveBatches = async () => {
-      const promises: Promise<any[]>[] = []
-      for (let i = 0; i < 1; i++) {
-        promises.push(
-          new Promise<any[]>(resolve => {
-            if (companyInfo?.customInput) {
-              companyInfo.expansionDomainKeywordsSelected = [
-                ...companyInfo.expansionDomainKeywordsSelected.concat(companyInfo.customInput.trim().split(',').filter((item: string) => item.trim() !== '')),
-              ]
-            }
-            guessYouWantAPI(companyInfo.expansionDomainKeywordsSelected || [], res => {
-              if (res && res.success && res.data) {
-                let batches: any[] = []
-                if (Array.isArray(res.data)) {
-                  batches = res.data
-                } else if (typeof res.data === 'object' && res.data.batches) {
-                  batches = res.data.batches
-                }
-                resolve(batches)
-              } else {
-                resolve([])
-              }
-            })
-          })
-        )
-      }
-
-      try {
-        const results = await Promise.all(promises)
-        const validResults = results.filter(
-          (batch: any[]) => Array.isArray(batch) && batch.length > 0
-        )
-        if (validResults.length > 0) {
-          setRecommendQueue(validResults)
-          setRecommendBatches(validResults[0])
-          setCurrentBatchIndex(0)
-          setLoadFailed(true)
-        } else {
-          setLoadFailed(false)
-        }
-      } catch (error) {
-        setLoadFailed(false)
-      }
-    }
-
-    const getRecommendBatches = () => {
-      loadFiveBatches()
-    }
-
-    const handleChangeBatch = () => {
-      if (recommendQueue.length > 1) {
-        // 删除当前显示的第一条，显示队列中的下一条
-        const newQueue = [...recommendQueue.slice(1)]
-
-        setRecommendQueue(newQueue)
-        setRecommendBatches(newQueue[0] || [])
-        setCurrentBatchIndex(0)
-        if (companyInfo?.customInput) {
-          companyInfo.expansionDomainKeywordsSelected = [
-            ...companyInfo.expansionDomainKeywordsSelected.concat(companyInfo.customInput.trim().split(',').filter((item: string) => item.trim() !== '')),
-          ]
-        }
-        // 异步调用新的API，补充队列到三条
-        guessYouWantAPI(companyInfo.expansionDomainKeywordsSelected || [], res => {
-          if (res && res.success && res.data) {
-            let batches: any[] = []
-            if (Array.isArray(res.data)) {
-              batches = res.data
-            } else if (typeof res.data === 'object' && res.data.batches) {
-              batches = res.data.batches
-            }
-
-            if (batches.length > 0) {
-              setRecommendQueue(prevQueue => [...prevQueue, batches])
-            }
-          }
-        })
-      } else {
-        loadFiveBatches()
-      }
     }
 
     const handleScroll = (e: any) => {

@@ -26,8 +26,12 @@ import {
   IEnterpriseDynamic,
   IRiskScan
 } from '@/api/types'
+import { useAppSelector } from '@/hooks/useAppStore'
 
 function Index() {
+  const {
+    login: { userInfo }
+  } = useAppSelector(state => state)
   // 当前企业的信用代码
   const [creditCode, setCreditCode] = useState('')
   // 企业基本信息
@@ -451,13 +455,21 @@ function Index() {
   const handleDialogConfirm = () => {
     setShowCustomDialog(false)
     if (dialogType === 'add') {
-      clueCreateAPI({ unifiedSocialCreditCodes: corpDetail?.creditCode }, res => {
+      clueCreateAPI({
+        companyInfos: [
+          {
+            unifiedSocialCreditCode: corpDetail?.creditCode!,
+            name: corpDetail?.name!
+          }
+        ],
+        userId: userInfo?.id!,
+        source: '小程序'
+      }).then(res => {
         if (res.success) {
-          setCorpBasicInfo((prevCompany: any) => ({
+          setCorpDetail((prevCompany: any) => ({
             ...prevCompany,
             isJoinClue: true
           }))
-
           Taro.showToast({
             title: '已添加线索',
             icon: 'none',
@@ -465,7 +477,7 @@ function Index() {
           })
         } else {
           Taro.showToast({
-            title: res.data.msg || '添加失败',
+            title: res.errMsg || '添加失败',
             icon: 'none',
             duration: 1000
           })

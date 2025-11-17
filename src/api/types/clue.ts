@@ -1,5 +1,14 @@
 import { IPaginationRequest } from './common'
 
+// 创建线索
+export type ICreateClueRequest = {
+  userId: number
+  source: string
+  companyInfos: {
+    unifiedSocialCreditCode: string // 统一社会信用代码
+    name: string // 公司名称
+  }[]
+}
 // 线索
 export type IClue = {
   id: number // 线索id

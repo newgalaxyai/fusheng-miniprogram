@@ -884,6 +884,7 @@ const CluePage = forwardRef<
       <Tabs
         value={clueFilterForm.isImportantClue ? '1' : '0'}
         onChange={val => {
+          setSearchInputValue('')
           setClueFilterForm({ isImportantClue: val === '1' })
         }}
       >
