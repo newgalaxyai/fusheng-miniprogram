@@ -168,8 +168,8 @@ export const clueContactSelectAPI = (
 // 创建线索
 export const clueCreateAPI = async (
   data: ICreateClueRequest
-): Promise<IResponse<boolean>> => {
-  const response = await taroRequest.postAsync<IResponse<boolean>>({
+): Promise<IAPIResponse<boolean>> => {
+  const response = await taroRequest.postAsync<IAPIResponse<boolean>>({
     url: clueCreateURL,
     data
   })

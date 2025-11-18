@@ -431,10 +431,10 @@ function Index() {
   }
 
   // 企业详情
-  const handleEnterpriseDetail = (item: any) => {
+  const handleEnterpriseDetail = (item: ICorp) => {
     Taro.navigateTo({
-      url: '/subpackages/company/enterpriseDetail/index?company=' + JSON.stringify(item)
-    })
+        url: `${ROUTE.ENTERPRISE_DETAIL}?${ROUTE_PARAMS_NAME.CREDIT_CODE}=${filterHTMLString(item.creditCode)}`
+      })
   }
 
   // AI研究报告
@@ -708,7 +708,7 @@ function Index() {
           userId: userInfo?.id!,
           source: '小程序'
         }).then(res => {
-          if (res.success) {
+          if (res.code === 0) {
             setCustomList(prevList =>
               prevList.map(item => {
                 if (item.creditCode === currentOperatingItem.creditCode) {
@@ -727,7 +727,7 @@ function Index() {
             })
           } else {
             Taro.showToast({
-              title: res.errMsg || '添加失败',
+              title: res.msg || '添加失败',
               icon: 'none',
               duration: 1000
             })
@@ -1367,6 +1367,15 @@ function Index() {
                       className="enterpriseContent_item_contact_item_img"
                     />
                     联系方式
+                  </View>
+                  <View
+                    onClick={e => {
+                      e.stopPropagation()
+                      handleEnterpriseDetail(item)
+                    }}
+                    className="enterpriseContent_item_contact_item"
+                  >
+                    查看详情
                   </View>
                   {/* <View
                     onClick={e => {

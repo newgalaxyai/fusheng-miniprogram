@@ -465,7 +465,7 @@ function Index() {
         userId: userInfo?.id!,
         source: '小程序'
       }).then(res => {
-        if (res.success) {
+        if (res.code === 0) {
           setCorpDetail((prevCompany: any) => ({
             ...prevCompany,
             isJoinClue: true
@@ -477,7 +477,7 @@ function Index() {
           })
         } else {
           Taro.showToast({
-            title: res.errMsg || '添加失败',
+            title: res.msg || '添加失败',
             icon: 'none',
             duration: 1000
           })
