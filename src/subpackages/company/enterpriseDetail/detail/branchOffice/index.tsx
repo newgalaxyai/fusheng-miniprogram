@@ -4,7 +4,7 @@ import { View, Text, Image } from '@tarojs/components'
 import { Tabs } from '@nutui/nutui-react-taro'
 import './index.scss'
 import { IBranchOffice } from '@/api/types'
-import { getBranchOfficeAPI } from '@/api/company'
+import { getBranchOfficeAPI, getBusinessInfoAPI } from '@/api/company'
 import dayjs from 'dayjs'
 
 function Index() {
@@ -14,16 +14,38 @@ function Index() {
   useLoad(params => {
     const { company } = params
     const companyInfo = JSON.parse(company)
-    getBranchOfficeAPI(
-      {
-        gid: companyInfo.gid
-        // gid: 47183021
-      },
-      branchOfficeRes => {
-        // console.log('branchOfficeRes', branchOfficeRes);
-        setBranchOffice(branchOfficeRes.data || [])
-      }
-    )
+    if (companyInfo.gid) {
+      getBranchOfficeAPI(
+        {
+          gid: companyInfo.gid
+          // gid: 47183021
+        },
+        branchOfficeRes => {
+          // console.log('branchOfficeRes', branchOfficeRes);
+          setBranchOffice(branchOfficeRes.data || [])
+        }
+      )
+    } else {
+      getBusinessInfoAPI(
+        {
+          keyword: companyInfo.creditCode
+        },
+        res => {
+          if (res.success) {
+            getBranchOfficeAPI(
+              {
+                gid: res.data.gid
+                // gid: 47183021
+              },
+              branchOfficeRes => {
+                // console.log('branchOfficeRes', branchOfficeRes);
+                setBranchOffice(branchOfficeRes.data || [])
+              }
+            )
+          }
+        }
+      )
+    }
   })
   // -tabs 切换
   // const [tabvalue, setTabvalue] = useState<string | number>('out')
@@ -57,7 +79,13 @@ function Index() {
         {branchOffice.map((branch, idx) => (
           <View className="shareholder-card" key={idx}>
             <View className="card-header">
-              {branch.logo ? <Image className="logo" src={branch.logo} /> : <View className={'avatar ' + (branch.alias.length >= 4 ? 'avatar-4' : 'avatar-1')}>{branch.alias.length >= 4 ? branch.alias.slice(0, 4) : branch.alias.slice(0, 2)}</View>}
+              {branch.logo ? (
+                <Image className="logo" src={branch.logo} />
+              ) : (
+                <View className={'avatar ' + (branch.alias.length >= 4 ? 'avatar-4' : 'avatar-1')}>
+                  {branch.alias.length >= 4 ? branch.alias.slice(0, 4) : branch.alias.slice(0, 2)}
+                </View>
+              )}
               <View className="info">
                 <View className="name-row">
                   <Text className="name">{branch.name || '- -'}</Text>
@@ -77,7 +105,9 @@ function Index() {
                 </View>
                 <View className="item">
                   <Text className="label">成立日期</Text>
-                  <Text className="value">{branch.estiblishTime ? dayjs(branch.estiblishTime).format('YYYY-MM-DD') : '--'}</Text>
+                  <Text className="value">
+                    {branch.estiblishTime ? dayjs(branch.estiblishTime).format('YYYY-MM-DD') : '--'}
+                  </Text>
                 </View>
               </View>
             </View>

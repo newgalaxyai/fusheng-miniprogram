@@ -17,6 +17,7 @@ const CorpContactComponente: React.FC<IProps> = ({ visible, setVisible, creditCo
   // 关闭弹窗时，清空联系人信息
   const onClose = () => {
     setVisible(false)
+    setActiveTab(1)
     setCorpContactInfo(undefined)
   }
 

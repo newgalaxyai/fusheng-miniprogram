@@ -1021,21 +1021,14 @@ const CluePage = forwardRef<
                             )
                           ) : (
                             // 如果为空，显示"暂无"
-                            <Text
-                              className="cluePage_item_Img"
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                background: '#1B5BFF',
-                                color: '#fff',
-                                borderRadius: '8rpx',
-                                fontSize: '32rpx'
-                              }}
-                            >
-                              {filterHTMLString(item.customerCompanyName || '').slice(0, 2) ||
-                                '暂无'}
-                            </Text>
+                            <View className="avatar-text">
+                              <Text className="text-line">
+                                {item?.customerCompanyName.slice(0, 2)}
+                              </Text>
+                              <Text className="text-line">
+                                {item?.customerCompanyName.slice(2, 4)}
+                              </Text>
+                            </View>
                           )}
                           <View className="cluePage_item_Text">
                             <View className="item_title">

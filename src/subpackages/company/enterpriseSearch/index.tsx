@@ -433,8 +433,10 @@ function Index() {
   // 企业详情
   const handleEnterpriseDetail = (item: ICorp) => {
     Taro.navigateTo({
-        url: `${ROUTE.ENTERPRISE_DETAIL}?${ROUTE_PARAMS_NAME.CREDIT_CODE}=${filterHTMLString(item.creditCode)}`
-      })
+      url: `${ROUTE.ENTERPRISE_DETAIL}?${ROUTE_PARAMS_NAME.CREDIT_CODE}=${filterHTMLString(
+        item.creditCode
+      )}`
+    })
   }
 
   // AI研究报告
@@ -1277,20 +1279,10 @@ function Index() {
                     )
                   ) : (
                     // 如果为空，显示"暂无"
-                    <Text
-                      className="enterpriseContent_item_Img"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: '#1B5BFF',
-                        color: '#fff',
-                        borderRadius: '8rpx',
-                        fontSize: '32rpx'
-                      }}
-                    >
-                      暂无
-                    </Text>
+                    <View className="avatar-text">
+                      <Text className="text-line">{item.name.slice(0, 2)}</Text>
+                      <Text className="text-line">{item.name.slice(2, 4)}</Text>
+                    </View>
                   )}
                   <View className="enterpriseContent_item_Text">
                     <View className="title">{item.name}</View>

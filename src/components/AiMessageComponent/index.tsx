@@ -1,4 +1,4 @@
-import React, { memo } from 'react'
+import React, { memo, useState } from 'react'
 import { View, Image, Text, RichText } from '@tarojs/components'
 import { ArrowRight, ArrowRightSmall } from '@nutui/icons-react-taro'
 import { marked } from 'marked'
@@ -6,6 +6,8 @@ import Taro from '@tarojs/taro'
 import { ROUTE, ROUTE_PARAMS_NAME } from '@/constants'
 import MarkdownComponent from '../MarkDownComponent'
 import equal from 'fast-deep-equal'
+import { filterHTMLString } from '@/utils/filterString'
+import CorpContactComponent from '@/components/corp-contact'
 
 // 配置marked选项，适合小程序环境
 marked.setOptions({
@@ -233,6 +235,10 @@ const navigateToCompanyList = (msg: any) => {
 
 const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
   // console.log('AiMessageComponent', msg);
+  // 联系方式弹窗
+  const [isShowPhone, setIsShowPhone] = useState(false) // 联系人弹窗
+  // 打开弹窗选中的企业代码
+  const [currentCreditCode, setCurrentCreditCode] = useState<string>('')
 
   const renderCorpList = () => {
     if (msg.tableType !== 'corp') return null
@@ -252,7 +258,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
           return (
             <View key={idx}>
               <View className="chat_ai_company" onClick={clickCompany}>
-                {/* <View className="company_left">
+                <View className="company_left">
                   {logo && String(logo).includes('http') ? (
                     <Image src={logo} className="company_left_img" />
                   ) : logo ? (
@@ -274,43 +280,78 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
                       {logo}
                     </Text>
                   ) : (
-                    <Text
-                      className="company_left_img"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: '#1B5BFF',
-                        color: '#fff',
-                        borderRadius: '8rpx',
-                        fontSize: '32rpx'
-                      }}
-                    >
-                      暂无
-                    </Text>
+                    <View className="avatar-text">
+                      <Text className="text-line">{name.slice(0, 2)}</Text>
+                      <Text className="text-line">{name.slice(2, 4)}</Text>
+                    </View>
                   )}
-                </View> */}
+                </View>
                 <View className="company_right">
                   <View className="company_right_top">
                     <Text className="company_right_top_text">{name}</Text>
                     <ArrowRightSmall color="#2B2B2B" size="24rpx" />
                   </View>
-                  {/* <View className="company_right_tabs">
+                  <View className="company_right_tabs">
+                    {/* <View
+                      className="company_right_tab"
+                      onClick={e => {
+                        e.stopPropagation()
+                        e.preventDefault()
+                        Taro.navigateTo({
+                          url: `${ROUTE.AI_RESEARCH_REPORT}?${
+                            ROUTE_PARAMS_NAME.CREDIT_CODE
+                          }=${filterHTMLString(creditCode)}&${
+                            ROUTE_PARAMS_NAME.COMPANY_NAME
+                          }=${filterHTMLString(name)}`
+                        })
+                      }}
+                    >
+                      <View style={{ marginRight: 4 }}>分析报告</View>
+                      <ArrowRightSmall color="#ffffff" size="24rpx" />
+                    </View>
                     <View
                       className="company_right_tab"
-                      onClick={e => toBranch({ creditCode, name }, e)}
+                      onClick={e => {
+                        e.stopPropagation()
+                        e.preventDefault()
+                        setCurrentCreditCode(creditCode)
+                        setIsShowPhone(true)
+                      }}
+                    >
+                      <View style={{ marginRight: 4 }}>联系方式</View>
+                      <ArrowRightSmall color="#ffffff" size="24rpx" />
+                    </View> */}
+                    <View
+                      className="company_right_tab"
+                      onClick={e => {
+                        e.stopPropagation()
+                        e.preventDefault()
+                        Taro.navigateTo({
+                          url: `${ROUTE.BRANCH_OFFICE}?${
+                            ROUTE_PARAMS_NAME.COMPANY
+                          }=${JSON.stringify({ creditCode })}`
+                        })
+                      }}
                     >
                       <View style={{ marginRight: 4 }}>总部及分支机构</View>
                       <ArrowRightSmall color="#ffffff" size="24rpx" />
                     </View>
                     <View
                       className="company_right_tab"
-                      onClick={e => toDynamic({ gid: '', logo, name }, e)}
+                      onClick={e => {
+                        e.stopPropagation()
+                        e.preventDefault()
+                        Taro.navigateTo({
+                          url: `${ROUTE.RECENT_DYNAMIC}?${
+                            ROUTE_PARAMS_NAME.ITEM
+                          }=${JSON.stringify({ creditCode })}`
+                        })
+                      }}
                     >
                       <View style={{ marginRight: 4 }}>近期动态</View>
                       <ArrowRightSmall color="#ffffff" size="24rpx" />
                     </View>
-                  </View> */}
+                  </View>
                 </View>
               </View>
             </View>
@@ -384,6 +425,11 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
         </View>
       ) : null}
       {!Boolean(msg?.id) ? <ChatTechLoadingAnimation /> : null}
+      <CorpContactComponent
+        visible={isShowPhone}
+        setVisible={setIsShowPhone}
+        creditCode={currentCreditCode}
+      />
     </View>
   )
 }

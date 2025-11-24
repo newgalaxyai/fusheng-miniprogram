@@ -45,6 +45,8 @@ export const ROUTE = {
     ENTERPRISE_SEARCH_RESULT: '/subpackages/company/enterpriseSearch/index',
     // 企业详情
     ENTERPRISE_DETAIL: '/subpackages/company/enterpriseDetail/index',
+    // 近期动态
+    RECENT_DYNAMIC: '/subpackages/company/enterpriseDetail/detail/dynamicInfo/index',
 }
 
 export const ROUTE_NAME = {
@@ -97,4 +99,8 @@ export const ROUTE_PARAMS_NAME = {
     MESSAGE_ID: 'messageId',
     // 消息关键词
     MESSAGE_KEYWORD: 'messageKeyword',
+    // 企业
+    COMPANY: 'company',
+    // 近期动态
+    ITEM: 'item',
 }

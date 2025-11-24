@@ -4,13 +4,17 @@ import './index.scss'
 import { ArrowRightSize6 } from '@nutui/icons-react-taro'
 import { Dialog, Tabs } from '@nutui/nutui-react-taro'
 import Taro, { useLoad } from '@tarojs/taro'
-import { getCompanyWebNewsListApi, getCompanyWebNewsDetailApi } from '@/api/company'
+import {
+  getCompanyWebNewsListApi,
+  getCompanyWebNewsDetailApi,
+  getBusinessInfoAPI
+} from '@/api/company'
 function Index() {
   const [tabvalue, setTabvalue] = useState(0)
   const [list, setList] = useState([])
   const [botHeight, setBotHeight] = useState([])
   const [tabHeight, setTabHeight] = useState(0)
-  const [company, setCompany] = useState({ name: '', logo: '', gid: '' })
+  const [company, setCompany] = useState({ name: '', logo: '', gid: -1 })
   const [newsList, setNewsList] = useState<any>([])
   const [readNewsShow, setReadNewsShow] = useState(false)
   const [newsInfo, setNewsInfo] = useState<any>({})
@@ -77,7 +81,24 @@ function Index() {
     if (item.name) {
       item.name = item.name.replace(/<[^>]+>/g, '')
     }
-    setCompany({ name: item.name, logo: item.logo, gid: item.gid })
+    if (item.gid) {
+      setCompany({ name: item.name, logo: item.logo, gid: item.gid })
+    } else {
+      getBusinessInfoAPI(
+        {
+          keyword: item.creditCode
+        },
+        res => {
+          if (res.success) {
+            setCompany({
+              name: res.data.name.replace(/<[^>]+>/g, ''),
+              logo: res.data.logo || '',
+              gid: res.data.gid
+            })
+          }
+        }
+      )
+    }
   })
 
   function getNewsList(isRefresh = false) {
@@ -171,7 +192,9 @@ function Index() {
     Taro.nextTick(() => {
       const query = Taro.createSelectorQuery()
       query.select('.content-box').boundingClientRect()
-      query.selectAll(value == 0 ? '.tagone' : value == 1 ? '.tagtwo' : '.tagthree').boundingClientRect()
+      query
+        .selectAll(value == 0 ? '.tagone' : value == 1 ? '.tagtwo' : '.tagthree')
+        .boundingClientRect()
       query.exec(res => {
         const contentRect = res[0]
         const tagRects = res[1]
@@ -185,7 +208,13 @@ function Index() {
 
   return (
     <View className="detailPage">
-      <Dialog title="阅读新闻" hideConfirmButton visible={readNewsShow} onConfirm={() => viewMore()} onCancel={() => setReadNewsShow(false)}>
+      <Dialog
+        title="阅读新闻"
+        hideConfirmButton
+        visible={readNewsShow}
+        onConfirm={() => viewMore()}
+        onCancel={() => setReadNewsShow(false)}
+      >
         <View className="dialog-content">
           {newsInfo.title && <View className="titleDia">{newsInfo.title}</View>}
           {newsInfo.news_text && (
@@ -207,13 +236,38 @@ function Index() {
               <Image src={company.logo} className="header-company-logo" />
             ) : (
               // 如果是文字，显示文字
-              <Text style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '16rpx', textAlign: 'center', padding: '8rpx', boxSizing: 'border-box' }} className="header-company-logo">
+              <Text
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: '#1B5BFF',
+                  color: '#fff',
+                  borderRadius: '8rpx',
+                  fontSize: '16rpx',
+                  textAlign: 'center',
+                  padding: '8rpx',
+                  boxSizing: 'border-box'
+                }}
+                className="header-company-logo"
+              >
                 {company.logo}
               </Text>
             )
           ) : (
             // 如果为空，显示"暂无"
-            <Text className="header-company-logo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B5BFF', color: '#fff', borderRadius: '8rpx', fontSize: '16rpx' }}>
+            <Text
+              className="header-company-logo"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: '#1B5BFF',
+                color: '#fff',
+                borderRadius: '8rpx',
+                fontSize: '16rpx'
+              }}
+            >
               暂无
             </Text>
           )}
@@ -232,7 +286,12 @@ function Index() {
             align="left"
           >
             <Tabs.TabPane title="新闻舆情">
-              <ScrollView className="content" style={{ height: `calc(100vh - ${tabHeight}px)` }} scrollY onScrollToLower={handleScrollToLower}>
+              <ScrollView
+                className="content"
+                style={{ height: `calc(100vh - ${tabHeight}px)` }}
+                scrollY
+                onScrollToLower={handleScrollToLower}
+              >
                 <View className="content-box">
                   <View className="content-item-left">
                     {botHeight.map((item, index) => (
@@ -248,7 +307,13 @@ function Index() {
                           />
                         )}
                         {/* 点 */}
-                        <View className="content-item__dot" style={{ top: `calc(${item}px + 18rpx)`, background: index != 0 ? '#DBDBDB' : '#1B5BFF' }} />
+                        <View
+                          className="content-item__dot"
+                          style={{
+                            top: `calc(${item}px + 18rpx)`,
+                            background: index != 0 ? '#DBDBDB' : '#1B5BFF'
+                          }}
+                        />
                       </React.Fragment>
                     ))}
                   </View>
@@ -258,7 +323,9 @@ function Index() {
                         <View className="content-item" key={index} onClick={() => openDetail(item)}>
                           <View className="content-item__header">
                             <View className="content-item__dot"></View>
-                            <View className={`tag ${getTagClass(item.sentiment)} tagone`}>{item.sentiment}</View>
+                            <View className={`tag ${getTagClass(item.sentiment)} tagone`}>
+                              {item.sentiment}
+                            </View>
                             <View className="tag-news">新闻</View>
                             <View className="date">{formatTimestamp(item.rtm)}</View>
                           </View>
@@ -275,10 +342,14 @@ function Index() {
                     {loading && <View className="loading-tip">加载中...</View>}
 
                     {/* 没有更多数据提示 */}
-                    {!hasMore && newsList.length > 0 && <View className="no-more-tip">没有更多数据了</View>}
+                    {!hasMore && newsList.length > 0 && (
+                      <View className="no-more-tip">没有更多数据了</View>
+                    )}
 
                     {/* 无数据提示 */}
-                    {!loading && newsList.length === 0 && <View className="empty-tip">暂无数据</View>}
+                    {!loading && newsList.length === 0 && (
+                      <View className="empty-tip">暂无数据</View>
+                    )}
                   </View>
                 </View>
               </ScrollView>

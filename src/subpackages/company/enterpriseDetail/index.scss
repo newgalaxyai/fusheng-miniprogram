@@ -17,7 +17,7 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  background: #F2F2F2;
+  background: #f2f2f2;
   overflow-x: hidden;
   overflow-y: auto;
   position: relative;
@@ -43,7 +43,7 @@
         width: 94rpx;
         height: 94rpx;
         border-radius: 14rpx;
-        border: 2rpx solid #E9E9E9;
+        border: 2rpx solid #e9e9e9;
       }
 
       .enterpriseContent_item_Text {
@@ -65,7 +65,6 @@
           white-space: nowrap;
         }
 
-
         .enterpriseContent_item_tag {
           width: 100%;
           margin-top: 16rpx;
@@ -78,26 +77,26 @@
           .enterpriseContent_item_tag_item {
             min-width: 68rpx;
             height: 44rpx;
-            background: #F0F7FF;
+            background: #f0f7ff;
             border-radius: 8rpx;
             @include flex-center;
             font-family: PingFang SC, PingFang SC;
             font-weight: 400;
             font-size: 24rpx;
-            color: #1B5BFF;
+            color: #1b5bff;
             padding: 0 12rpx;
             box-sizing: border-box;
 
             &:first-child {
               min-width: 68rpx;
               height: 44rpx;
-              background: #F0F9F4;
+              background: #f0f9f4;
               border-radius: 8rpx;
               @include flex-center;
               font-family: PingFang SC, PingFang SC;
               font-weight: 400;
               font-size: 24rpx;
-              color: #44A56C;
+              color: #44a56c;
               padding: 0 12rpx;
               box-sizing: border-box;
             }
@@ -111,7 +110,7 @@
       display: flex;
       margin-top: 24rpx;
       min-height: 124rpx;
-      background: #F8F8F8;
+      background: #f8f8f8;
       border-radius: 12rpx;
       margin-bottom: 6rpx;
       padding: 18rpx 40rpx;
@@ -123,7 +122,7 @@
         font-family: PingFang SC, PingFang SC;
         font-weight: 400;
         font-size: 24rpx;
-        color: #7B7B7B;
+        color: #7b7b7b;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -146,7 +145,7 @@
           justify-content: center;
           font-weight: 500;
           font-size: 24rpx;
-          color: #3094FF;
+          color: #3094ff;
           color: #333333;
         }
       }
@@ -182,7 +181,7 @@
         font-family: PingFang SC, PingFang SC;
         font-weight: 400;
         font-size: 24rpx;
-        color: #3E8DF6;
+        color: #3e8df6;
       }
     }
 
@@ -215,7 +214,7 @@
           font-family: PingFang SC, PingFang SC;
           font-weight: 400;
           font-size: 24rpx;
-          color: #1B5BFF;
+          color: #1b5bff;
           margin-left: 8rpx;
         }
       }
@@ -232,12 +231,12 @@
           justify-content: center;
           min-width: 92rpx;
           height: 44rpx;
-          background: #F0F7FF;
+          background: #f0f7ff;
           border-radius: 8rpx;
           font-family: PingFang SC, PingFang SC;
           font-weight: 400;
           font-size: 22rpx;
-          color: #1B5BFF;
+          color: #1b5bff;
           padding: 0 8rpx;
           box-sizing: border-box;
           margin-left: 20rpx;
@@ -262,9 +261,9 @@
       .enterpriseContent_report {
         width: 100%;
         height: 86rpx;
-        color: #1B5BFF;
+        color: #1b5bff;
         font-size: 24rpx;
-        background: #E3F0FF;
+        background: #e3f0ff;
         border-radius: 16rpx;
         display: flex;
         align-items: center;
@@ -274,9 +273,9 @@
       .enterpriseContent_branch {
         width: 100%;
         height: 86rpx;
-        color: #1B5BFF;
+        color: #1b5bff;
         font-size: 24rpx;
-        background: #E3F0FF;
+        background: #e3f0ff;
         border-radius: 16rpx;
         display: flex;
         align-items: center;
@@ -286,9 +285,9 @@
       .enterpriseContent_contact {
         width: 100%;
         height: 86rpx;
-        color: #1B5BFF;
+        color: #1b5bff;
         font-size: 24rpx;
-        background: #E3F0FF;
+        background: #e3f0ff;
         border-radius: 16rpx;
         display: flex;
         align-items: center;
@@ -319,7 +318,7 @@
     .analysis_content {
       width: 100%;
       height: 180rpx;
-      background: #F8F8F8;
+      background: #f8f8f8;
       border-radius: 24rpx;
       display: flex;
       flex-direction: column;
@@ -364,10 +363,9 @@
             font-family: DIN Alternate, DIN Alternate;
             font-weight: bold;
             font-size: 48rpx;
-            color: #385AB8;
+            color: #385ab8;
           }
         }
-
       }
 
       .analysis_bottom {
@@ -388,7 +386,7 @@
         .analysis_bottom_item {
           width: 100%;
           height: 20rpx;
-          background: #F8F8F8;
+          background: #f8f8f8;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -419,13 +417,13 @@
       font-family: PingFang SC, PingFang SC;
       font-weight: 500;
       font-size: 28rpx;
-      color: #DD9A43;
+      color: #dd9a43;
     }
 
     .business_intelligence_content {
       width: 100%;
       height: 158rpx;
-      background: #FDFCF5;
+      background: #fdfcf5;
       border-radius: 16rpx;
       margin-top: 24rpx;
       padding: 24rpx;
@@ -469,7 +467,7 @@
       font-family: PingFang SC, PingFang SC;
       font-weight: 500;
       font-size: 28rpx;
-      color: #EC4D51;
+      color: #ec4d51;
       margin-bottom: 8rpx;
     }
 
@@ -489,7 +487,7 @@
       .risk_scan_content_item {
         width: 284rpx;
         height: 162rpx;
-        background: #FBF5F5;
+        background: #fbf5f5;
         border-radius: 16rpx;
         padding: 16rpx;
         box-sizing: border-box;
@@ -506,7 +504,7 @@
           display: contents;
 
           .texts {
-            color: #EC4D51;
+            color: #ec4d51;
           }
         }
 
@@ -537,14 +535,14 @@
       font-family: PingFang SC, PingFang SC;
       font-weight: 500;
       font-size: 28rpx;
-      color: #629EE7;
+      color: #629ee7;
       margin-bottom: 8rpx;
     }
 
     .enterprise_dynamic_content {
       width: 100%;
       min-height: 176rpx;
-      background: #F8F9FC;
+      background: #f8f9fc;
       border-radius: 16rpx;
       padding: 24rpx;
       box-sizing: border-box;
@@ -588,7 +586,7 @@
       font-family: PingFang SC, PingFang SC;
       font-weight: 500;
       font-size: 28rpx;
-      color: #629EE7;
+      color: #629ee7;
       margin-bottom: 8rpx;
     }
 
@@ -611,7 +609,7 @@
       .enterprise_graph_content_item {
         width: 284rpx;
         height: 218rpx;
-        background: #F8F9FC;
+        background: #f8f9fc;
         border-radius: 24rpx;
         padding: 16rpx;
         box-sizing: border-box;
@@ -660,7 +658,7 @@
       .enterprise_info_content_item {
         width: 100%;
         height: 132rpx;
-        background: #F8F9FC;
+        background: #f8f9fc;
         border-radius: 12rpx;
         padding: 16rpx 24rpx;
         box-sizing: border-box;
@@ -675,7 +673,7 @@
 
         .enterprise_info_content_item_value {
           font-size: 24rpx;
-          color: #426EFF;
+          color: #426eff;
         }
 
         .info_Img {
@@ -701,7 +699,7 @@
       font-family: PingFang SC, PingFang SC;
       font-weight: 500;
       font-size: 28rpx;
-      color: #DD9A43;
+      color: #dd9a43;
       margin-bottom: 38rpx;
       display: flex;
       align-items: center;
@@ -716,7 +714,7 @@
           font-family: PingFang SC, PingFang SC;
           font-weight: 400;
           font-size: 24rpx;
-          color: #6F6F6F;
+          color: #6f6f6f;
         }
 
         .peer_title_right_img {
@@ -745,7 +743,7 @@
       .peer_content_item {
         width: 332rpx;
         min-height: 176rpx;
-        background: #F8F9FD;
+        background: #f8f9fd;
         border-radius: 16rpx;
         padding: 16rpx;
         box-sizing: border-box;
@@ -759,7 +757,7 @@
             width: 90rpx;
             height: 90rpx;
             border-radius: 12rpx;
-            border: 2rpx solid #F4F4F4;
+            border: 2rpx solid #f4f4f4;
           }
 
           .peer_content_item_text {
@@ -815,7 +813,7 @@
         gap: 8rpx;
         padding: 8rpx 24rpx;
         border-radius: 24rpx;
-        background: #F0F7FF;
+        background: #f0f7ff;
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
@@ -823,7 +821,7 @@
 
         // 点赞动画效果
         &.liked {
-          background: #F0F7FF;
+          background: #f0f7ff;
           transform: scale(1.05);
 
           &::before {
@@ -869,7 +867,7 @@
         gap: 8rpx;
         padding: 8rpx 24rpx;
         border-radius: 24rpx;
-        background: #F0F7FF;
+        background: #f0f7ff;
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
@@ -877,7 +875,7 @@
 
         // 点踩动画效果
         &.disliked {
-          background: #FFEBEE;
+          background: #ffebee;
           transform: scale(1.05);
 
           &::before {
@@ -923,21 +921,21 @@
       align-items: center;
       gap: 12rpx;
       padding: 8rpx 24rpx;
-      background: #426EFF;
+      background: #426eff;
       border-radius: 32rpx;
       transition: all 0.3s ease;
       box-sizing: border-box;
 
       &:active {
         transform: scale(0.95);
-        background: #3B5FE6;
+        background: #3b5fe6;
       }
 
       .enterpriseContent_item_bottom_right_add_text {
         font-family: PingFang SC, PingFang SC;
         font-weight: 500;
         font-size: 24rpx;
-        color: #FFFFFF;
+        color: #ffffff;
       }
     }
 
@@ -947,14 +945,14 @@
       align-items: center;
       gap: 8rpx;
       padding: 8rpx 24rpx;
-      background: #F5F5F5;
+      background: #f5f5f5;
       border-radius: 32rpx;
       transition: all 0.3s ease;
       box-sizing: border-box;
 
       &:active {
         transform: scale(0.95);
-        background: #E8E8E8;
+        background: #e8e8e8;
       }
 
       .remove_text {
@@ -979,7 +977,7 @@
           left: 50%;
           width: 12rpx;
           height: 2rpx;
-          background: #FFFFFF;
+          background: #ffffff;
           transform: translate(-50%, -50%);
         }
 
@@ -993,16 +991,36 @@
       }
     }
   }
+
+  .avatar-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #1b5bff;
+    color: #fff;
+    border-radius: 8rpx;
+    font-size: 32rpx;
+    width: 94rpx;
+    height: 94rpx;
+    box-sizing: border-box;
+    padding: 10rpx;
+    .text-line {
+      line-height: 1.2;
+      text-align: center;
+      width: 100%;
+    }
+  }
 }
 
 // 点赞点踩按钮激活状态
 .enterpriseContent_item_bottom_left_good.liked {
-  background: #F0F7FF;
+  background: #f0f7ff;
   transform: scale(1.05);
   transition: all 0.2s ease-in-out;
 
   .enterpriseContent_item_bottom_left_good_text {
-    color: #2156FE;
+    color: #2156fe;
     font-weight: 500;
   }
 }
@@ -1013,7 +1031,7 @@
   transition: all 0.2s ease-in-out;
 
   .enterpriseContent_item_bottom_left_bad_text {
-    color: #FF5656 !important;
+    color: #ff5656 !important;
     font-weight: 600;
   }
 }
@@ -1092,7 +1110,7 @@
       min-width: 10rpx;
       flex-shrink: 0;
       padding: 8rpx 16rpx;
-      background: #F4F4F4;
+      background: #f4f4f4;
       border-radius: 8rpx;
       font-family: PingFang SC, PingFang SC;
       font-weight: 400;
@@ -1103,18 +1121,18 @@
     .tag_blue {
       flex-shrink: 0;
       padding: 8rpx 16rpx;
-      background: #E8F2FF;
+      background: #e8f2ff;
       border-radius: 8rpx;
       font-family: PingFang SC, PingFang SC;
       font-weight: 400;
       font-size: 24rpx;
-      color: #1B4FE6;
+      color: #1b4fe6;
     }
 
     .enterprise_graph_content_item {
       width: 284rpx;
       height: 218rpx;
-      background: #F8F9FC;
+      background: #f8f9fc;
       border-radius: 24rpx;
       padding: 16rpx;
       box-sizing: border-box;
@@ -1135,7 +1153,6 @@
       }
     }
   }
-
 }
 
 .nut-tabs-horizontal {
@@ -1149,7 +1166,6 @@
 
 .nut-tabs-content {
   height: 100%;
-
 }
 
 .feedBack_content {
@@ -1179,7 +1195,7 @@
       width: 100%;
       min-height: 210rpx;
       border-radius: 24rpx 24rpx 24rpx 24rpx;
-      border: 3rpx solid #ECEAF5;
+      border: 3rpx solid #eceaf5;
       margin-top: 24rpx;
       padding: 24rpx;
       box-sizing: border-box;
@@ -1219,7 +1235,7 @@
     .feedBack_cancel {
       width: 338rpx;
       height: 86rpx;
-      background: #F8F8F8;
+      background: #f8f8f8;
       border-radius: 20rpx;
       @include flex-center;
       font-family: PingFang SC, PingFang SC;
@@ -1230,25 +1246,25 @@
 
       &:active {
         transform: scale(0.95);
-        background: #E8E8E8;
+        background: #e8e8e8;
       }
     }
 
     .feedBack_submit {
       width: 338rpx;
       height: 86rpx;
-      background: #2156FE;
+      background: #2156fe;
       border-radius: 20rpx;
       @include flex-center;
       font-family: PingFang SC, PingFang SC;
       font-weight: 500;
       font-size: 28rpx;
-      color: #FFFFFF;
+      color: #ffffff;
       transition: all 0.3s ease;
 
       &:active {
         transform: scale(0.95);
-        background: #1B4FE6;
+        background: #1b4fe6;
       }
     }
   }
@@ -1266,9 +1282,8 @@
   }
 
   .nut-checkbox-icon-checked {
-    color: #2156FE;
+    color: #2156fe;
   }
-
 
   .nut-icon {
     width: 32rpx;
@@ -1319,7 +1334,7 @@
   font-family: PingFang SC, PingFang SC;
   font-weight: 400;
   font-size: 28rpx;
-  color: #6F6F6F;
+  color: #6f6f6f;
 }
 
 .invalid_content_button {
@@ -1330,7 +1345,7 @@
   font-family: PingFang SC, PingFang SC;
   font-weight: 500;
   font-size: 28rpx;
-  color: #2156FE;
+  color: #2156fe;
   @include flex-center;
   transition: all 0.3s ease;
 
@@ -1351,7 +1366,7 @@
   }
 
   .nut-tabs {
-    background: #F4F4F4;
+    background: #f4f4f4;
   }
 
   .nut-tabpane {
@@ -1373,7 +1388,7 @@
     .region_content_footer_cancel {
       width: 338rpx;
       height: 86rpx;
-      background: #F8F8F8;
+      background: #f8f8f8;
       border-radius: 20rpx;
       @include flex-center;
       font-family: PingFang SC, PingFang SC;
@@ -1384,25 +1399,25 @@
 
       &:active {
         transform: scale(0.95);
-        background: #E8E8E8;
+        background: #e8e8e8;
       }
     }
 
     .region_content_footer_submit {
       width: 338rpx;
       height: 86rpx;
-      background: #2156FE;
+      background: #2156fe;
       border-radius: 20rpx;
       @include flex-center;
       font-family: PingFang SC, PingFang SC;
       font-weight: 500;
       font-size: 28rpx;
-      color: #FFFFFF;
+      color: #ffffff;
       transition: all 0.3s ease;
 
       &:active {
         transform: scale(0.95);
-        background: #1B4FE6;
+        background: #1b4fe6;
       }
     }
   }
@@ -1411,12 +1426,12 @@
   .nut-tabs-titles {
     --nutui-tabs-titles-font-size: 28rpx !important;
     --nutui-tabs-titles-font-weight: 400 !important;
-    --nutui-tabs-titles-item-color: #8D8D8D !important;
+    --nutui-tabs-titles-item-color: #8d8d8d !important;
     --nutui-tabs-titles-item-active-color: #333333 !important;
     --nutui-tabs-titles-item-active-font-weight: 500 !important;
-    --nutui-color-primary-light: #426EFF !important;
-    --nutui-color-primary-stop-1: #426EFF !important;
-    --nutui-color-primary-light: #E8F0FF !important;
+    --nutui-color-primary-light: #426eff !important;
+    --nutui-color-primary-stop-1: #426eff !important;
+    --nutui-color-primary-light: #e8f0ff !important;
     --nutui-tabs-vertical-titles-item-height: 102rpx !important;
   }
 }
@@ -1461,7 +1476,6 @@
 
 // 抖动动画（点踩时）
 @keyframes shake {
-
   0%,
   100% {
     transform: translateX(0);
@@ -1484,5 +1498,5 @@
 }
 
 .nut-checkbox-icon-checked {
-  color: #2156FE;
+  color: #2156fe;
 }

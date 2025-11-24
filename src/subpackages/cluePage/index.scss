@@ -869,6 +869,26 @@
       }
     }
   }
+
+  .avatar-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #1b5bff;
+    color: #fff;
+    border-radius: 8rpx;
+    font-size: 32rpx;
+    width: 94rpx;
+    height: 94rpx;
+    box-sizing: border-box;
+    padding: 10rpx;
+    .text-line {
+      line-height: 1.2;
+      text-align: center;
+      width: 100%;
+    }
+  }
 }
 
 .followUp_list {
