@@ -8,6 +8,9 @@ import MarkdownComponent from '../MarkDownComponent'
 import equal from 'fast-deep-equal'
 import { filterHTMLString } from '@/utils/filterString'
 import CorpContactComponent from '@/components/corp-contact'
+import { IBranchOffice } from '@/api/types'
+import dayjs from 'dayjs'
+import './index.scss'
 
 // 配置marked选项，适合小程序环境
 marked.setOptions({
@@ -342,9 +345,9 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
                         e.stopPropagation()
                         e.preventDefault()
                         Taro.navigateTo({
-                          url: `${ROUTE.RECENT_DYNAMIC}?${
-                            ROUTE_PARAMS_NAME.ITEM
-                          }=${JSON.stringify({ creditCode })}`
+                          url: `${ROUTE.RECENT_DYNAMIC}?${ROUTE_PARAMS_NAME.ITEM}=${JSON.stringify({
+                            creditCode
+                          })}`
                         })
                       }}
                     >
@@ -407,6 +410,60 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
     )
   }
 
+  const renderBranchList = () => {
+    // if (msg.tableType !== 'branch') return null
+    const list = Array.isArray(msg.tableData) ? msg.tableData : []
+    if (list.length === 0) return null
+    if (!list[0].regStatus) return null
+
+    return (
+      <View className="shareholder-list">
+        {list.map((branch: IBranchOffice, idx: number) => {
+          return (
+            <View className="shareholder-card" key={idx}>
+              <View className="card-header">
+                {branch.logo ? (
+                  <Image className="logo" src={branch.logo} />
+                ) : branch.alias ? (
+                  <View className={'avatar ' + (branch.alias.length > 2 ? 'avatar-4' : 'avatar-1')}>
+                    {branch.alias.length > 2 ? branch.alias.slice(0, 4) : branch.alias}
+                  </View>
+                ) : (
+                  <View className="avatar avatar-4">{branch.name.slice(0, 4)}</View>
+                )}
+                <View className="info">
+                  <View className="name-row">{branch.name || '- -'}</View>
+                  <View className="tag">{branch.regStatus || '- -'}</View>
+                </View>
+              </View>
+              <View className="card-content">
+                <View className="row">
+                  <View className="item">
+                    <Text className="label">负责人</Text>
+                    <Text className="value">{branch.legalPersonName || '--'}</Text>
+                  </View>
+                  <View className="item">
+                    <Text className="label">注册地</Text>
+                    <Text className="value">{branch.area || '--'}</Text>
+                  </View>
+                  <View className="item">
+                    <Text className="label">成立日期</Text>
+                    <Text className="value">
+                      {branch.estiblishTime
+                        ? dayjs(branch.estiblishTime).format('YYYY-MM-DD')
+                        : '--'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              {/* <View className="card-footer">{idx + 1}</View> */}
+            </View>
+          )
+        })}
+      </View>
+    )
+  }
+
   return (
     <View>
       {msg.reasoningProcess ? <MarkdownComponent content={msg.reasoningProcess} /> : null}
@@ -419,6 +476,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
       ) : null}
       {renderCorpList()}
       {renderPhoneList()}
+      {renderBranchList()}
       {msg.aiConclusion ? (
         <View style={{ marginTop: '16rpx' }} className="chatMsg_ai_text">
           <MarkdownComponent content={msg.aiConclusion} />
