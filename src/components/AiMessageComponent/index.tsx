@@ -354,6 +354,18 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
                       <View style={{ marginRight: 4 }}>近期动态</View>
                       <ArrowRightSmall color="#ffffff" size="24rpx" />
                     </View>
+                    <View
+                      className="company_right_tab"
+                      onClick={e => {
+                        e.stopPropagation()
+                        e.preventDefault()
+                        Taro.setClipboardData({
+                          data: name
+                        })
+                      }}
+                    >
+                      <View>复制名称</View>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -433,7 +445,33 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
                 )}
                 <View className="info">
                   <View className="name-row">{branch.name || '- -'}</View>
-                  <View className="tag">{branch.regStatus || '- -'}</View>
+                  <View
+                    style={{
+                      width: '100%',
+                      height: 'max-content',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start'
+                    }}
+                  >
+                    <View className="tag" style={{ marginRight: 4 }}>
+                      {branch.regStatus || '- -'}
+                    </View>
+                    <View
+                      className="tag"
+                      style={{
+                        backgroundColor: 'rgb(240, 247, 255)',
+                        color: '#49a7ff'
+                      }}
+                      onClick={() => {
+                        Taro.setClipboardData({
+                          data: branch.name
+                        })
+                      }}
+                    >
+                      复制名称
+                    </View>
+                  </View>
                 </View>
               </View>
               <View className="card-content">
