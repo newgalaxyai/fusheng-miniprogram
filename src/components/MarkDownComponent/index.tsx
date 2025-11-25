@@ -42,12 +42,12 @@ const toSafeHtml = (text: string): string => {
     // 为常见标签注入内联样式，控制字号与间距
     html = html
       // 标题 h1-h6
-      .replace(/<h1([^>]*)>/g, '<h1$1 style="font-size:2em;font-weight:700;margin:20px 0;">')
-      .replace(/<h2([^>]*)>/g, '<h2$1 style="font-size:1.8em;font-weight:700;margin:18px 0;">')
-      .replace(/<h3([^>]*)>/g, '<h3$1 style="font-size:1.6em;font-weight:600;margin:16px 0;">')
-      .replace(/<h4([^>]*)>/g, '<h4$1 style="font-size:1.4em;font-weight:600;margin:14px 0;">')
-      .replace(/<h5([^>]*)>/g, '<h5$1 style="font-size:1.2em;font-weight:600;margin:12px 0;">')
-      .replace(/<h6([^>]*)>/g, '<h6$1 style="font-size:1em;font-weight:600;margin:10px 0;">')
+      .replace(/<h1([^>]*)>/g, '<h1$1 style="font-size:1.5em;font-weight:700;margin:20px 0;">')
+      .replace(/<h2([^>]*)>/g, '<h2$1 style="font-size:1.25em;font-weight:700;margin:18px 0;">')
+      .replace(/<h3([^>]*)>/g, '<h3$1 style="font-size:1.125em;font-weight:600;margin:16px 0;">')
+      .replace(/<h4([^>]*)>/g, '<h4$1 style="font-size:1em;font-weight:600;margin:14px 0;">')
+      .replace(/<h5([^>]*)>/g, '<h5$1 style="font-size:0.875em;font-weight:600;margin:12px 0;">')
+      .replace(/<h6([^>]*)>/g, '<h6$1 style="font-size:0.75em;font-weight:600;margin:10px 0;">')
       // 段落
       .replace(/<p([^>]*)>/g, '<p$1 style="font-size:1em;line-height:1.7;margin:12px 0;">')
       // 列表容器
