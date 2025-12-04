@@ -1,4 +1,7 @@
 export const IMG = {
+  // 登录页logo
+  LOGIN_LOGO_BLUE: 'https://galaxy-ai.oss-cn-hangzhou.aliyuncs.com/20251203/fusheng-logo-blue_1764758144547.png',
+  LOGIN_LOGO_WHITE: 'https://galaxy-ai.oss-cn-hangzhou.aliyuncs.com/20251203/fusheng-logo-white_1764758151602.png',
   // 工商信息
   BUSINESS_INFO: 'https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail1.png',
   // 股东信息
@@ -22,15 +25,19 @@ export const IMG = {
   // 直接控制企业
   DIRECT_CONTROL: 'https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail11.png',
   // 工商自主公示
-  BUSINESS_PUBLICITY: 'https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail12.png',
+  BUSINESS_PUBLICITY:
+    'https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail12.png',
   // 协同股东
-  COOPERATIVE_SHAREHOLDER: 'https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail13.png',
+  COOPERATIVE_SHAREHOLDER:
+    'https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail13.png',
   // 间接持股企业
   INDIRECT_HOLDING: 'https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail14.png',
   // 疑似关系
-  SUSPECTED_RELATION: 'https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail15.png',
+  SUSPECTED_RELATION:
+    'https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail15.png',
   // 企业产品
-  ENTERPRISE_PRODUCT: 'https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail16.png',
+  ENTERPRISE_PRODUCT:
+    'https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail16.png',
   // 同业分析
   PEER_ANALYSIS: 'https://find-console.newgalaxyai.com/glks/assets/corpDetail/corpDetail17.png'
 }

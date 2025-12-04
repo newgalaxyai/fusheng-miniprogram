@@ -11,6 +11,7 @@ import { IResponse } from '@/api/types'
 import { IUserInfo } from '@/redux/types/login'
 import { useAppDispatch } from '@/hooks/useAppStore'
 import { setLoginStatus, userInfoAction } from '@/redux/modules/login'
+import { IMG } from '@/constants'
 
 function Index() {
   const dispatch = useAppDispatch()
@@ -166,7 +167,7 @@ function Index() {
   return (
     <View className="login_page">
       <View className="login_back"></View>
-      <Image src="https://find-console.newgalaxyai.com/glks/assets/login/login2.png" className="login_logo" />
+      <Image src={IMG.LOGIN_LOGO_BLUE} className="login_logo" />
       <Image src="https://find-console.newgalaxyai.com/glks/assets/login/login1.png" className="login_text" />
       {agreed ? (
         <NutButton className="login_btn" openType="getPhoneNumber|agreePrivacyAuthorization" onGetPhoneNumber={e => handleOneClickLogin(e)}>
