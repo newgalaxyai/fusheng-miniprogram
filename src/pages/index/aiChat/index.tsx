@@ -12,13 +12,20 @@ import AiMessageComponent from '@/components/AiMessageComponent'
 
 const TechLoadingAnimation = () => {
   return (
-    <View className="tech-loading-container">
-      <View className="tech-loading-dots">
-        <View className="tech-dot"></View>
-        <View className="tech-dot"></View>
-        <View className="tech-dot"></View>
+    <View className="techloading">
+      <View className="techLogo">
+        <Image className="techLogoImg" src="/images/techLogo.png" mode="aspectFill" />
       </View>
-      <View className="tech-loading-text">正在加载...</View>
+      <View className="techLogoText">
+        <Text className="techLogoTextOne">深度检测报告生成中...</Text>
+        <Text className="techLogoTextTwo">
+          我们正在为您检索相关信息，预计需要 <Text style={{ color: '#FF9633' }}>5分钟！</Text>
+        </Text>
+      </View>
+      <View className="techLogoTips">
+        <Image className="techLogoTipsImg" src="/images/techLogoTips.png" mode="aspectFill" />
+        <Text className="techLogoTipsText">您可以安全退出小程序，检索完成后，系统会通过微信“服务通知”发送文件查看链接。</Text>
+      </View>
     </View>
   )
 }
