@@ -302,6 +302,20 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
           ))
         : null}
       {msg.conclusion ? <View style={{ marginTop: '16rpx' }} className="chatMsg_ai_text" dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.conclusion) }}></View> : null}
+      {msg.companyList.length > 0 && (
+        <View className="chatMsg_ai_company_download">
+          <View className="chatMsg_ai_company_download_left">
+            <Image className="chatMsg_ai_company_download_left_img" src="https://galaxy-ai.oss-cn-hangzhou.aliyuncs.com/glks/tblogo.png" />
+            <View className="chatMsg_ai_company_download_left_info">
+              <Text className="chatMsg_ai_company_download_left_text">检索线索名单.xlsx</Text>
+              <Text className="chatMsg_ai_company_download_left_text1">24.8 kb · 包含50条深度线索</Text>
+            </View>
+          </View>
+          <View className="chatMsg_ai_company_download_right">
+            <Image className="chatMsg_ai_company_download_right_img" src="https://galaxy-ai.oss-cn-hangzhou.aliyuncs.com/glks/xzlogo.png" />
+          </View>
+        </View>
+      )}
       {/* 加载动画单独显示在文字和公司列表下方 */}
       {(!msg.apiStatus.textComplete || !msg.apiStatus.companyComplete) && <ChatTechLoadingAnimation />}
     </View>

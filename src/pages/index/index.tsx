@@ -3,10 +3,9 @@ import { Cell, Dialog, Empty, Popup, Swipe, Tabs } from '@nutui/nutui-react-taro
 import { View, Image, ScrollView } from '@tarojs/components'
 import Taro, { nextTick, useLoad } from '@tarojs/taro'
 import './index.scss'
-import { useExampleActions } from '@/hooks/useExampleActions'
 import AiChat from './aiChat'
 import CluePage from '../../subpackages/cluePage/index'
-import { Del, Setting, Star, TriangleDown, TriangleUp } from '@nutui/icons-react-taro'
+import { Del, Setting, Star, TriangleDown } from '@nutui/icons-react-taro'
 import { aiSessionDeleteAPI, aiSessionGetHistorySessionAPI, aiSessionListAPI, userFavoriteListAPI } from '@/api/chatMsg'
 import { useAppSelector } from '@/hooks/useAppStore'
 import AiMessageComponent from '@/components/AiMessageComponent'
@@ -291,7 +290,13 @@ function Index() {
                                   onOpen={() => handleSwipeOpen(swipeKey)}
                                   onClose={handleSwipeClose}
                                 >
-                                  <View className="list-item-title">{chatItem.title}</View>
+                                  <View className="list-item-content">
+                                    <View className="list-item-title">{chatItem.title}</View>
+                                    <View className="list-item-status">
+                                      <Image src="https://galaxy-ai.oss-cn-hangzhou.aliyuncs.com/glks/sllogo.png" className="status-icon" />
+                                      <View className="status-text">深度检索中</View>
+                                    </View>
+                                  </View>
                                 </Swipe>
                               </Cell>
                             )

@@ -14,7 +14,7 @@ const TechLoadingAnimation = () => {
   return (
     <View className="techloading">
       <View className="techLogo">
-        <Image className="techLogoImg" src="/images/techLogo.png" mode="aspectFill" />
+        <Image className="techLogoImg" src="https://galaxy-ai.oss-cn-hangzhou.aliyuncs.com/glks/wdlogo.png" mode="aspectFill" />
       </View>
       <View className="techLogoText">
         <Text className="techLogoTextOne">深度检测报告生成中...</Text>
@@ -23,7 +23,7 @@ const TechLoadingAnimation = () => {
         </Text>
       </View>
       <View className="techLogoTips">
-        <Image className="techLogoTipsImg" src="/images/techLogoTips.png" mode="aspectFill" />
+        <Image className="techLogoTipsImg" src="https://galaxy-ai.oss-cn-hangzhou.aliyuncs.com/glks/ldlogo.png" mode="aspectFill" />
         <Text className="techLogoTipsText">您可以安全退出小程序，检索完成后，系统会通过微信“服务通知”发送文件查看链接。</Text>
       </View>
     </View>
