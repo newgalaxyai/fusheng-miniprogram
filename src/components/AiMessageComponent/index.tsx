@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { View, Image, Text, RichText } from '@tarojs/components'
-import { ArrowRight, ArrowRightSmall } from '@nutui/icons-react-taro'
+import { ArrowRight, ArrowRightSmall, Order, Fabulous, Star } from '@nutui/icons-react-taro'
 import { marked } from 'marked'
 import Taro from '@tarojs/taro'
 
@@ -140,15 +140,20 @@ const ChatTechLoadingAnimation = () => {
 
 interface AiMessageComponentProps {
   msg: {
-    splitNum: number
-    total: number
+    splitNum?: number
+    total?: number
     content: string
-    conclusion: string
-    companyList: any[]
-    apiStatus: { textComplete: boolean; companyComplete: boolean }
-    messageId: string
+    conclusion?: string
+    companyList?: any[]
+    apiStatus?: { textComplete: boolean; companyComplete: boolean }
+    messageId?: string
     role: string
+    isCollect?: boolean
+    isLike?: number
   }
+  onButtonClick?: (messageId: string, index: number) => void
+  isCollect?: boolean
+  isLike?: number
 }
 
 const toBranch = (val: any, e?: any) => {
@@ -201,11 +206,15 @@ const navigateToCompanyList = (msg: any) => {
   })
 }
 
-const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
+const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg, onButtonClick, isCollect, isLike }) => {
+  // Use props if provided, otherwise fallback to msg properties (for backward compatibility if needed)
+  const currentIsCollect = isCollect !== undefined ? isCollect : msg.isCollect
+  const currentIsLike = isLike !== undefined ? isLike : msg.isLike
+
   useEffect(() => {
     const handleEnterpriseDetailUnload = (res: any) => {
       if (res.messageId === msg.messageId) {
-        msg.companyList.forEach((item: any) => {
+        msg.companyList?.forEach((item: any) => {
           if (item.creditCode === res.creditCode) {
             item.hasFeedback = res.hasFeedback
             item.isJoinClue = res.isJoinClue
@@ -237,7 +246,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
   return (
     <View>
       {msg.content ? <RichText className="chatMsg_ai_text" nodes={parseMarkdown(msg.content)} /> : null}
-      {msg.role === 'ai' && msg.apiStatus.textComplete && msg.companyList && msg.companyList.length > 0
+      {msg.role === 'ai' && msg.apiStatus?.textComplete && msg.companyList && msg.companyList.length > 0
         ? msg.companyList.slice(0, msg.splitNum == 0 || msg.splitNum == null ? 10 : msg.splitNum).map((val, valIdx) => (
             <View key={valIdx}>
               <View className="chat_ai_company" onClick={() => navigateToCompanyDetail({ ...val, messageId: msg.messageId })}>
@@ -264,22 +273,6 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
                     <Text className="company_right_top_text">{val.name}</Text>
                     <ArrowRightSmall color="#2B2B2B" size="24rpx" />
                   </View>
-                  {/* <View className="company_right_tags">
-                    {val.regStatus != 'null' && <Text className="company_right_tag">{val.regStatus || '- -'}</Text>}
-                    <Text className="company_right_tag">{val?.contactInfo?.phones?.length || 0}联系方式</Text>
-                    <Text className="company_right_tag">{val?.staffNum}人</Text>
-                  </View>
-                  <View className="company_right_info">
-                    <Text className="legal-person">法人:{val.legalPerson}</Text>
-                    <Text className="address">{val.handleLocation}</Text>
-                    <View className="website">
-                      <Image src="https://find-console.newgalaxyai.com/glks/assets/enterprise/enterprise3.png" className="website_img" />
-                      官网
-                    </View>
-                  </View>
-                  <View className="company_right_date">
-                    <Text className="company_right_date_text">{val.establishTime}</Text>
-                  </View> */}
                   <View className="company_right_tabs">
                     <View className="company_right_tab" onClick={e => toBranch(val, e)}>
                       <View style={{ marginRight: 4 }}>总部及分支机构</View>
@@ -292,7 +285,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
                   </View>
                 </View>
               </View>
-              {valIdx === msg.splitNum - 1 && (
+              {valIdx === (msg.splitNum || 10) - 1 && (
                 <View className="chatMsg_ai_fun_line" onClick={() => navigateToCompanyList(msg)}>
                   <View style={{ marginRight: '16rpx' }}>查看{msg.total}企业信息</View>
                   <ArrowRight color="#1B5BFF" size="30rpx" />
@@ -302,7 +295,7 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
           ))
         : null}
       {msg.conclusion ? <View style={{ marginTop: '16rpx' }} className="chatMsg_ai_text" dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.conclusion) }}></View> : null}
-      {msg.companyList.length > 0 && (
+      {msg.companyList && msg.companyList.length > 0 && (
         <View className="chatMsg_ai_company_download">
           <View className="chatMsg_ai_company_download_left">
             <Image className="chatMsg_ai_company_download_left_img" src="https://galaxy-ai.oss-cn-hangzhou.aliyuncs.com/glks/tblogo.png" />
@@ -317,7 +310,24 @@ const AiMessageComponent: React.FC<AiMessageComponentProps> = ({ msg }) => {
         </View>
       )}
       {/* 加载动画单独显示在文字和公司列表下方 */}
-      {(!msg.apiStatus.textComplete || !msg.apiStatus.companyComplete) && <ChatTechLoadingAnimation />}
+      {(!msg.apiStatus?.textComplete || !msg.apiStatus?.companyComplete) && <ChatTechLoadingAnimation />}
+
+      {/* 功能按钮区 - 仅在AI消息且文本生成完成后显示 */}
+      {msg.role === 'ai' && msg.apiStatus?.textComplete && (
+        <View className="chatMsg_ai_fun">
+          {/* Copy - Using Order as Copy icon */}
+          <Order className={`chatMsg_ai_fun_img`} onClick={() => onButtonClick && onButtonClick(msg.messageId || '', 0)} color="#333" width="16px" height="16px" />
+
+          {/* Like */}
+          <Fabulous className={`chatMsg_ai_fun_img ${currentIsLike === 1 ? 'button-active' : ''}`} onClick={() => onButtonClick && onButtonClick(msg.messageId || '', 1)} color={currentIsLike === 1 ? '#1B5BFF' : '#333'} width="16px" height="16px" />
+
+          {/* Dislike - Rotated Fabulous */}
+          <Fabulous className={`chatMsg_ai_fun_img ${currentIsLike === 2 ? 'button-active' : ''}`} style={{ transform: 'rotate(180deg)' }} onClick={() => onButtonClick && onButtonClick(msg.messageId || '', 2)} color={currentIsLike === 2 ? '#FF9633' : '#333'} width="16px" height="16px" />
+
+          {/* Collect */}
+          <Star className={`chatMsg_ai_fun_img ${currentIsCollect ? 'button-active' : ''}`} onClick={() => onButtonClick && onButtonClick(msg.messageId || '', 3)} color={currentIsCollect ? '#FF9633' : '#333'} width="16px" height="16px" />
+        </View>
+      )}
     </View>
   )
 }

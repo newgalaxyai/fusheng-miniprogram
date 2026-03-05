@@ -11,6 +11,9 @@ export interface IMessage {
   messageId?: string
   splitNum?: number
   total?: number
+  conclusion?: string
+  isCollect?: boolean
+  isLike?: number
 }
 
 // 历史会话接口
@@ -37,13 +40,18 @@ export interface IConversationState {
   currentConversationId: string | null
   favorites: IFavoriteItem[]
   loading: boolean
+  // New state for current chat
+  currentMessages: IMessage[]
+  isStreaming: boolean
 }
 
 const initialState: IConversationState = {
   conversations: [],
   currentConversationId: null,
   favorites: [],
-  loading: false
+  loading: false,
+  currentMessages: [],
+  isStreaming: false
 }
 
 const conversationSlice = createSlice({
@@ -72,10 +80,97 @@ const conversationSlice = createSlice({
     setFavorites: (state, { payload }) => {
       state.favorites = payload
       return state
+    },
+
+    // New Reducers for Chat
+    setMessages: (state, { payload }) => {
+      state.currentMessages = payload
+    },
+
+    setIsStreaming: (state, { payload }) => {
+      state.isStreaming = payload
+    },
+
+    addMessage: (state, { payload }) => {
+      state.currentMessages.push(payload)
+    },
+
+    appendMessageContent: (state, { payload }) => {
+      const { messageId, content } = payload
+      const msg = state.currentMessages.find(m => m.messageId === messageId && m.role === 'ai')
+      if (msg) {
+        msg.content += content
+      }
+    },
+
+    updateMessageStatus: (state, { payload }) => {
+      const { messageId, status } = payload
+      const msg = state.currentMessages.find(m => m.messageId === messageId && m.role === 'ai')
+      if (msg) {
+        msg.apiStatus = { ...msg.apiStatus, ...status }
+      }
+    },
+
+    updateMessageCompanyList: (state, { payload }) => {
+      const { messageId, companyList } = payload
+      const msg = state.currentMessages.find(m => m.messageId === messageId && m.role === 'ai')
+      if (msg) {
+        msg.companyList = companyList
+      }
+    },
+
+    updateMessageTotal: (state, { payload }) => {
+      const { messageId, total } = payload
+      const msg = state.currentMessages.find(m => m.messageId === messageId && m.role === 'ai')
+      if (msg) {
+        msg.total = total
+      }
+    },
+
+    updateMessageSplitNum: (state, { payload }) => {
+      const { messageId, splitNum } = payload
+      const msg = state.currentMessages.find(m => m.messageId === messageId && m.role === 'ai')
+      if (msg) {
+        msg.splitNum = splitNum
+      }
+    },
+
+    updateMessageConclusion: (state, { payload }) => {
+      const { messageId, conclusion } = payload
+      const msg = state.currentMessages.find(m => m.messageId === messageId && m.role === 'ai')
+      if (msg) {
+        msg.conclusion = conclusion
+      }
+    },
+
+    updateMessageLikeStatus: (state, { payload }) => {
+      const { messageId, isLike } = payload
+      const msg = state.currentMessages.find(m => m.messageId === messageId && m.role === 'ai')
+      if (msg) {
+        msg.isLike = isLike
+      }
+    },
+
+    updateMessageCollectStatus: (state, { payload }) => {
+      const { messageId, isCollect } = payload
+      const msg = state.currentMessages.find(m => m.messageId === messageId && m.role === 'ai')
+      if (msg) {
+        msg.isCollect = isCollect
+      }
+    },
+
+    // Update message ID (e.g. after saving to DB)
+    updateMessageId: (state, { payload }) => {
+      const { oldId, newId } = payload
+      const msg = state.currentMessages.find(m => m.messageId === oldId)
+      if (msg) {
+        msg.messageId = newId
+        msg.id = newId // Also update id if it matches
+      }
     }
   }
 })
 
-export const { setLoading, setConversations, setCurrentConversationId, setFavorites } = conversationSlice.actions
+export const { setLoading, setConversations, setCurrentConversationId, setFavorites, setMessages, setIsStreaming, addMessage, appendMessageContent, updateMessageStatus, updateMessageCompanyList, updateMessageTotal, updateMessageSplitNum, updateMessageConclusion, updateMessageLikeStatus, updateMessageCollectStatus, updateMessageId } = conversationSlice.actions
 
 export default conversationSlice.reducer
