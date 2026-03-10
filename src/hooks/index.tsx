@@ -1,14 +1,17 @@
 import React, { useEffect, useRef, useState, forwardRef, useCallback, useImperativeHandle } from 'react'
 import { View, Image, Input, Text, ScrollView, Textarea } from '@tarojs/components'
 import Taro, { useDidShow, useDidHide } from '@tarojs/taro'
-import './index.scss'
+import '../pages/index/aiChat/index.scss'
 import { textStageAPI, companyStageAPI, guessYouWantAPI, aiSessionCreateAPI, aiMessageCreateAPI, aiSessionUpdateAPI, aiMessageEvaluationCreateAPI, userFavoriteCreateAPI, preprocessingAPI } from '@/api/chatMsg'
 import { useAppSelector } from '@/hooks/useAppStore'
+import store from '@/redux/index'
 import { Dialog, TextArea, BackTop } from '@nutui/nutui-react-taro'
 import { ArrowDownSize6, ArrowUpSize6 } from '@nutui/icons-react-taro'
 import { useAppDispatch } from '@/hooks/useAppStore'
 import { getSessionListAsync, getFavoriteListAsync } from '@/redux/asyncs/conversation'
 import AiMessageComponent from '@/components/AiMessageComponent'
+import chatService from '@/service/chat'
+import { setSessionMessages, setCurrentConversationId, IMessage } from '@/redux/modules/conversation'
 
 const TechLoadingAnimation = () => {
   return (
@@ -31,23 +34,35 @@ const TechLoadingAnimation = () => {
 }
 
 const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>(({ height }, ref) => {
-  type Message = {
-    splitNum: any
-    total: any
-    role: string
-    content: string
-    conclusion: string
-    companyList: any[]
-    apiStatus: { textComplete: boolean; companyComplete: boolean }
-    messageId: string
-    isCollect: boolean
-    isLike: number
-  }
   const dispatch = useAppDispatch()
+  const [aiSessionId, setAiSessionId] = useState('')
+  const aiSessionIdRef = useRef('')
+  const sessionMessages = useAppSelector(state => state.conversation.sessionMessages)
+  const generatingConversationIds = useAppSelector(state => state.conversation.generatingConversationIds)
 
-  const [messages, setMessages] = useState<Message[]>([])
+  // Use messages from Redux
+  const messages = (aiSessionId ? sessionMessages[aiSessionId] : []) || []
+
+  // Derive isStreaming from Redux state
+  const isStreaming = generatingConversationIds.includes(aiSessionId)
+
+  // Wrapper for setMessages to update Redux
+  const setMessages = useCallback(
+    (newMsgs: any) => {
+      if (!aiSessionId) return
+      let finalMsgs
+      if (typeof newMsgs === 'function') {
+        finalMsgs = newMsgs(sessionMessages[aiSessionId] || [])
+      } else {
+        finalMsgs = newMsgs
+      }
+      dispatch(setSessionMessages({ sessionId: aiSessionId, messages: finalMsgs }))
+    },
+    [aiSessionId, sessionMessages, dispatch]
+  )
+
   const [input, setInput] = useState('')
-  const [isStreaming, setIsStreaming] = useState(false)
+  // const [isStreaming, setIsStreaming] = useState(false) // Removed local state
   const contentRef = useRef<any>(null)
   const scrollViewRef = useRef<any>(null)
   const [recommendAnim, setRecommendAnim] = useState('')
@@ -67,8 +82,6 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
   const [recommendBatches, setRecommendBatches] = useState<any[]>([])
   const [recommendQueue, setRecommendQueue] = useState<any[][]>([]) // 存储三次API调用的结果
   const [currentBatchIndex, setCurrentBatchIndex] = useState(0) // 当前显示的批次索引
-  const [aiSessionId, setAiSessionId] = useState('')
-  const aiSessionIdRef = useRef('')
   const [questionTime, setQuestionTime] = useState('')
   const [yiJianVisible, setYiJianVisible] = useState(false)
   const [yiJianInput, setYiJianInput] = useState('')
@@ -79,7 +92,8 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
   const [buttonStates, setButtonStates] = useState<{ [key: string]: { [buttonIndex: number]: boolean } }>({})
 
   // 生成唯一ID的函数
-  const generateUniqueId = () => {2
+  const generateUniqueId = () => {
+    2
     return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   }
 
@@ -122,18 +136,34 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
     const handleGetChatItem = res => {
       setAiSessionId(res.id)
       setConversationId(res.conversationId)
+
+      const isGenerating = store.getState().conversation.generatingConversationIds.includes(res.id)
+      if (isGenerating) {
+        // 只有当Redux中确实有该会话的消息时才跳过加载
+        const hasReduxMessages = store.getState().conversation.sessionMessages[res.id]?.length > 0
+        if (hasReduxMessages) {
+          Taro.hideLoading()
+          setTimeout(() => {
+            getChatMsgHeight()
+          }, 100)
+          return
+        }
+      }
+
       setMessages([])
       setTimeout(() => {
-        const newMessages: Message[] = []
+        const newMessages: IMessage[] = []
         res.aiMessageDOS.forEach((item: any) => {
           if (item.userMessage) {
             newMessages.push({
+              id: item.id || generateUniqueId(),
               role: 'user',
               splitNum: 0,
               total: 0,
               content: item.userMessage,
               conclusion: '',
               companyList: [],
+              timestamp: Date.now(), // Added timestamp as it is required in IMessage
               apiStatus: { textComplete: true, companyComplete: true },
               messageId: item.id || generateUniqueId(),
               isCollect: item.isCollect,
@@ -141,46 +171,59 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
             })
           }
           if (item.aiResponse) {
+            let parsedEnterpriseInfo: any = { companyList: [], splitNum: 0, total: 0 }
+            try {
+              if (item.enterpriseInfo) {
+                parsedEnterpriseInfo = JSON.parse(item.enterpriseInfo)
+              }
+            } catch (e) {
+              console.error('Failed to parse enterpriseInfo', e)
+            }
+
+            const companyList = (parsedEnterpriseInfo.companyList || []).map((item: any) => {
+              // 确保 contactInfo 存在且有正确的结构
+              if (!item.contactInfo) {
+                item.contactInfo = { phones: [] }
+              }
+              if (!Array.isArray(item.contactInfo.phones)) {
+                item.contactInfo.phones = []
+              }
+
+              // 确保 tags 是数组
+              if (!Array.isArray(item.tags)) {
+                item.tags = []
+              }
+
+              let locationStr = item.province || item.address || item.location || '未知省份'
+              if (locationStr.includes('省')) {
+                item.handleLocation = locationStr.split('省')[0] + '省'
+              } else if (locationStr.includes('自治区')) {
+                item.handleLocation = locationStr.split('自治区')[0] + '自治区'
+              } else if (locationStr.includes('市')) {
+                const directMunicipalities = ['北京', '上海', '天津', '重庆']
+                const found = directMunicipalities.find(city => locationStr.includes(city))
+                item.handleLocation = found ? found + '市' : locationStr.split('市')[0] + '市'
+              } else {
+                item.handleLocation = '未知省份'
+              }
+
+              if (item.legalPerson) {
+                item.legalPerson = item.legalPerson.replace(/\s*\([^)]*\)\s*/g, '').trim() || '- -'
+              } else {
+                item.legalPerson = '- -'
+              }
+              return item
+            })
+
             newMessages.push({
+              id: item.id || generateUniqueId(),
               role: 'ai',
               content: item.aiResponse,
-              conclusion: item.aiConclusion,
-              companyList: JSON.parse(item.enterpriseInfo).companyList.map((item: any) => {
-                // 确保 contactInfo 存在且有正确的结构
-                if (!item.contactInfo) {
-                  item.contactInfo = { phones: [] }
-                }
-                if (!Array.isArray(item.contactInfo.phones)) {
-                  item.contactInfo.phones = []
-                }
-
-                // 确保 tags 是数组
-                if (!Array.isArray(item.tags)) {
-                  item.tags = []
-                }
-
-                let locationStr = item.province || item.address || item.location || '未知省份'
-                if (locationStr.includes('省')) {
-                  item.handleLocation = locationStr.split('省')[0] + '省'
-                } else if (locationStr.includes('自治区')) {
-                  item.handleLocation = locationStr.split('自治区')[0] + '自治区'
-                } else if (locationStr.includes('市')) {
-                  const directMunicipalities = ['北京', '上海', '天津', '重庆']
-                  const found = directMunicipalities.find(city => locationStr.includes(city))
-                  item.handleLocation = found ? found + '市' : locationStr.split('市')[0] + '市'
-                } else {
-                  item.handleLocation = '未知省份'
-                }
-
-                if (item.legalPerson) {
-                  item.legalPerson = item.legalPerson.replace(/\s*\([^)]*\)\s*/g, '').trim() || '- -'
-                } else {
-                  item.legalPerson = '- -'
-                }
-                return item
-              }),
-              splitNum: JSON.parse(item.enterpriseInfo).splitNum,
-              total: JSON.parse(item.enterpriseInfo).total,
+              conclusion: item.aiConclusion || '',
+              companyList: companyList,
+              splitNum: parsedEnterpriseInfo.splitNum || 0,
+              total: parsedEnterpriseInfo.total || 0,
+              timestamp: Date.now(), // Added timestamp
               apiStatus: { textComplete: true, companyComplete: true },
               messageId: item.id || generateUniqueId(),
               isCollect: item.isCollect,
@@ -188,7 +231,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
             })
           }
         })
-        setMessages(newMessages)
+        store.dispatch(setSessionMessages({ sessionId: res.id, messages: newMessages }))
         setTimeout(() => {
           getChatMsgHeight()
         }, 100)
@@ -428,122 +471,44 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
       userInput: msg.filter(item => item.role === 'user')[0].content
     }
 
-    aiMessageEvaluationCreateAPI({ userId: userInfo?.id, messageId: copyMessageId, entryPoint: 'ai_chat', isLiked: 2, questionContent: currentAnswerContent.userInput, answerContent: JSON.stringify(currentAnswerContent), commentContent: yiJianInput }, res => {
-      if (res.success) {
-        Taro.showToast({ title: '反馈成功', icon: 'none' })
-        setYiJianInput('')
-        setMessages(prevMessages =>
-          prevMessages.map(message => {
-            if (message.messageId === copyMessageId && message.role === 'ai') {
-              const newDislikeStatus = message.isLike === 2 ? 0 : 2
-              return { ...message, isLike: newDislikeStatus }
-            }
-            return message
+    aiMessageEvaluationCreateAPI(
+      {
+        userId: userInfo?.id,
+        messageId: copyMessageId,
+        entryPoint: 'ai_chat',
+        isLiked: 2,
+        questionContent: currentAnswerContent.userInput,
+        answerContent: JSON.stringify(currentAnswerContent),
+        feedback: yiJianInput
+      },
+      res => {
+        if (res.success) {
+          Taro.showToast({
+            title: '评价成功',
+            icon: 'none'
           })
-        )
+          setMessages(prevMessages =>
+            prevMessages.map(message => {
+              if (message.messageId === copyMessageId && message.role === 'ai') {
+                return { ...message, isLike: 2 }
+              }
+              return message
+            })
+          )
+        } else {
+          Taro.showToast({
+            title: '评价失败',
+            icon: 'none'
+          })
+        }
       }
-    })
+    )
     setYiJianVisible(false)
   }
 
-  function listenerInterface(type: string, messageId: string, userMessageId: string | number, isItCompleted: boolean, messagesInfo: Message[]) {
-    let userMsg = messagesInfo.filter(item => item.messageId === userMessageId && item.role === 'user')
-    let aiMsg = messagesInfo.filter(item => item.messageId === messageId && item.role === 'ai')
-
-    // 检查是否两个API都完成且未保存
-    if (aiMsg[0]?.apiStatus?.textComplete && aiMsg[0]?.apiStatus?.companyComplete && !saveQueue.has(messageId)) {
-      // 添加到保存队列，防止重复保存
-      setSaveQueue(prev => new Set([...prev, messageId]))
-      getChatMsgHeight()
-      // 保存到数据库
-      saveMessageToDatabase(userMsg[0], aiMsg[0], messageId)
-    }
-  }
-
-  const saveMessageToDatabase = async (userMessage: Message, aiMessage: Message, messageId: string) => {
-    try {
-      const answerTime = formatTime(new Date())
-      const questionTimestamp = new Date(questionTime).getTime()
-      const answerTimestamp = new Date(answerTime).getTime()
-      const responseDurationMs = answerTimestamp - questionTimestamp
-      const responseDuration = Number((responseDurationMs / 1000).toFixed(1))
-      const result = await new Promise((resolve, reject) => {
-        aiMessageCreateAPI(
-          {
-            sessionId: aiSessionIdRef.current,
-            userMessage: userMessage?.content,
-            aiResponse: aiMessage.content,
-            aiConclusion: aiMessage.conclusion,
-            questionTime,
-            answerTime,
-            responseDuration,
-            enterpriseInfo: JSON.stringify({
-              companyList: aiMessage.companyList,
-              splitNum: aiMessage.splitNum,
-              total: aiMessage.total
-            })
-          },
-          res => {
-            if (res.success) {
-              resolve(res.data)
-            } else {
-              reject(res)
-            }
-          }
-        )
-      })
-
-      // 保存成功后更新消息ID
-      if (result) {
-        getChatMsgHeight()
-        setMessages(msgs => {
-          return msgs.map(msg => {
-            if (msg.messageId === messageId && msg.role === 'ai') {
-              return { ...msg, messageId: result as string }
-            }
-            if (msg.messageId === userMessage.messageId && msg.role === 'user') {
-              return { ...msg, messageId: result as string }
-            }
-            return msg
-          })
-        })
-      }
-    } catch (error) {
-      console.error('保存消息失败:', error)
-    } finally {
-      // 从保存队列中移除
-      setSaveQueue(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(messageId)
-        return newSet
-      })
-    }
-  }
-
-  // 页面显示时重置键盘高度
-  useDidShow(() => {
-    setKeyboardHeight(0)
-  })
-
-  // 页面隐藏时重置键盘高度
-  useDidHide(() => {
-    setKeyboardHeight(0)
-  })
-
   const getAiSession = () => {
-    aiSessionCreateAPI({ userId: userInfo?.id }, res => {
-      if (res.success && res.data) {
-        Taro.setStorageSync('aiSessionId', res.data)
-        setAiSessionId(res.data)
-        dispatch(getSessionListAsync())
-        Taro.eventCenter.trigger('addSession', true)
-        setMessages([])
-        setConversationId('')
-      }
-    })
-  }
-
-  const getAiSessionCopy = () => {
+    if (aiSessionId) return
+    // 即使在生成中也允许初始化新对话
     aiSessionCreateAPI({ userId: userInfo?.id }, res => {
       if (res.success && res.data) {
         Taro.setStorageSync('aiSessionId', res.data)
@@ -552,7 +517,25 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
         Taro.eventCenter.trigger('addSession', true)
         setScrollTop(0)
         setMessages([])
-        setIsStreaming(false)
+        // setIsStreaming(false) // Removed
+        Taro.showToast({ title: '会话创建成功', icon: 'none' })
+        setConversationId('')
+      }
+    })
+  }
+
+  const getAiSessionCopy = () => {
+    // 即使在生成中也允许新建对话，但需要切换到新对话
+    // 移除 isStreaming 检查
+    aiSessionCreateAPI({ userId: userInfo?.id }, res => {
+      if (res.success && res.data) {
+        Taro.setStorageSync('aiSessionId', res.data)
+        setAiSessionId(res.data)
+        dispatch(getSessionListAsync())
+        Taro.eventCenter.trigger('addSession', true)
+        setScrollTop(0)
+        setMessages([])
+        // setIsStreaming(false) // Removed
         Taro.showToast({ title: '会话创建成功', icon: 'none' })
         setConversationId('')
       }
@@ -574,60 +557,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
     query.exec()
   }
 
-  // 流式输出AI回复
-  const streamAIReply = async (text: string, targetMessageId: string, userMessageId: string) => {
-    const STREAM_CONFIG = {
-      chunkSize: 10, // 每次输出的字符数量，控制打字机效果的速度
-      delay: 10, // 每次输出间隔时间（毫秒），数值越小输出越快
-      scrollCheckInterval: 2 // 滚动检查间隔次数，每输出多少次检查一次滚动位置
-    }
-
-    setIsStreaming(true)
-    let reply = ''
-    for (let i = 0; i < text.length; i += STREAM_CONFIG.chunkSize) {
-      const chunk = text.slice(i, i + STREAM_CONFIG.chunkSize)
-      reply += chunk
-
-      setMessages(msgs => {
-        return msgs.map(msg => {
-          if (msg.messageId === targetMessageId && msg.role === 'ai') {
-            return { ...msg, content: reply }
-          }
-          return msg
-        })
-      })
-
-      if (i % STREAM_CONFIG.scrollCheckInterval === 0) {
-        setTimeout(() => {
-          getChatMsgHeight()
-        }, 50)
-      }
-
-      await new Promise(res => setTimeout(res, STREAM_CONFIG.delay))
-    }
-
-    // 流式输出完成后，设置textComplete为true
-    setIsStreaming(false)
-    setMessages(msgs => {
-      const updatedMessages = msgs.map(msg => {
-        if (msg.messageId === targetMessageId && msg.role === 'ai') {
-          return {
-            ...msg,
-            apiStatus: {
-              ...msg.apiStatus,
-              textComplete: true
-            }
-          }
-        }
-        return msg
-      })
-
-      // 在状态更新完成后，使用更新后的数据调用监听器
-      listenerInterface('text', targetMessageId, userMessageId, true, updatedMessages)
-
-      return updatedMessages
-    })
-  }
+  // Removed streamAIReply
 
   // 格式化时间为 YYYY-M-D HH:mm:ss
   const formatTime = (date: Date) => {
@@ -642,439 +572,50 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
 
   // 发送消息
   const send = () => {
+    if (!input.trim()) return
+    // 检查当前会话是否在生成中
+    if (aiSessionId && generatingConversationIds.includes(aiSessionId)) return
+
     if (!Taro.getStorageSync('aiSessionId')) {
       aiSessionCreateAPI({ userId: userInfo?.id }, res => {
         if (res.success && res.data) {
-          Taro.setStorageSync('aiSessionId', res.data)
-          setAiSessionId(res.data)
+          const newSessionId = res.data
+          Taro.setStorageSync('aiSessionId', newSessionId)
+          setAiSessionId(newSessionId)
           dispatch(getSessionListAsync())
 
-          // 在这里使用新创建的 sessionId 继续执行后续逻辑
-          continueWithSessionId(res.data, input)
+          // 使用 ChatService 发送消息
+          chatService.sendMessage(input, newSessionId, String(userInfo?.id || ''), '')
+          setInput('')
         }
       })
     } else {
-      // 如果已有 sessionId，直接继续执行
-      continueWithSessionId(aiSessionId, input)
+      // 使用 ChatService 发送消息
+      chatService.sendMessage(input, aiSessionId, String(userInfo?.id || ''), conversationId)
+      setInput('')
     }
   }
 
-  // 提取公共逻辑到单独函数
+  // 提取公共逻辑到单独函数 (保留此函数名以防其他地方引用，但内部逻辑已迁移到 ChatService)
   const continueWithSessionId = (sessionId: string, text: string) => {
-    // 防止重复执行
-    if (isSessionProcessingRef.current) {
-      console.log('continueWithSessionId 正在处理中，跳过重复调用')
+    if (!text.trim()) return
+
+    // 检查该 sessionId 是否已经在生成中
+    const state = store.getState()
+    const generatingIds = state.conversation.generatingConversationIds
+    if (generatingIds.includes(sessionId)) {
+      Taro.showToast({ title: '该对话正在生成中', icon: 'none' })
       return
     }
 
-    if (!Taro.getStorageSync('companyInfo')) {
-      Taro.eventCenter.trigger('companyShow', true)
-    }
-    if (!text.trim() || isStreaming) return
-
-    // 设置处理标志
-    isSessionProcessingRef.current = true
-
-    setQuestionTime(formatTime(new Date())) // 用户发送消息的时间
-
-    // 为每条消息生成唯一ID
-    const userMessageId = generateUniqueId()
-    const aiMessageId = generateUniqueId()
-
-    setMessages(msgs => [
-      ...msgs,
-      {
-        splitNum: 0,
-        total: 0,
-        role: 'user',
-        content: text,
-        conclusion: '',
-        companyList: [],
-        apiStatus: { textComplete: false, companyComplete: false },
-        messageId: userMessageId,
-        isCollect: false,
-        isLike: 0
-      },
-      {
-        splitNum: 0,
-        total: 0,
-        role: 'ai',
-        content: '',
-        conclusion: '',
-        companyList: [],
-        apiStatus: { textComplete: false, companyComplete: false },
-        messageId: aiMessageId,
-        isCollect: false,
-        isLike: 0
-      }
-    ])
-
-    if (companyInfo?.customInput) {
-      companyInfo.expansionDomainKeywordsSelected = [...companyInfo.expansionDomainKeywordsSelected, companyInfo.customInput]
-    }
-
-    // 重置处理标志的函数
-    const resetProcessingFlag = () => {
-      setTimeout(() => {
-        isSessionProcessingRef.current = false
-      }, 2000) // 2秒后允许下次执行
-    }
-
-    const doAll = () => {
-      // 找出最后一个有值的companyList
-      let lastCompanyList: any[] = []
-      for (let i = messages.length - 1; i >= 0; i--) {
-        if (messages[i].companyList && messages[i].companyList.length > 0) {
-          lastCompanyList = messages[i].companyList
-          break
-        }
-      }
-
-      try {
-        preprocessingAPI(
-          {
-            targetCompanyName: companyInfo.companyName,
-            query: text,
-            questionKeyword: companyInfo.expansionDomainKeywordsSelected.join(','),
-            responseMode: 'blocking',
-            user: userInfo?.id,
-            conversationId: conversationId || '',
-            productSellingPointsRespDTO: {
-              coreSellingPoints: {
-                coreBusiness: companyInfo.coreSellingPoints.coreBusiness,
-                productDescription: companyInfo.coreSellingPoints.productDescription,
-                productFeatures: companyInfo.coreSellingPoints.productFeatures
-              },
-              expansionDomainKeywords: companyInfo.expansionDomainKeywordsSelected
-            },
-            extendContextInfo: JSON.stringify(lastCompanyList.length > 5 ? lastCompanyList.slice(0, 5) : lastCompanyList)
-          },
-          parameter => {
-            if (parameter.success && parameter.data) {
-              textStageAPI({ ...parameter.data, conversationId: conversationId || '' }, res => {
-                if (res.success && res.data) {
-                  if (res.data.isRecommend) {
-                    setMessages(msgs => {
-                      const updatedMessages = msgs.map(msg => {
-                        if (msg.messageId === aiMessageId && msg.role === 'ai') {
-                          return {
-                            ...msg,
-                            apiStatus: { ...msg.apiStatus, companyComplete: false }
-                          }
-                        }
-                        return msg
-                      })
-                      // 在状态更新完成后，使用更新后的数据调用监听器
-                      listenerInterface('text', aiMessageId, userMessageId, true, updatedMessages)
-                      return updatedMessages
-                    })
-                    companyStageAPI({ ...parameter.data, isRecommend: res.data.isRecommend }, res => {
-                      if (res.success && res.data) {
-                        setMessages(msgs => {
-                          const updatedMessages = msgs.map(msg => {
-                            // 只更新匹配的消息
-                            if (msg.messageId === aiMessageId && msg.role === 'ai') {
-                              // 处理企业信息
-                              const processedCompanyList = res.data.companyInfoResponseList.map((item: any) => {
-                                // 确保 contactInfo 存在且有正确的结构
-                                if (!item.contactInfo) {
-                                  item.contactInfo = { phones: [] }
-                                }
-                                if (!Array.isArray(item.contactInfo.phones)) {
-                                  item.contactInfo.phones = []
-                                }
-
-                                // 确保 tags 是数组
-                                if (!Array.isArray(item.tags)) {
-                                  item.tags = []
-                                }
-
-                                let locationStr = item.province || item.address || item.location || '未知省份'
-                                if (locationStr.includes('省')) {
-                                  item.handleLocation = locationStr.split('省')[0] + '省'
-                                } else if (locationStr.includes('自治区')) {
-                                  item.handleLocation = locationStr.split('自治区')[0] + '自治区'
-                                } else if (locationStr.includes('市')) {
-                                  const directMunicipalities = ['北京', '上海', '天津', '重庆']
-                                  const found = directMunicipalities.find(city => locationStr.includes(city))
-                                  item.handleLocation = found ? found + '市' : locationStr.split('市')[0] + '市'
-                                } else {
-                                  item.handleLocation = '未知省份'
-                                }
-
-                                if (item.legalPerson) {
-                                  item.legalPerson = item.legalPerson.replace(/\s*\([^)]*\)\s*/g, '').trim() || '- -'
-                                } else {
-                                  item.legalPerson = '- -'
-                                }
-                                return item
-                              })
-
-                              return {
-                                ...msg,
-                                companyList: processedCompanyList,
-                                total: res.data.total,
-                                splitNum: res.data.splitNum,
-                                apiStatus: {
-                                  ...msg.apiStatus,
-                                  companyComplete: true
-                                }
-                              }
-                            }
-                            return msg
-                          })
-
-                          // 在状态更新完成后，使用更新后的数据调用监听器
-                          listenerInterface('company', aiMessageId, userMessageId, true, updatedMessages)
-                          return updatedMessages
-                        })
-                      } else {
-                        // 错误处理
-                        setMessages(msgs => {
-                          const updatedMessages = msgs.map(msg => {
-                            if (msg.messageId === aiMessageId && msg.role === 'ai') {
-                              return {
-                                ...msg,
-                                apiStatus: {
-                                  ...msg.apiStatus,
-                                  companyComplete: true
-                                }
-                              }
-                            }
-                            return msg
-                          })
-
-                          // 在状态更新完成后，使用更新后的数据调用监听器
-                          listenerInterface('company', aiMessageId, userMessageId, true, updatedMessages)
-                          return updatedMessages
-                        })
-
-                        if (res.data !== null) {
-                          Taro.showToast({
-                            title: '公司信息获取失败',
-                            icon: 'none'
-                          })
-                        }
-                      }
-                      // 重置处理标志
-                      resetProcessingFlag()
-                    })
-                  }
-                  setConversationId(res.data.conversationId)
-                  aiSessionUpdateAPI({ userId: userInfo?.id, id: sessionId, title: text, conversationId: res.data.conversationId }, res => {
-                    if (res.success) {
-                      dispatch(getSessionListAsync())
-                    }
-                  })
-                  let responseText = ''
-                  if (res.data.introduction) {
-                    // 解码HTML实体，处理引号编码问题
-                    responseText = `${res.data.introduction || ''}<br>${res.data.analysisContent || ''}`
-                    streamAIReply(responseText, aiMessageId, userMessageId)
-                    setMessages(msgs => {
-                      return msgs.map(msg => {
-                        // 只更新匹配的消息
-                        if (msg.messageId === aiMessageId && msg.role === 'ai') {
-                          // 处理企业信息
-                          const processedCompanyList = res.data?.companyBody?.companyInfoResponseList.map((item: any) => {
-                            // 确保 contactInfo 存在且有正确的结构
-                            if (!item.contactInfo) {
-                              item.contactInfo = { phones: [] }
-                            }
-                            if (!Array.isArray(item.contactInfo.phones)) {
-                              item.contactInfo.phones = []
-                            }
-
-                            // 确保 tags 是数组
-                            if (!Array.isArray(item.tags)) {
-                              item.tags = []
-                            }
-
-                            let locationStr = item.province || item.address || item.location || '未知省份'
-                            if (locationStr.includes('省')) {
-                              item.handleLocation = locationStr.split('省')[0] + '省'
-                            } else if (locationStr.includes('自治区')) {
-                              item.handleLocation = locationStr.split('自治区')[0] + '自治区'
-                            } else if (locationStr.includes('市')) {
-                              const directMunicipalities = ['北京', '上海', '天津', '重庆']
-                              const found = directMunicipalities.find(city => locationStr.includes(city))
-                              item.handleLocation = found ? found + '市' : locationStr.split('市')[0] + '市'
-                            } else {
-                              item.handleLocation = '未知省份'
-                            }
-
-                            if (item.legalPerson) {
-                              item.legalPerson = item.legalPerson.replace(/\s*\([^)]*\)\s*/g, '').trim() || '- -'
-                            } else {
-                              item.legalPerson = '- -'
-                            }
-                            return item
-                          })
-
-                          return {
-                            ...msg,
-                            conclusion: res.data.conclusion || '',
-                            companyList: processedCompanyList || [],
-                            total: res.data.companyBody?.total || 0,
-                            splitNum: res.data.companyBody?.splitNum || 10
-                          }
-                        }
-                        return msg
-                      })
-                    })
-                  } else {
-                    // 解码HTML实体，处理引号编码问题
-                    responseText = res.data.normalAnswer || ''
-
-                    streamAIReply(responseText, aiMessageId, userMessageId)
-                  }
-                } else {
-                  setMessages(msgs => {
-                    const updatedMessages = msgs.map(msg => {
-                      if (msg.messageId === aiMessageId && msg.role === 'ai') {
-                        return {
-                          ...msg,
-                          content: '抱歉，我暂时无法回答您的问题，请稍后再试，谢谢！',
-                          apiStatus: { textComplete: true, companyComplete: true }
-                        }
-                      }
-                      return msg
-                    })
-                    // 在状态更新完成后，使用更新后的数据调用监听器
-                    listenerInterface('text', aiMessageId, userMessageId, true, updatedMessages)
-                    return updatedMessages
-                  })
-                }
-                // 重置处理标志
-                resetProcessingFlag()
-              })
-              // 直接调用companyStageAPI
-              companyStageAPI({ ...parameter.data, isRecommend: false }, res => {
-                if (res.success && res.data) {
-                  setMessages(msgs => {
-                    const updatedMessages = msgs.map(msg => {
-                      // 只更新匹配的消息
-                      if (msg.messageId === aiMessageId && msg.role === 'ai') {
-                        // 处理企业信息
-                        const processedCompanyList = res.data.companyInfoResponseList.map((item: any) => {
-                          // 确保 contactInfo 存在且有正确的结构
-                          if (!item.contactInfo) {
-                            item.contactInfo = { phones: [] }
-                          }
-                          if (!Array.isArray(item.contactInfo.phones)) {
-                            item.contactInfo.phones = []
-                          }
-
-                          // 确保 tags 是数组
-                          if (!Array.isArray(item.tags)) {
-                            item.tags = []
-                          }
-
-                          let locationStr = item.province || item.address || item.location || '未知省份'
-                          if (locationStr.includes('省')) {
-                            item.handleLocation = locationStr.split('省')[0] + '省'
-                          } else if (locationStr.includes('自治区')) {
-                            item.handleLocation = locationStr.split('自治区')[0] + '自治区'
-                          } else if (locationStr.includes('市')) {
-                            const directMunicipalities = ['北京', '上海', '天津', '重庆']
-                            const found = directMunicipalities.find(city => locationStr.includes(city))
-                            item.handleLocation = found ? found + '市' : locationStr.split('市')[0] + '市'
-                          } else {
-                            item.handleLocation = '未知省份'
-                          }
-
-                          if (item.legalPerson) {
-                            item.legalPerson = item.legalPerson.replace(/\s*\([^)]*\)\s*/g, '').trim() || '- -'
-                          } else {
-                            item.legalPerson = '- -'
-                          }
-                          return item
-                        })
-
-                        return {
-                          ...msg,
-                          companyList: processedCompanyList,
-                          total: res.data.total,
-                          splitNum: res.data.splitNum,
-                          apiStatus: {
-                            ...msg.apiStatus,
-                            companyComplete: true
-                          }
-                        }
-                      }
-                      return msg
-                    })
-
-                    // 在状态更新完成后，使用更新后的数据调用监听器
-                    listenerInterface('company', aiMessageId, userMessageId, true, updatedMessages)
-                    return updatedMessages
-                  })
-                } else {
-                  // 错误处理
-                  setMessages(msgs => {
-                    const updatedMessages = msgs.map(msg => {
-                      if (msg.messageId === aiMessageId && msg.role === 'ai') {
-                        return {
-                          ...msg,
-                          apiStatus: {
-                            ...msg.apiStatus,
-                            companyComplete: true
-                          }
-                        }
-                      }
-                      return msg
-                    })
-
-                    // 在状态更新完成后，使用更新后的数据调用监听器
-                    listenerInterface('company', aiMessageId, userMessageId, true, updatedMessages)
-                    return updatedMessages
-                  })
-
-                  if (res.data !== null) {
-                    Taro.showToast({
-                      title: '公司信息获取失败',
-                      icon: 'none'
-                    })
-                  }
-                }
-                // 重置处理标志
-                resetProcessingFlag()
-              })
-            } else {
-              setIsStreaming(false)
-              setMessages(msgs => {
-                const updatedMessages = msgs.map(msg => {
-                  if (msg.messageId === aiMessageId && msg.role === 'ai') {
-                    return {
-                      ...msg,
-                      content: '抱歉，我暂时无法回答您的问题，请稍后再试。',
-                      apiStatus: { textComplete: true, companyComplete: true }
-                    }
-                  }
-                  return msg
-                })
-                return updatedMessages
-              })
-              // 重置处理标志
-              resetProcessingFlag()
-            }
-          }
-        )
-      } catch (error) {
-        // 重置处理标志
-        resetProcessingFlag()
-      }
-    }
-    doAll()
+    chatService.sendMessage(text, sessionId, String(userInfo?.id || ''), conversationId)
     setInput('')
-
-    // 发送消息后滚动到底部
-    setTimeout(() => {
-      getChatMsgHeight()
-    }, 100)
   }
 
   const assignment = (val: any) => {
+    // 检查是否已经在生成中
+    if (aiSessionId && generatingConversationIds.includes(aiSessionId)) return
+
     setInput(val)
     // 自动发送推荐问题
     setTimeout(() => {

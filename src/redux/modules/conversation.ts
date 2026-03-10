@@ -6,11 +6,14 @@ export interface IMessage {
   role: 'user' | 'ai'
   content: string
   timestamp: number
-  companyList?: any[]
-  apiStatus?: { textComplete: boolean; companyComplete: boolean }
-  messageId?: string
-  splitNum?: number
-  total?: number
+  companyList: any[]
+  apiStatus: { textComplete: boolean; companyComplete: boolean }
+  messageId: string
+  splitNum: number
+  total: number
+  conclusion: string
+  isCollect?: boolean
+  isLike?: number
 }
 
 // 历史会话接口
@@ -37,13 +40,19 @@ export interface IConversationState {
   currentConversationId: string | null
   favorites: IFavoriteItem[]
   loading: boolean
+  // 会话消息集合：sessionId -> messages
+  sessionMessages: Record<string, IMessage[]>
+  // 正在生成的会话ID集合
+  generatingConversationIds: string[]
 }
 
 const initialState: IConversationState = {
   conversations: [],
   currentConversationId: null,
   favorites: [],
-  loading: false
+  loading: false,
+  sessionMessages: {},
+  generatingConversationIds: []
 }
 
 const conversationSlice = createSlice({
@@ -72,10 +81,61 @@ const conversationSlice = createSlice({
     setFavorites: (state, { payload }) => {
       state.favorites = payload
       return state
+    },
+
+    // 设置特定会话的消息列表
+    setSessionMessages: (state, { payload }: { payload: { sessionId: string; messages: IMessage[] } }) => {
+      state.sessionMessages[payload.sessionId] = payload.messages
+      return state
+    },
+
+    // 添加单条消息到特定会话
+    addSessionMessage: (state, { payload }: { payload: { sessionId: string; message: IMessage } }) => {
+      if (!state.sessionMessages[payload.sessionId]) {
+        state.sessionMessages[payload.sessionId] = []
+      }
+      state.sessionMessages[payload.sessionId].push(payload.message)
+      return state
+    },
+
+    // 更新特定会话的单条消息
+    updateSessionMessage: (state, { payload }: { payload: { sessionId: string; messageId: string } & Partial<IMessage> }) => {
+      const messages = state.sessionMessages[payload.sessionId]
+      if (messages) {
+        const index = messages.findIndex(m => m.messageId === payload.messageId)
+        if (index !== -1) {
+          messages[index] = { ...messages[index], ...payload }
+        }
+      }
+      return state
+    },
+
+    // 追加特定会话的消息内容
+    appendSessionMessageContent: (state, { payload }: { payload: { sessionId: string; messageId: string; content: string } }) => {
+      const messages = state.sessionMessages[payload.sessionId]
+      if (messages) {
+        const index = messages.findIndex(m => m.messageId === payload.messageId)
+        if (index !== -1) {
+          messages[index].content += payload.content
+        }
+      }
+      return state
+    },
+
+    // 设置会话生成状态
+    setConversationGenerating: (state, { payload }: { payload: { sessionId: string; isGenerating: boolean } }) => {
+      if (payload.isGenerating) {
+        if (!state.generatingConversationIds.includes(payload.sessionId)) {
+          state.generatingConversationIds.push(payload.sessionId)
+        }
+      } else {
+        state.generatingConversationIds = state.generatingConversationIds.filter(id => id !== payload.sessionId)
+      }
+      return state
     }
   }
 })
 
-export const { setLoading, setConversations, setCurrentConversationId, setFavorites } = conversationSlice.actions
+export const { setLoading, setConversations, setCurrentConversationId, setFavorites, setSessionMessages, addSessionMessage, updateSessionMessage, appendSessionMessageContent, setConversationGenerating } = conversationSlice.actions
 
 export default conversationSlice.reducer

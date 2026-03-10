@@ -3,7 +3,7 @@ import { Cell, Dialog, Empty, Popup, Swipe, Tabs } from '@nutui/nutui-react-taro
 import { View, Image, ScrollView } from '@tarojs/components'
 import Taro, { nextTick, useLoad } from '@tarojs/taro'
 import './index.scss'
-import AiChat from './aiChat'
+import AiChat from '../../hooks'
 import CluePage from '../../subpackages/cluePage/index'
 import { Del, Setting, Star, TriangleDown } from '@nutui/icons-react-taro'
 import { aiSessionDeleteAPI, aiSessionGetHistorySessionAPI, aiSessionListAPI, userFavoriteListAPI } from '@/api/chatMsg'
@@ -20,7 +20,8 @@ function Index() {
   // 获取conversation相关状态
   const {
     conversations, // 会话列表数据
-    favorites // 收藏列表数据
+    favorites, // 收藏列表数据
+    generatingConversationIds // 正在生成的会话ID列表
   } = useAppSelector(state => state.conversation)
 
   const [capsuleInfo, setCapsuleInfo] = useState({ height: 32, statusBarHeight: 0 })
@@ -209,6 +210,7 @@ function Index() {
   }
 
   const getChatItem = (chatItem: any) => {
+    // 即使在生成中也允许切换对话
     Taro.showLoading({ title: '加载中', mask: true })
     aiSessionGetHistorySessionAPI({ id: chatItem.id }, res => {
       if (res.success && res.data) {
@@ -277,8 +279,9 @@ function Index() {
                           item.list.length > 0 &&
                           item.list.map((chatItem: any, index: number) => {
                             const swipeKey = `${item.name}-${chatItem.id}`
+                            const isGenerating = generatingConversationIds.includes(chatItem.id)
                             return (
-                              <Cell key={index} className="list_item" onClick={() => getChatItem(chatItem)}>
+                              <Cell key={chatItem.id} className="list_item">
                                 <Swipe
                                   ref={ref => {
                                     if (ref) {
@@ -290,12 +293,14 @@ function Index() {
                                   onOpen={() => handleSwipeOpen(swipeKey)}
                                   onClose={handleSwipeClose}
                                 >
-                                  <View className="list-item-content">
+                                  <View className="list-item-content" onClick={() => getChatItem(chatItem)}>
                                     <View className="list-item-title">{chatItem.title}</View>
-                                    <View className="list-item-status">
-                                      <Image src="https://galaxy-ai.oss-cn-hangzhou.aliyuncs.com/glks/sllogo.png" className="status-icon" />
-                                      <View className="status-text">深度检索中</View>
-                                    </View>
+                                    {isGenerating && (
+                                      <View className="list-item-status">
+                                        <Image src="https://galaxy-ai.oss-cn-hangzhou.aliyuncs.com/glks/sllogo.png" className="status-icon" />
+                                        <View className="status-text">深度检索中...</View>
+                                      </View>
+                                    )}
                                   </View>
                                 </Swipe>
                               </Cell>
