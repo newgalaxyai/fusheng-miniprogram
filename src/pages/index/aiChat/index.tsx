@@ -79,7 +79,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
   const [buttonStates, setButtonStates] = useState<{ [key: string]: { [buttonIndex: number]: boolean } }>({})
 
   // 生成唯一ID的函数
-  const generateUniqueId = () => {
+  const generateUniqueId = () => {2
     return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   }
 
