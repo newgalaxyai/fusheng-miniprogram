@@ -131,7 +131,7 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
       setAiSessionId(Taro.getStorageSync('aiSessionId'))
     } else {
       getAiSession()
-    }
+    } 
 
     const handleGetChatItem = res => {
       setAiSessionId(res.id)
@@ -188,12 +188,10 @@ const Index = forwardRef<{ getAiSessionCopy: () => void }, { height: number }>((
               if (!Array.isArray(item.contactInfo.phones)) {
                 item.contactInfo.phones = []
               }
-
               // 确保 tags 是数组
               if (!Array.isArray(item.tags)) {
                 item.tags = []
               }
-
               let locationStr = item.province || item.address || item.location || '未知省份'
               if (locationStr.includes('省')) {
                 item.handleLocation = locationStr.split('省')[0] + '省'
