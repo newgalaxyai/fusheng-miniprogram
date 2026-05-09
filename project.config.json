@@ -1,7 +1,7 @@
 {
   "miniprogramRoot": "dist/",
-  "projectname": "taro-mini",
-  "description": "taro框架小程序项目",
+  "projectname": "富盛获客",
+  "description": "富盛获客小程序",
   "appid": "wxd3a5530a4763cc45",
   "setting": {
     "urlCheck": true,
